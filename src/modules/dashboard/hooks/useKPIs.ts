@@ -60,41 +60,47 @@ export function useKPIs(mesAno: string, zona?: string) {
         return sum + 15000; // placeholder — calcular corretamente via JOIN
       }, 0);
 
-      // Perda CVE total estimada
-      const { data: injecoes } = await supabase
-        .from("injecao_energia")
-        .select("total_kwh_injetado, id_subestacao")
-        .eq("mes_ano", mesAno);
+      // Perda CVE total estimada — mês atual e mês anterior para calcular variação
+      const mesAnterior = (() => {
+        const [y, m] = mesAno.split("-").map(Number);
+        const d = new Date(y, m - 2, 1);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      })();
 
-      const { data: faturacaoTotal } = await supabase
-        .from("faturacao_clientes")
-        .select("kwh_faturado, valor_cve")
-        .eq("mes_ano", mesAno);
+      const [
+        { data: injecoes },
+        { data: faturacaoTotal },
+        { data: injecoesAnt },
+        { data: faturacaoAnt },
+      ] = await Promise.all([
+        supabase.from("injecao_energia").select("total_kwh_injetado").eq("mes_ano", mesAno),
+        supabase.from("faturacao_clientes").select("kwh_faturado, valor_cve").eq("mes_ano", mesAno),
+        supabase.from("injecao_energia").select("total_kwh_injetado").eq("mes_ano", mesAnterior),
+        supabase.from("faturacao_clientes").select("kwh_faturado").eq("mes_ano", mesAnterior),
+      ]);
 
-      const totalInjetado = (injecoes ?? []).reduce(
-        (s, i) => s + i.total_kwh_injetado,
-        0
-      );
-      const totalFaturado = (faturacaoTotal ?? []).reduce(
-        (s, f) => s + f.kwh_faturado,
-        0
-      );
-      const totalCVEFaturado = (faturacaoTotal ?? []).reduce(
-        (s, f) => s + f.valor_cve,
-        0
-      );
+      const totalInjetado = (injecoes ?? []).reduce((s, i) => s + i.total_kwh_injetado, 0);
+      const totalFaturado = (faturacaoTotal ?? []).reduce((s, f) => s + f.kwh_faturado, 0);
+      const totalCVEFaturado = (faturacaoTotal ?? []).reduce((s, f) => s + f.valor_cve, 0);
 
       const perdaKwh = totalInjetado - totalFaturado;
-      const tarifaMedia =
-        totalFaturado > 0 ? totalCVEFaturado / totalFaturado : 15; // CVE/kWh
+      const tarifaMedia = totalFaturado > 0 ? totalCVEFaturado / totalFaturado : 15;
       const perdaCVE = perdaKwh * tarifaMedia;
+
+      // Variação vs mês anterior
+      const totalInjetadoAnt = (injecoesAnt ?? []).reduce((s, i) => s + i.total_kwh_injetado, 0);
+      const totalFaturadoAnt = (faturacaoAnt ?? []).reduce((s, f) => s + f.kwh_faturado, 0);
+      const perdaKwhAnt = totalInjetadoAnt - totalFaturadoAnt;
+      const perdaCVEAnt = perdaKwhAnt * tarifaMedia;
+      const variacaoPerda =
+        perdaCVEAnt > 0 ? ((perdaCVE - perdaCVEAnt) / perdaCVEAnt) * 100 : 0;
 
       setData({
         perda_cve_total: Math.max(0, perdaCVE),
         clientes_risco_critico: criticos,
         ordens_pendentes: pendentes,
         receita_recuperada_ytd: receitaYTD,
-        variacao_perda_pct: 0, // TODO: comparar com mês anterior
+        variacao_perda_pct: Math.round(variacaoPerda * 10) / 10,
       });
 
       setLoading(false);
