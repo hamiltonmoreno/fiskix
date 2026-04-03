@@ -213,7 +213,7 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <tbody>
-                  {preview.preview.slice(0, 6).map((row, i) => (
+                  {(preview.preview ?? []).slice(0, 6).map((row, i) => (
                     <tr
                       key={i}
                       className={
@@ -234,12 +234,12 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
             </div>
 
             {/* Erros */}
-            {preview.erros.length > 0 && (
+            {(preview.erros ?? []).length > 0 && (
               <div className="p-4 border-t border-slate-100 bg-red-50">
                 <p className="text-sm font-medium text-red-700 mb-2">
                   Erros de validação:
                 </p>
-                {preview.erros.slice(0, 5).map((e, i) => (
+                {(preview.erros ?? []).slice(0, 5).map((e, i) => (
                   <p key={i} className="text-xs text-red-600">
                     Linha {e.linha} · {e.campo}: {e.motivo}
                   </p>
