@@ -24,6 +24,7 @@ interface Regra {
 
 interface FichaProps {
   alertaId: string;
+  medianaCluster: number | null;
   alerta: {
     id: string;
     score_risco: number;
@@ -113,6 +114,7 @@ export function FichaInteligencia({
   alertaId,
   alerta,
   faturacaoHistorico,
+  medianaCluster,
 }: FichaProps) {
   const router = useRouter();
   const cliente = alerta.clientes;
@@ -193,7 +195,8 @@ export function FichaInteligencia({
         <div className="bg-white rounded-2xl p-5">
           <p className="font-semibold text-slate-700 mb-1">Histórico de Consumo</p>
           <p className="text-xs text-slate-400 mb-4">
-            Últimos {chartData.length} meses · Média: {mediaConsumo.toFixed(0)} kWh
+            Últimos {chartData.length} meses · Média própria: {mediaConsumo.toFixed(0)} kWh
+            {medianaCluster !== null && ` · Mediana bairro: ${medianaCluster.toFixed(0)} kWh`}
           </p>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
@@ -212,7 +215,16 @@ export function FichaInteligencia({
                 y={mediaConsumo}
                 stroke="#94A3B8"
                 strokeDasharray="4 4"
+                label={{ value: "média", fontSize: 9, fill: "#94A3B8" }}
               />
+              {medianaCluster !== null && (
+                <ReferenceLine
+                  y={medianaCluster}
+                  stroke="#F59E0B"
+                  strokeDasharray="4 4"
+                  label={{ value: "bairro", fontSize: 9, fill: "#F59E0B" }}
+                />
+              )}
               <Bar
                 dataKey="kwh"
                 fill="#3B82F6"
