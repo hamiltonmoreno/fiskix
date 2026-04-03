@@ -103,6 +103,9 @@ Deno.serve(async (req) => {
 
     const mensagem = getTemplate(tipo, cliente.numero_contador);
 
+    // Normalizar número para E.164 (remover espaços e caracteres não numéricos exceto +)
+    const telemovelNormalizado = cliente.telemovel.replace(/[^\d+]/g, "");
+
     // Tentar Twilio
     const twilioSid = Deno.env.get("TWILIO_ACCOUNT_SID");
     const twilioToken = Deno.env.get("TWILIO_AUTH_TOKEN");
@@ -112,7 +115,7 @@ Deno.serve(async (req) => {
 
     if (twilioSid && twilioToken && twilioFrom) {
       resultado = await enviarTwilio(
-        cliente.telemovel,
+        telemovelNormalizado,
         mensagem,
         twilioSid,
         twilioToken,
