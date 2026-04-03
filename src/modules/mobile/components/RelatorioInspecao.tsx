@@ -200,7 +200,7 @@ export function RelatorioInspecao({
           id_alerta: alertaId,
           id_fiscal: fiscalId,
           resultado,
-          tipo_fraude: tipoFraude || null,
+          tipo_fraude: (tipoFraude || null) as "Bypass" | "Contador_adulterado" | "Ligacao_vizinha" | "Ima" | "Outro" | null,
           foto_url,
           foto_lat: gps?.lat ?? null,
           foto_lng: gps?.lng ?? null,

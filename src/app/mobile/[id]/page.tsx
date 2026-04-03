@@ -52,7 +52,7 @@ export default async function FichaPage({ params }: Props) {
   return (
     <FichaInteligencia
       alertaId={id}
-      alerta={alerta as Parameters<typeof FichaInteligencia>[0]["alerta"]}
+      alerta={alerta as unknown as Parameters<typeof FichaInteligencia>[0]["alerta"]}
       faturacaoHistorico={(faturacao ?? []).reverse()}
     />
   );
