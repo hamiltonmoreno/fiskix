@@ -1,6 +1,7 @@
 /**
  * Fiskix Send SMS — Edge Function
  * Estratégia 2 passos: Amarelo (dissuasão) e Vermelho (alerta firme)
+ * Remetente: Alphanumeric "Electra" com fallback para número EUA
  *
  * POST /send-sms
  * Body: { alerta_id: string, tipo: 'amarelo' | 'vermelho' }
@@ -26,12 +27,12 @@ async function enviarTwilio(
   mensagem: string,
   accountSid: string,
   authToken: string,
-  fromNumber: string
-): Promise<{ ok: boolean; sid?: string; error?: string }> {
+  from: string
+): Promise<{ ok: boolean; sid?: string; error?: string; from?: string }> {
   const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
   const body = new URLSearchParams({
     To: telemovel,
-    From: fromNumber,
+    From: from,
     Body: mensagem,
   });
 
@@ -46,11 +47,11 @@ async function enviarTwilio(
 
   if (response.ok) {
     const data = await response.json();
-    return { ok: true, sid: data.sid };
+    return { ok: true, sid: data.sid, from };
   }
 
   const errorData = await response.json();
-  return { ok: false, error: errorData.message ?? "Twilio error" };
+  return { ok: false, error: errorData.message ?? "Twilio error", from };
 }
 
 Deno.serve(async (req) => {
@@ -92,7 +93,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    const cliente = alerta.clientes as { telemovel: string | null; numero_contador: string; nome_titular: string } | null;
+    const cliente = alerta.clientes as {
+      telemovel: string | null;
+      numero_contador: string;
+      nome_titular: string;
+    } | null;
 
     if (!cliente?.telemovel) {
       return new Response(
@@ -103,24 +108,38 @@ Deno.serve(async (req) => {
 
     const mensagem = getTemplate(tipo, cliente.numero_contador);
 
-    // Normalizar número para E.164 (remover espaços e caracteres não numéricos exceto +)
+    // Normalizar número para E.164
     const telemovelNormalizado = cliente.telemovel.replace(/[^\d+]/g, "");
 
-    // Tentar Twilio
     const twilioSid = Deno.env.get("TWILIO_ACCOUNT_SID");
     const twilioToken = Deno.env.get("TWILIO_AUTH_TOKEN");
-    const twilioFrom = Deno.env.get("TWILIO_PHONE_NUMBER");
+    const twilioPhone = Deno.env.get("TWILIO_PHONE_NUMBER"); // fallback numérico
+    // Alphanumeric Sender ID — máx 11 chars, sem espaços
+    const alphaFrom = Deno.env.get("TWILIO_ALPHA_SENDER") ?? "Electra";
 
-    let resultado = { ok: false, error: "SMS não enviado — credenciais em falta" };
+    let resultado = { ok: false, error: "Credenciais em falta", from: "" };
 
-    if (twilioSid && twilioToken && twilioFrom) {
+    if (twilioSid && twilioToken) {
+      // 1ª tentativa: Alphanumeric Sender ID ("Electra")
       resultado = await enviarTwilio(
         telemovelNormalizado,
         mensagem,
         twilioSid,
         twilioToken,
-        twilioFrom
+        alphaFrom
       );
+
+      // 2ª tentativa: fallback para número EUA se alpha falhou
+      if (!resultado.ok && twilioPhone) {
+        console.log(`Alpha sender falhou (${resultado.error}), a tentar número ${twilioPhone}`);
+        resultado = await enviarTwilio(
+          telemovelNormalizado,
+          mensagem,
+          twilioSid,
+          twilioToken,
+          twilioPhone
+        );
+      }
     }
 
     // Atualizar status do alerta
@@ -135,7 +154,8 @@ Deno.serve(async (req) => {
       JSON.stringify({
         alerta_id,
         tipo,
-        telemovel: cliente.telemovel.replace(/\d(?=\d{4})/g, "*"), // mascarar número
+        telemovel: cliente.telemovel.replace(/\d(?=\d{4})/g, "*"),
+        remetente: resultado.from,
         mensagem_enviada: resultado.ok,
         sid: resultado.ok ? resultado.sid : undefined,
         erro: resultado.ok ? undefined : resultado.error,
