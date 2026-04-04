@@ -37,7 +37,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Alertas", href: "/dashboard#alertas", icon: Bell },
+  { label: "Alertas", href: "/alertas", icon: Bell },
 ];
 
 const ADMIN_ITEMS: NavItem[] = [

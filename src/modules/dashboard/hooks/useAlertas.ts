@@ -45,7 +45,7 @@ export function useAlertas({
       .range(page * pageSize, (page + 1) * pageSize - 1);
 
     if (statusFilter && statusFilter !== "todos") {
-      query = query.eq("status", statusFilter as "Pendente" | "Notificado_SMS" | "Pendente_Inspecao" | "Inspecionado");
+      query = query.eq("status", statusFilter as unknown as "Pendente");
     }
 
     if (zona) {

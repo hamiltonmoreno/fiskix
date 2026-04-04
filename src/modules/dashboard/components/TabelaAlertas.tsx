@@ -15,6 +15,9 @@ const STATUS_LABELS: Record<string, { label: string; class: string }> = {
   Notificado_SMS: { label: "SMS Enviado", class: "bg-blue-100 text-blue-700" },
   Pendente_Inspecao: { label: "Em Inspeção", class: "bg-amber-100 text-amber-700" },
   Inspecionado: { label: "Inspecionado", class: "bg-green-100 text-green-700" },
+  Fraude_Confirmada: { label: "Fraude Confirmada", class: "bg-red-100 text-red-700" },
+  Anomalia_Tecnica: { label: "Anomalia Técnica", class: "bg-orange-100 text-orange-700" },
+  Falso_Positivo: { label: "Falso Positivo", class: "bg-slate-100 text-slate-400" },
 };
 
 export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
@@ -75,6 +78,9 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
             <option value="Notificado_SMS">SMS Enviado</option>
             <option value="Pendente_Inspecao">Em Inspeção</option>
             <option value="Inspecionado">Inspecionado</option>
+            <option value="Fraude_Confirmada">Fraude Confirmada</option>
+            <option value="Anomalia_Tecnica">Anomalia Técnica</option>
+            <option value="Falso_Positivo">Falso Positivo</option>
           </select>
           <button
             onClick={reload}
@@ -122,7 +128,8 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
               data.map((alerta) => {
                 const scoreClass = getScoreColor(alerta.score_risco);
                 const scoreLabel = getScoreLabel(alerta.score_risco);
-                const statusInfo = STATUS_LABELS[alerta.status] ?? STATUS_LABELS.Pendente;
+                const displayStatus = (alerta.status === "Inspecionado" && alerta.resultado) ? alerta.resultado : alerta.status;
+                const statusInfo = STATUS_LABELS[displayStatus] ?? STATUS_LABELS.Pendente;
                 const regrasPontuadas = alerta.motivo.filter((r) => r.pontos > 0);
                 const isLoading = actionLoading === alerta.id;
                 const podeEnviarSMS = alerta.status === "Pendente";

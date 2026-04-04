@@ -6,6 +6,7 @@ import { ChevronRight, Home } from "lucide-react";
 
 const SEGMENT_LABELS: Record<string, string> = {
   dashboard: "Dashboard",
+  alertas: "Alertas",
   admin: "Administração",
   importar: "Importar Dados",
   scoring: "Motor de Scoring",

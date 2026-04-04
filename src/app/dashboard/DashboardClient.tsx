@@ -4,6 +4,7 @@ import { useState } from "react";
 import { KPICards } from "@/modules/dashboard/components/KPICards";
 import { HeatMap } from "@/modules/dashboard/components/HeatMap";
 import { Top5Transformadores } from "@/modules/dashboard/components/Top5Transformadores";
+import { TendenciaPerdas } from "@/modules/dashboard/components/TendenciaPerdas";
 import { TabelaAlertas } from "@/modules/dashboard/components/TabelaAlertas";
 import { useKPIs } from "@/modules/dashboard/hooks/useKPIs";
 import { getCurrentMesAno } from "@/lib/utils";
@@ -88,6 +89,8 @@ export function DashboardClient({ profile }: DashboardClientProps) {
           <HeatMap mesAno={mesAno} zona={zona} />
           <Top5Transformadores mesAno={mesAno} />
         </div>
+
+        <TendenciaPerdas mesAno={mesAno} zona={zona} />
 
         <TabelaAlertas mesAno={mesAno} zona={zona} />
       </main>

@@ -24,19 +24,21 @@ interface ChartDatum {
   faturado: number;
   perda_pct: number;
   cve_recuperavel: number;
+  tarifa_media: number;
 }
 
 const CustomTooltip = ({ active, payload, label }: {
   active?: boolean;
-  payload?: Array<{ name: string; value: number; color: string }>;
+  payload?: Array<{ name: string; value: number; color: string; payload: ChartDatum }>;
   label?: string;
 }) => {
   if (!active || !payload?.length) return null;
 
   const inj = payload.find((p) => p.name === "Injetado")?.value ?? 0;
   const fat = payload.find((p) => p.name === "Faturado")?.value ?? 0;
+  const tarifaMedia = payload[0]?.payload?.tarifa_media ?? 15;
   const perdaKwh = inj - fat;
-  const perdaCVE = perdaKwh * 15;
+  const perdaCVE = perdaKwh * tarifaMedia;
 
   return (
     <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm text-sm">
@@ -82,26 +84,30 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
 
       const { data: faturacao } = await supabase
         .from("faturacao_clientes")
-        .select("id_cliente, kwh_faturado")
+        .select("id_cliente, kwh_faturado, valor_cve")
         .eq("mes_ano", mesAno)
         .in("id_cliente", clienteIds);
 
-      const faturacaoPorCliente: Record<string, number> = {};
+      const faturacaoPorCliente: Record<string, { kwh: number; cve: number }> = {};
       for (const f of faturacao ?? []) {
-        faturacaoPorCliente[f.id_cliente] = f.kwh_faturado;
+        faturacaoPorCliente[f.id_cliente] = { kwh: f.kwh_faturado, cve: f.valor_cve };
       }
 
-      const faturacaoPorSub: Record<string, number> = {};
+      const faturacaoPorSub: Record<string, { kwh: number; cve: number }> = {};
       for (const c of clientes ?? []) {
-        faturacaoPorSub[c.id_subestacao] =
-          (faturacaoPorSub[c.id_subestacao] ?? 0) +
-          (faturacaoPorCliente[c.id] ?? 0);
+        const prev = faturacaoPorSub[c.id_subestacao] ?? { kwh: 0, cve: 0 };
+        const fat = faturacaoPorCliente[c.id] ?? { kwh: 0, cve: 0 };
+        faturacaoPorSub[c.id_subestacao] = {
+          kwh: prev.kwh + fat.kwh,
+          cve: prev.cve + fat.cve,
+        };
       }
 
       const chartData: ChartDatum[] = injecoes.map((inj) => {
         const sub = inj.subestacoes as unknown as { nome: string } | null;
         const kwh_injetado = inj.total_kwh_injetado;
-        const kwh_faturado = faturacaoPorSub[inj.id_subestacao] ?? 0;
+        const { kwh: kwh_faturado, cve: cve_faturado } = faturacaoPorSub[inj.id_subestacao] ?? { kwh: 0, cve: 0 };
+        const tarifaMedia = kwh_faturado > 0 ? cve_faturado / kwh_faturado : 15;
         const perda_pct =
           kwh_injetado > 0
             ? ((kwh_injetado - kwh_faturado) / kwh_injetado) * 100
@@ -112,7 +118,8 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
           injetado: Math.round(kwh_injetado),
           faturado: Math.round(kwh_faturado),
           perda_pct: parseFloat(perda_pct.toFixed(1)),
-          cve_recuperavel: Math.max(0, (kwh_injetado - kwh_faturado) * 15),
+          cve_recuperavel: Math.max(0, (kwh_injetado - kwh_faturado) * tarifaMedia),
+          tarifa_media: tarifaMedia,
         };
       });
 
@@ -147,7 +154,7 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
               tick={{ fontSize: 11, fill: "#64748b" }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+              tickFormatter={(v) => `${(v / 1000).toFixed(0)}k kWh`}
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend

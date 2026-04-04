@@ -50,7 +50,10 @@ export function useKPIs(mesAno: string, zona?: string) {
         .from("relatorios_inspecao")
         .select(
           `alertas_fraude!inner(mes_ano, id_cliente,
-            clientes!inner(faturacao_clientes(valor_cve, mes_ano))
+            clientes!inner(
+              faturacao_clientes(valor_cve, mes_ano),
+              subestacoes!inner(zona_bairro)
+            )
           )`
         )
         .eq("resultado", "Fraude_Confirmada");
@@ -59,11 +62,15 @@ export function useKPIs(mesAno: string, zona?: string) {
         const item = r as {
           alertas_fraude: {
             mes_ano: string;
-            clientes: { faturacao_clientes: Array<{ valor_cve: number; mes_ano: string }> };
+            clientes: {
+              faturacao_clientes: Array<{ valor_cve: number; mes_ano: string }>;
+              subestacoes: { zona_bairro: string };
+            };
           };
         };
         const mesAlerta = item.alertas_fraude?.mes_ano;
         if (!mesAlerta?.startsWith(ano)) return sum;
+        if (zona && item.alertas_fraude?.clientes?.subestacoes?.zona_bairro !== zona) return sum;
         const faturacao = item.alertas_fraude?.clientes?.faturacao_clientes ?? [];
         const fatMes = faturacao.find((f) => f.mes_ano === mesAlerta);
         return sum + (fatMes?.valor_cve ?? 0);

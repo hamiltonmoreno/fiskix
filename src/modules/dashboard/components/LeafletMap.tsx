@@ -74,8 +74,12 @@ export function LeafletMap({ subestacoes, mesAno }: LeafletMapProps) {
                     <span>Perda:</span>
                     <span>{sub.perda_pct.toFixed(1)}%</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Perda kWh:</span>
+                    <span className="font-medium">{Math.max(0, perdaKwh).toLocaleString("pt-CV")} kWh</span>
+                  </div>
                   <div className="flex justify-between text-red-600">
-                    <span>Perda CVE est.:</span>
+                    <span>Perda CVE (est.):</span>
                     <span>{formatCVE(Math.max(0, perdaCVE))}</span>
                   </div>
                   {sub.alertas_criticos > 0 && (

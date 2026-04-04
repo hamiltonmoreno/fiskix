@@ -57,7 +57,7 @@ export function KPICards({ data, loading }: KPICardsProps) {
       />
       <KPICard
         title="Risco Crítico"
-        value={data ? `${data.clientes_risco_critico} clientes` : "—"}
+        value={data ? `${data.clientes_risco_critico} ${data.clientes_risco_critico === 1 ? "cliente" : "clientes"}` : "—"}
         icon={AlertTriangle}
         color="bg-amber-100 text-amber-600"
         sub="score ≥ 75 este mês"
@@ -65,7 +65,7 @@ export function KPICards({ data, loading }: KPICardsProps) {
       />
       <KPICard
         title="Ordens Pendentes"
-        value={data ? `${data.ordens_pendentes}` : "—"}
+        value={data ? `${data.ordens_pendentes} ordens` : "—"}
         icon={ClipboardList}
         color="bg-blue-100 text-blue-600"
         sub="aguardam inspeção física"

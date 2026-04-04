@@ -144,7 +144,7 @@ export default function ScoringPage() {
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Subestação</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Perda</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Perda (%)</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Zona</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Alertas</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Duração</th>

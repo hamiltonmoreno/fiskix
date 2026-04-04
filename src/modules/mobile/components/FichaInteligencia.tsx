@@ -193,7 +193,7 @@ export function FichaInteligencia({
 
         {/* Gráfico de consumo */}
         <div className="bg-white rounded-2xl p-5">
-          <p className="font-semibold text-slate-700 mb-1">Histórico de Consumo</p>
+          <p className="font-semibold text-slate-700 mb-1">Histórico de Consumo (kWh)</p>
           <p className="text-xs text-slate-400 mb-4">
             Últimos {chartData.length} meses · Média própria: {mediaConsumo.toFixed(0)} kWh
             {medianaCluster !== null && ` · Mediana bairro: ${medianaCluster.toFixed(0)} kWh`}
@@ -206,7 +206,12 @@ export function FichaInteligencia({
                 tickLine={false}
                 axisLine={false}
               />
-              <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} tickLine={false} axisLine={false} />
+              <YAxis
+                tick={{ fontSize: 10, fill: "#94A3B8" }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${v}`}
+              />
               <Tooltip
                 formatter={(v: number) => [`${v} kWh`, "Consumo"]}
                 contentStyle={{ fontSize: 12, borderRadius: 8 }}
