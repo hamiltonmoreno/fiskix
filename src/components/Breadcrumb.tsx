@@ -20,8 +20,8 @@ export function Breadcrumb() {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
 
-  // Don't render on root-level pages (e.g. /dashboard)
-  if (segments.length <= 1) return null;
+  // Don't render on homepage
+  if (segments.length < 1) return null;
 
   const crumbs = segments.map((seg, i) => ({
     label: SEGMENT_LABELS[seg] ?? seg,
