@@ -108,17 +108,17 @@ export function useKPIs(mesAno: string, zona?: string) {
         { data: faturacaoAnt },
       ] = await Promise.all([injecoesQuery, fatQuery, injecoesAntQuery, fatAntQuery]);
 
-      const totalInjetado = ((injecoes ?? []) as Array<{ total_kwh_injetado: number }>).reduce((s, i) => s + i.total_kwh_injetado, 0);
-      const totalFaturado = ((faturacaoTotal ?? []) as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.kwh_faturado, 0);
-      const totalCVEFaturado = ((faturacaoTotal ?? []) as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.valor_cve, 0);
+      const totalInjetado = ((injecoes ?? []) as unknown as Array<{ total_kwh_injetado: number }>).reduce((s, i) => s + i.total_kwh_injetado, 0);
+      const totalFaturado = ((faturacaoTotal ?? []) as unknown as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.kwh_faturado, 0);
+      const totalCVEFaturado = ((faturacaoTotal ?? []) as unknown as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.valor_cve, 0);
 
       const perdaKwh = totalInjetado - totalFaturado;
       const tarifaMedia = totalFaturado > 0 ? totalCVEFaturado / totalFaturado : 15;
       const perdaCVE = perdaKwh * tarifaMedia;
 
       // Variação vs mês anterior
-      const totalInjetadoAnt = ((injecoesAnt ?? []) as Array<{ total_kwh_injetado: number }>).reduce((s, i) => s + i.total_kwh_injetado, 0);
-      const totalFaturadoAnt = ((faturacaoAnt ?? []) as Array<{ kwh_faturado: number }>).reduce((s, f) => s + f.kwh_faturado, 0);
+      const totalInjetadoAnt = ((injecoesAnt ?? []) as unknown as Array<{ total_kwh_injetado: number }>).reduce((s, i) => s + i.total_kwh_injetado, 0);
+      const totalFaturadoAnt = ((faturacaoAnt ?? []) as unknown as Array<{ kwh_faturado: number }>).reduce((s, f) => s + f.kwh_faturado, 0);
       const perdaKwhAnt = totalInjetadoAnt - totalFaturadoAnt;
       const perdaCVEAnt = perdaKwhAnt * tarifaMedia;
       const variacaoPerda =
