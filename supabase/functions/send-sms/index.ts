@@ -109,7 +109,9 @@ Deno.serve(async (req) => {
     const mensagem = getTemplate(tipo, cliente.numero_contador);
 
     // Normalizar número para E.164
-    const telemovelNormalizado = cliente.telemovel.replace(/[^\d+]/g, "");
+    let tel = cliente.telemovel.replace(/[^\d+]/g, "");
+    if (!tel.startsWith("+")) tel = "+" + tel;
+    const telemovelNormalizado = tel;
 
     const twilioSid = Deno.env.get("TWILIO_ACCOUNT_SID");
     const twilioToken = Deno.env.get("TWILIO_AUTH_TOKEN");

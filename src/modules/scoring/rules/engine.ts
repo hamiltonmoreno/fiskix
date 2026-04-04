@@ -319,7 +319,7 @@ function r5TendenciaDescendente(
     }
   }
 
-  if (slope >= limiar_slope || mesesConsecutivos < 2) {
+  if (slope >= limiar_slope || mesesConsecutivos < 3) {
     return {
       regra: "R5",
       pontos: 0,

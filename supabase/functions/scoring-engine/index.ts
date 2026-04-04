@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
       .in("id_cliente", clienteIds)
       .gte("mes_ano", mes12AtrasFmt)
       .lt("mes_ano", mes_ano)
-      .neq("resultado", "Falso_Positivo");
+      .in("resultado", ["Fraude_Confirmada", "Anomalia_Tecnica"]);
 
     const alertasPorCliente: Record<string, number> = {};
     for (const a of (alertasHist ?? [])) {
@@ -403,21 +403,42 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 6. Upsert alertas (apenas scores ≥ 50)
+    // 6. Inserir novos alertas; actualizar score/motivo apenas em alertas ainda Pendente
+    // Nunca sobrescrever status de alertas já em Notificado_SMS, Pendente_Inspecao ou Inspecionado
     let inseridos = 0;
     if (alertasParaInserir.length > 0) {
-      const { error: upsertError, count } = await supabase
-        .from("alertas_fraude")
-        .upsert(alertasParaInserir, {
-          onConflict: "id_cliente,mes_ano",
-          ignoreDuplicates: false,
-        });
+      const clienteIds = alertasParaInserir.map((a) => a.id_cliente);
 
-      if (upsertError) {
-        console.error("Erro ao inserir alertas:", upsertError);
-      } else {
-        inseridos = count ?? alertasParaInserir.length;
+      // Verificar estado actual dos alertas existentes para este mês
+      const { data: existentes } = await supabase
+        .from("alertas_fraude")
+        .select("id_cliente, status")
+        .eq("mes_ano", mes_ano)
+        .in("id_cliente", clienteIds);
+
+      const existentesMap = new Map((existentes ?? []).map((e) => [e.id_cliente, e.status]));
+
+      const novos = alertasParaInserir.filter((a) => !existentesMap.has(a.id_cliente));
+      const actualizaveis = alertasParaInserir.filter((a) => existentesMap.get(a.id_cliente) === "Pendente");
+
+      // INSERT novos alertas
+      if (novos.length > 0) {
+        const { error, count } = await supabase.from("alertas_fraude").insert(novos);
+        if (!error) inseridos += count ?? novos.length;
+        else console.error("Erro ao inserir novos alertas:", error);
       }
+
+      // UPDATE score e motivo apenas em alertas ainda Pendente (não actuados)
+      for (const a of actualizaveis) {
+        await supabase
+          .from("alertas_fraude")
+          .update({ score_risco: a.score_risco, motivo: a.motivo })
+          .eq("id_cliente", a.id_cliente)
+          .eq("mes_ano", mes_ano)
+          .eq("status", "Pendente");
+        inseridos++;
+      }
+
     }
 
     const duracao_ms = Date.now() - start;

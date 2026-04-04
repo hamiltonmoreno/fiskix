@@ -76,17 +76,37 @@ export function useKPIs(mesAno: string, zona?: string) {
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       })();
 
+      // Queries de energia — filtradas por zona quando selecionada
+      let injecoesQuery = supabase
+        .from("injecao_energia")
+        .select(zona ? "total_kwh_injetado, subestacoes!inner(zona_bairro)" : "total_kwh_injetado")
+        .eq("mes_ano", mesAno);
+      let injecoesAntQuery = supabase
+        .from("injecao_energia")
+        .select(zona ? "total_kwh_injetado, subestacoes!inner(zona_bairro)" : "total_kwh_injetado")
+        .eq("mes_ano", mesAnterior);
+      let fatQuery = supabase
+        .from("faturacao_clientes")
+        .select(zona ? "kwh_faturado, valor_cve, clientes!inner(subestacoes!inner(zona_bairro))" : "kwh_faturado, valor_cve")
+        .eq("mes_ano", mesAno);
+      let fatAntQuery = supabase
+        .from("faturacao_clientes")
+        .select(zona ? "kwh_faturado, clientes!inner(subestacoes!inner(zona_bairro))" : "kwh_faturado")
+        .eq("mes_ano", mesAnterior);
+
+      if (zona) {
+        injecoesQuery = (injecoesQuery as typeof injecoesQuery).eq("subestacoes.zona_bairro", zona);
+        injecoesAntQuery = (injecoesAntQuery as typeof injecoesAntQuery).eq("subestacoes.zona_bairro", zona);
+        fatQuery = (fatQuery as typeof fatQuery).eq("clientes.subestacoes.zona_bairro", zona);
+        fatAntQuery = (fatAntQuery as typeof fatAntQuery).eq("clientes.subestacoes.zona_bairro", zona);
+      }
+
       const [
         { data: injecoes },
         { data: faturacaoTotal },
         { data: injecoesAnt },
         { data: faturacaoAnt },
-      ] = await Promise.all([
-        supabase.from("injecao_energia").select("total_kwh_injetado").eq("mes_ano", mesAno),
-        supabase.from("faturacao_clientes").select("kwh_faturado, valor_cve").eq("mes_ano", mesAno),
-        supabase.from("injecao_energia").select("total_kwh_injetado").eq("mes_ano", mesAnterior),
-        supabase.from("faturacao_clientes").select("kwh_faturado").eq("mes_ano", mesAnterior),
-      ]);
+      ] = await Promise.all([injecoesQuery, fatQuery, injecoesAntQuery, fatAntQuery]);
 
       const totalInjetado = (injecoes ?? []).reduce((s, i) => s + i.total_kwh_injetado, 0);
       const totalFaturado = (faturacaoTotal ?? []).reduce((s, f) => s + f.kwh_faturado, 0);
