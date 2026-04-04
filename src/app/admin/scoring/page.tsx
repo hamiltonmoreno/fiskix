@@ -85,15 +85,8 @@ export default function ScoringPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 px-6 py-4">
-        <div className="flex items-center gap-3">
-          <Link href="/admin" className="p-2 rounded-lg hover:bg-slate-100">
-            <ArrowLeft className="w-5 h-5 text-slate-500" />
-          </Link>
-          <div>
-            <h1 className="font-bold text-slate-900">Motor de Scoring</h1>
-            <p className="text-sm text-slate-400">9 Regras Graduais v2</p>
-          </div>
-        </div>
+        <h1 className="font-bold text-slate-900">Motor de Scoring</h1>
+        <p className="text-sm text-slate-400">9 Regras Graduais v2</p>
       </header>
 
       <main className="max-w-3xl mx-auto p-6 space-y-6">

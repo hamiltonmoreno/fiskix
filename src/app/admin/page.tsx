@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Users, Upload, Settings, BarChart3 } from "lucide-react";
+// Link is used for admin cards below
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -27,15 +28,8 @@ export default async function AdminPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-slate-900">Administração</h1>
-            <p className="text-sm text-slate-400">{profile.nome_completo} · {profile.role}</p>
-          </div>
-          <Link href="/dashboard" className="text-sm text-blue-600 hover:underline">
-            ← Dashboard
-          </Link>
-        </div>
+        <h1 className="text-lg font-bold text-slate-900">Administração</h1>
+        <p className="text-sm text-slate-400">{profile.nome_completo} · {profile.role}</p>
       </header>
 
       <main className="max-w-4xl mx-auto p-6">
