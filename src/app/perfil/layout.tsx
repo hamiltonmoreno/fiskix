@@ -15,13 +15,13 @@ export default async function PerfilLayout({
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("perfis")
     .select("role, nome_completo, id_zona")
     .eq("id", user.id)
     .single();
 
-  if (!profile) redirect("/login");
+  if (error || !profile) redirect("/login");
 
   return (
     <div className="flex min-h-screen bg-slate-50">

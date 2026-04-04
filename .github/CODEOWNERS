@@ -1,0 +1,7 @@
+# All files — @hamiltonmoreno must review every PR
+* @hamiltonmoreno
+
+# Critical paths — explicit ownership
+supabase/ @hamiltonmoreno
+src/lib/ @hamiltonmoreno
+src/app/admin/ @hamiltonmoreno

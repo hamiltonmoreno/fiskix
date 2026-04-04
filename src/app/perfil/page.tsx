@@ -11,13 +11,13 @@ export default async function PerfilPage() {
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("perfis")
     .select("id, role, nome_completo, id_zona, ativo, criado_em, atualizado_em")
     .eq("id", user.id)
     .single();
 
-  if (!profile) redirect("/login");
+  if (error || !profile) redirect("/login");
 
   return <PerfilClient profile={profile} email={user.email ?? ""} />;
 }

@@ -146,7 +146,7 @@ export function UtilizadoresClient({
             <p className="text-sm text-slate-400">{utilizadores.length} registados</p>
           </div>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => { setShowModal(true); setEditUser(null); setConfirmDelete(null); }}
             className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800"
           >
             <Plus className="w-4 h-4" />
@@ -178,7 +178,7 @@ export function UtilizadoresClient({
                       </span>
                     </td>
                     <td className="px-4 py-3 text-slate-500 text-xs">
-                      {u.id_zona?.replace(/_/g, " ") ?? "Global"}
+                      {u.id_zona?.replace(/_/g, " ") ?? "Acesso Global"}
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -207,7 +207,7 @@ export function UtilizadoresClient({
                         </button>
                         {/* Editar */}
                         <button
-                          onClick={() => { setEditUser(u); setConfirmDelete(null); }}
+                          onClick={() => { setEditUser(u); setShowModal(false); setConfirmDelete(null); }}
                           className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-blue-600 transition-colors"
                           title="Editar"
                         >
@@ -216,7 +216,7 @@ export function UtilizadoresClient({
                         {/* Eliminar — não mostrar para si próprio */}
                         {u.id !== currentUserId && (
                           <button
-                            onClick={() => setConfirmDelete(confirmDelete === u.id ? null : u.id)}
+                            onClick={() => { setConfirmDelete(confirmDelete === u.id ? null : u.id); setShowModal(false); setEditUser(null); }}
                             className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
                             title="Eliminar"
                           >
@@ -240,7 +240,8 @@ export function UtilizadoresClient({
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => setConfirmDelete(null)}
-                              className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:bg-white transition-colors"
+                              disabled={loadingDelete}
+                              className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:bg-white disabled:opacity-50 transition-colors"
                             >
                               Cancelar
                             </button>
@@ -325,7 +326,13 @@ export function UtilizadoresClient({
               </button>
               <button
                 onClick={handleCriar}
-                disabled={loading}
+                disabled={
+                  loading ||
+                  !novoUser.email ||
+                  !novoUser.password ||
+                  !novoUser.nome_completo.trim() ||
+                  (ROLES_COM_ZONA.includes(novoUser.role) && !novoUser.id_zona)
+                }
                 className="flex-1 py-2.5 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 disabled:bg-slate-300"
               >
                 {loading ? "A criar..." : "Criar"}
@@ -383,7 +390,7 @@ export function UtilizadoresClient({
               </button>
               <button
                 onClick={handleEditar}
-                disabled={loading}
+                disabled={loading || !editUser?.nome_completo.trim()}
                 className="flex-1 py-2.5 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 disabled:bg-slate-300"
               >
                 {loading ? "A guardar..." : "Guardar"}
