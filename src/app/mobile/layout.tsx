@@ -24,7 +24,10 @@ export default function MobileLayout({
           __html: `
             if ('serviceWorker' in navigator) {
               window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js');
+                navigator.serviceWorker.register('/sw.js', { scope: '/mobile' })
+                  .catch(function(err) {
+                    console.warn('[Fiskix SW] Registo falhou:', err);
+                  });
               });
             }
           `,
