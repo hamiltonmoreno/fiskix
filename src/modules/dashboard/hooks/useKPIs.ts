@@ -55,9 +55,18 @@ export function useKPIs(mesAno: string, zona?: string) {
         )
         .eq("resultado", "Fraude_Confirmada");
 
-      const receitaYTD = (recuperada ?? []).reduce((sum: number) => {
-        // Estimativa: valor médio de faturação do cliente
-        return sum + 15000; // placeholder — calcular corretamente via JOIN
+      const receitaYTD = (recuperada ?? []).reduce((sum: number, r: unknown) => {
+        const item = r as {
+          alertas_fraude: {
+            mes_ano: string;
+            clientes: { faturacao_clientes: Array<{ valor_cve: number; mes_ano: string }> };
+          };
+        };
+        const mesAlerta = item.alertas_fraude?.mes_ano;
+        if (!mesAlerta?.startsWith(ano)) return sum;
+        const faturacao = item.alertas_fraude?.clientes?.faturacao_clientes ?? [];
+        const fatMes = faturacao.find((f) => f.mes_ano === mesAlerta);
+        return sum + (fatMes?.valor_cve ?? 0);
       }, 0);
 
       // Perda CVE total estimada — mês atual e mês anterior para calcular variação

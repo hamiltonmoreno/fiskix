@@ -11,7 +11,10 @@ import {
   ClipboardList,
   LogOut,
   AlertTriangle,
+  CloudUpload,
 } from "lucide-react";
+import { openDB } from "idb";
+import type { RelatorioOffline } from "../types";
 import { useRouter } from "next/navigation";
 
 interface RoteiroDiaProps {
@@ -20,10 +23,39 @@ interface RoteiroDiaProps {
   nomeFiscal: string;
 }
 
+async function syncPendingReports(supabase: ReturnType<typeof createClient>, fiscalId: string) {
+  try {
+    const db = await openDB("fiskix-offline", 1, {
+      upgrade(db) { db.createObjectStore("relatorios", { keyPath: "alerta_id" }); },
+    });
+    const pending: RelatorioOffline[] = await db.getAll("relatorios");
+    for (const r of pending) {
+      const { error } = await supabase.from("relatorios_inspecao").insert({
+        id_alerta: r.alerta_id,
+        id_fiscal: fiscalId,
+        resultado: r.resultado,
+        tipo_fraude: (r.tipo_fraude ?? null) as "Bypass" | "Contador_adulterado" | "Ligacao_vizinha" | "Ima" | "Outro" | null,
+        foto_url: null,
+        foto_lat: r.foto_lat ?? null,
+        foto_lng: r.foto_lng ?? null,
+        observacoes: r.observacoes ?? null,
+      });
+      if (!error) {
+        await supabase.from("alertas_fraude").update({ status: "Inspecionado", resultado: r.resultado }).eq("id", r.alerta_id);
+        await db.delete("relatorios", r.alerta_id);
+      }
+    }
+    return pending.length;
+  } catch {
+    return 0;
+  }
+}
+
 export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
   const [ordens, setOrdens] = useState<OrdemFiscal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [syncedCount, setSyncedCount] = useState(0);
   const supabase = createClient();
   const router = useRouter();
   const mesAno = getCurrentMesAno();
@@ -118,6 +150,15 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
 
     init();
   }, [carregarOrdens]);
+
+  // Sync pending offline reports when online
+  useEffect(() => {
+    if (navigator.onLine) {
+      syncPendingReports(supabase, fiscalId).then((n) => {
+        if (n > 0) setSyncedCount(n);
+      });
+    }
+  }, [fiscalId]);
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -261,6 +302,15 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
           })
         )}
       </div>
+
+      {/* Sync success banner */}
+      {syncedCount > 0 && (
+        <div className="fixed bottom-4 left-4 right-4 bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-2">
+          <CloudUpload className="w-4 h-4 text-green-600 shrink-0" />
+          <p className="text-green-700 text-sm">{syncedCount} relatório(s) offline sincronizado(s)</p>
+          <button onClick={() => setSyncedCount(0)} className="ml-auto text-green-500 text-lg leading-none">×</button>
+        </div>
+      )}
 
       {/* Aviso offline */}
       {!navigator.onLine && (

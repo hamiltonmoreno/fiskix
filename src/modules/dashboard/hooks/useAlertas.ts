@@ -48,6 +48,10 @@ export function useAlertas({
       query = query.eq("status", statusFilter as "Pendente" | "Notificado_SMS" | "Pendente_Inspecao" | "Inspecionado");
     }
 
+    if (zona) {
+      query = query.eq("clientes.subestacoes.zona_bairro", zona);
+    }
+
     const { data: rows, count } = await query;
 
     const alertas: AlertaTabela[] = (rows ?? []).map((r) => {
@@ -81,11 +85,7 @@ export function useAlertas({
       };
     });
 
-    const filtrados = zona
-      ? alertas.filter((a) => a.subestacao.zona_bairro === zona)
-      : alertas;
-
-    setData(filtrados);
+    setData(alertas);
     setTotal(count ?? 0);
     setLoading(false);
   }, [mesAno, zona, statusFilter, page, pageSize]);

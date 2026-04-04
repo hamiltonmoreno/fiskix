@@ -29,7 +29,8 @@ const ZONAS = [
 ];
 
 const MESES = Array.from({ length: 12 }, (_, i) => {
-  const d = new Date(2026, i - 12 + new Date().getMonth(), 1);
+  const now = new Date();
+  const d = new Date(now.getFullYear(), i - 12 + now.getMonth(), 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }).reverse();
 

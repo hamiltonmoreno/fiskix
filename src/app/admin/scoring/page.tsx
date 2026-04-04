@@ -65,7 +65,7 @@ export default function ScoringPage() {
         }
       );
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
       novosResultados.push({
         subestacao_id: sub.id,
         nome: sub.nome,

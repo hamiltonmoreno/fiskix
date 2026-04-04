@@ -67,6 +67,13 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
       }
     );
 
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      setPreview({ preview: [], total: 0, validos: 0, erros_count: 1, erros: [{ linha: 0, campo: "servidor", valor: "", motivo: err.error ?? "Erro desconhecido" }] });
+      setLoading(false);
+      return;
+    }
+
     const data = await res.json();
     setPreview(data);
     setLoading(false);
@@ -92,7 +99,7 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
       }
     );
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({ total: 0, sucesso: 0, erros: 1 }));
     setResultado(data);
     setFicheiro(null);
     setPreview(null);
