@@ -19,30 +19,34 @@ Plataforma SaaS de deteção de fraudes e perdas comerciais de energia elétrica
 ```
 src/modules/
   auth/          — login, sessão, perfil
-  dashboard/     — Control Room (KPIs, mapa, alertas)
+  dashboard/     — Control Room (KPIs, mapa, alertas, TendenciaPerdas)
   mobile/        — PWA para fiscais (roteiro, inspeção, câmara GPS)
   scoring/       — Motor de 9 regras (engine.ts — lógica local)
   ingestao/      — Import CSV/Excel de faturação e injeção
-  alertas/       — CRUD alertas_fraude
+  alertas/       — CRUD alertas_fraude (em /alertas, não em modules/)
   admin/         — utilizadores, configuração, importar
 
+src/app/api/
+  cron/scoring/  — Rota Next.js para cron Vercel (dia 1 de cada mês)
+
 supabase/functions/
-  scoring-engine — Motor scoring (Deno) — versão deployada
-  send-sms       — SMS via Twilio (Deno)
-  ingest-data    — Parse CSV/Excel (Deno)
-  balanco-energetico — (futuro)
+  scoring-engine      — Motor scoring (Deno)
+  send-sms            — SMS via Twilio (Deno)
+  ingest-data         — Parse CSV/Excel (Deno)
+  balanco-energetico  — Perdas por subestação/zona (Deno)
 ```
 
-## Base de Dados (9 tabelas principais)
+## Base de Dados (10 tabelas)
 - `perfis` — estende auth.users; roles: admin_fiskix, diretor, gestor_perdas, supervisor, fiscal
 - `subestacoes` — transformadores com zona_bairro, coordenadas
 - `clientes` — instalações com numero_contador, id_subestacao
 - `injecao_energia` — kWh injetado por subestação/mês
 - `faturacao_clientes` — faturação mensal por cliente
-- `alertas_fraude` — output do motor (score 0–100, status, motivo JSONB)
+- `alertas_fraude` — output do motor (score 0–100, status, resultado, motivo JSONB)
 - `relatorios_inspecao` — resultado de inspeção com foto GPS
 - `importacoes` — log de uploads CSV
 - `configuracoes` — limiares configuráveis do motor
+- `ml_predicoes` — reservado para Fase 2
 
 ## Motor de Scoring (9 Regras)
 | Regra | O que deteta | Pontos |
@@ -62,36 +66,45 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 ## Fluxo Principal (Happy Path)
 1. Gestor importa CSV → `/admin/importar`
 2. Gestor executa scoring → `/admin/scoring` → alertas criados
-3. Gestor envia SMS amarelo/vermelho ao cliente
-4. Gestor gera ordem de inspeção (status: Pendente_Inspecao)
+3. Gestor gera SMS e ordens de inspeção → `/alertas`
+4. Cron automático no dia 1 de cada mês → `/api/cron/scoring`
 5. Fiscal abre PWA `/mobile` → vê roteiro → abre ficha → inspeção com foto GPS
 6. Resultado sincronizado → receita recuperada atualizada no KPI
 
 ## Status atual (Abril 2026)
 - ✅ Auth + RLS completo (5 roles, isolamento por zona)
-- ✅ Dashboard: KPIs, mapa React Leaflet, tabela alertas, gráficos Recharts
-- ✅ Sidebar responsiva retrátil (desktop + mobile drawer)
+- ✅ Dashboard: KPIs, mapa React Leaflet, tabela alertas, gráficos Recharts, TendenciaPerdas 12 meses
+- ✅ Módulo `/alertas` independente: CRUD completo, filtros, paginação, SMS, ordens
+- ✅ Sidebar responsiva retrátil (desktop + mobile drawer) + Breadcrumb
 - ✅ Motor scoring 9 regras (edge function + engine.ts local)
 - ✅ Import CSV/Excel (ingest-data edge function)
 - ✅ SMS Twilio com fallback
 - ✅ App mobile PWA (roteiro, ficha inteligência, relatório inspeção com câmara GPS)
+- ✅ Offline: IndexedDB + sync automático quando há ligação
 - ✅ Admin: utilizadores, configuração, importar
+- ✅ Cron automático mensal (Vercel Cron → /api/cron/scoring)
+- ✅ Edge function balanco-energetico
 - ✅ Deploy produção: Vercel + Supabase Edge Functions
+- ✅ Service Worker PWA corrigido (não cacheia POST/mutations)
+- ✅ Documentação completa (README, CONTRIBUTING, SECURITY)
 
 ## Bugs já corrigidos (não voltar a introduzir)
-- RLS: fiscal só faz UPDATE em alertas `Pendente_Inspecao` na sua zona
+- RLS: fiscal só faz UPDATE em alertas `Pendente_Inspecao` na sua zona (migration 003)
 - Scoring: INSERT só novos + UPDATE apenas status `Pendente` (não sobrescreve inspecionados)
 - R5: threshold `meses >= 3` (tanto em engine.ts como edge function)
 - R7: usa `.in(["Fraude_Confirmada", "Anomalia_Tecnica"])` — não `.neq()`
 - SMS: normalização E.164 adiciona `+` se número não tiver prefixo
 - KPIs: filtro por zona aplica-se também a injecao_energia e faturacao_clientes
+- Login page: `export const dynamic = "force-dynamic"` para evitar pré-renderização estática
+- SW: não fazer cache de pedidos não-GET (impedia mutations Supabase)
 
 ## Variáveis de Ambiente necessárias (.env.local)
 Ver `.env.local.example` — copiar para `.env.local` e preencher os valores secretos.
 Os valores públicos (`NEXT_PUBLIC_*`) já estão preenchidos no exemplo.
-Os valores secretos (service role key, Twilio) obter de:
+Os valores secretos (service role key, Twilio, CRON_SECRET) obter de:
 - Supabase: https://supabase.com/dashboard/project/rqplobwsdbceuqhjywgt/settings/api
 - Twilio: https://console.twilio.com
+- CRON_SECRET: `openssl rand -hex 32` (adicionar também no Vercel Dashboard)
 
 ## Setup num novo computador
 ```bash

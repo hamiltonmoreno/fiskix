@@ -1,72 +1,330 @@
 # Fiskix — Fiscalização Inteligente de Energia
 
-Plataforma SaaS de deteção de fraudes e perdas comerciais de energia para a Electra (Cabo Verde).
+Plataforma SaaS de deteção de fraudes e perdas comerciais de energia elétrica.  
+Cliente inicial: **Electra (Cabo Verde)** — Fase MVP/PoC (Fase 1 de 3).
 
-## Quick Start
+**Produção:** [fiskix.vercel.app](https://fiskix.vercel.app)
+
+---
+
+## Índice
+
+- [Stack](#stack)
+- [Arquitetura](#arquitetura)
+- [Base de Dados](#base-de-dados)
+- [Motor de Scoring](#motor-de-scoring)
+- [Módulos](#módulos)
+- [Setup Local](#setup-local)
+- [Variáveis de Ambiente](#variáveis-de-ambiente)
+- [Deploy](#deploy)
+- [Edge Functions](#edge-functions)
+- [Roles e Permissões](#roles-e-permissões)
+- [PWA Mobile](#pwa-mobile)
+- [Cron Automático](#cron-automático)
+
+---
+
+## Stack
+
+| Camada | Tecnologia |
+|--------|-----------|
+| Frontend | Next.js 15 (App Router) + TypeScript |
+| Estilos | TailwindCSS |
+| Gráficos | Recharts |
+| Mapas | React Leaflet |
+| Backend / DB | Supabase (PostgreSQL + Auth + Storage + RLS) |
+| Edge Functions | Deno (Supabase Functions) |
+| Deploy | Vercel (frontend) + Supabase (functions) |
+| SMS | Twilio (sender "Electra" + fallback numérico) |
+| Mobile | PWA (Android Chrome) — rotas `/mobile` |
+
+---
+
+## Arquitetura
+
+```
+fiskix/
+├── src/
+│   ├── app/                         # Next.js App Router
+│   │   ├── layout.tsx               # Root layout
+│   │   ├── page.tsx                 # Redirect → /dashboard
+│   │   ├── login/                   # Autenticação
+│   │   ├── dashboard/               # Control Room
+│   │   ├── alertas/                 # Gestão de alertas
+│   │   ├── mobile/                  # PWA fiscal
+│   │   │   ├── page.tsx             # Roteiro do dia
+│   │   │   ├── [id]/page.tsx        # Ficha de inteligência
+│   │   │   └── [id]/report/         # Relatório de inspeção
+│   │   ├── admin/                   # Painel de administração
+│   │   │   ├── scoring/             # Motor de scoring (manual)
+│   │   │   ├── importar/            # Import CSV/Excel
+│   │   │   ├── utilizadores/        # CRUD utilizadores
+│   │   │   └── configuracao/        # Limiares do motor
+│   │   └── api/
+│   │       └── cron/scoring/        # Cron automático mensal
+│   ├── components/
+│   │   ├── Sidebar.tsx              # Navegação lateral responsiva
+│   │   └── Breadcrumb.tsx           # Caminho da página actual
+│   ├── modules/
+│   │   ├── auth/                    # Login, sessão, perfil
+│   │   ├── dashboard/               # KPIs, mapa, alertas, gráficos
+│   │   ├── mobile/                  # Componentes PWA
+│   │   ├── scoring/                 # Motor 9 regras (engine.ts local)
+│   │   └── ingestao/                # Import CSV/Excel
+│   ├── lib/
+│   │   └── supabase/                # Clientes server/client/middleware
+│   └── types/
+│       └── database.ts              # Tipos gerados do schema Supabase
+├── supabase/
+│   ├── migrations/
+│   │   ├── 001_initial_schema.sql   # Schema + RLS + índices
+│   │   ├── 002_mock_data.sql        # Dados demo (Cabo Verde)
+│   │   └── 003_rls_fiscal_update_alertas.sql
+│   └── functions/
+│       ├── scoring-engine/          # Motor scoring (Deno)
+│       ├── send-sms/                # SMS via Twilio (Deno)
+│       ├── ingest-data/             # Parse CSV/Excel (Deno)
+│       └── balanco-energetico/      # Balanço por zona/mês (Deno)
+└── public/
+    ├── manifest.json                # PWA manifest
+    ├── sw.js                        # Service Worker (offline support)
+    └── icons/                       # Ícones PWA 192x192 e 512x512
+```
+
+---
+
+## Base de Dados
+
+10 tabelas principais em PostgreSQL via Supabase.
+
+| Tabela | Descrição |
+|--------|-----------|
+| `perfis` | Estende `auth.users`; 5 roles |
+| `subestacoes` | Transformadores com coordenadas GPS |
+| `clientes` | Instalações com número de contador |
+| `injecao_energia` | kWh injetado por subestação/mês |
+| `faturacao_clientes` | Faturação mensal por cliente |
+| `alertas_fraude` | Output do motor (score 0–100, status, motivo JSONB) |
+| `relatorios_inspecao` | Resultado da inspeção com foto GPS |
+| `importacoes` | Log de uploads CSV |
+| `configuracoes` | Limiares configuráveis do motor |
+| `ml_predicoes` | Reservado para Fase 2 (ML) |
+
+### Ciclo de vida de um alerta
+
+```
+Pendente → Notificado_SMS → Pendente_Inspecao → Inspecionado
+                                                      ↓
+                              Fraude_Confirmada | Anomalia_Tecnica | Falso_Positivo
+```
+
+---
+
+## Motor de Scoring
+
+O motor aplica 9 regras graduais por cliente, seguindo dois filtros:
+
+### Etapa A — Balanço Energético (Filtro Macro)
+Calcula a perda percentual por subestação: `(kWh_injetado - kWh_faturado) / kWh_injetado`.  
+Só avança para o filtro micro se a zona for **vermelha** (perda > 15%).
+
+### Etapa B — 9 Regras Graduais (Filtro Micro)
+
+| Regra | O que deteta | Pontos máx |
+|-------|-------------|-----------|
+| R1 | Queda súbita vs. média 6 meses (δ ≥ limiar) | 0–25 |
+| R2 | Consumo anormalmente constante (CV baixo) | 0–15 |
+| R3 | Desvio Z-score face ao cluster da mesma tarifa | 0–20 |
+| R4 | Divergência sazonal cliente vs. subestação | 0–15 |
+| R5 | Slow bleed: tendência descendente 3+ meses (regressão linear) | 0–10 |
+| R6 | Rácio CVE/kWh anómalo (> 2σ da média da tarifa) | 0–5 |
+| R7 | Reincidência — alertas confirmados nos últimos 12 meses | +5 bónus |
+| R8 | Consumo atual < 20% do pico histórico | 0–5 |
+| R9 | Multiplicador zona vermelha: `1 + min(0.3, (perda−15%) × 2)` | ×1.0–1.3 |
+
+**Classificação final:**
+- `score ≥ 75` → CRÍTICO
+- `50 ≤ score < 75` → MÉDIO
+- `score < 50` → não gera alerta
+
+Os limiares são configuráveis em `/admin/configuracao` (tabela `configuracoes`).
+
+---
+
+## Módulos
+
+### Dashboard (`/dashboard`)
+- KPIs: perdas totais CVE, alertas críticos/médios, taxa de confirmação, receita recuperada
+- Mapa React Leaflet com subestações coloridas por nível de perda
+- Tabela de alertas recentes com ações rápidas
+- Gráfico Top 5 transformadores por perda
+- Gráfico de tendência de perdas nos últimos 12 meses
+
+### Alertas (`/alertas`)
+- Tabela paginada (15/página) com todos os alertas
+- Filtros: mês, estado, zona
+- Ações: enviar SMS, gerar ordem de inspeção, classificar pós-inspeção
+
+### Admin — Scoring (`/admin/scoring`)
+- Execução manual do motor por subestação ou global
+- Resultados em tempo real: % perda, zona, alertas gerados, duração
+
+### Admin — Importar (`/admin/importar`)
+- Upload de CSV/Excel de faturação e injeção
+- Validação de colunas e feedback de erros linha a linha
+
+### Admin — Utilizadores (`/admin/utilizadores`)
+- CRUD completo: criar, editar (nome/role/zona), desativar
+- Proteção anti-self-delete
+
+### Admin — Configuração (`/admin/configuracao`)
+- Edição dos limiares do motor em tempo real (sem redeploy)
+
+### Mobile PWA (`/mobile`)
+- **Roteiro do dia**: lista de alertas `Pendente_Inspecao` na zona do fiscal
+- **Ficha de inteligência**: perfil do cliente, histórico de consumo, score detalhado
+- **Relatório de inspeção**: câmara com marca d'água GPS+timestamp, resultado, tipo de fraude
+- Suporte offline: relatórios guardados localmente via IndexedDB e sincronizados quando há ligação
+
+---
+
+## Setup Local
 
 ```bash
-# 1. Instalar dependências
+# 1. Clonar o repositório
+git clone https://github.com/hamiltonmoreno/fiskix.git
+cd fiskix
+
+# 2. Instalar dependências
 npm install
 
-# 2. Copiar e preencher variáveis de ambiente
+# 3. Configurar variáveis de ambiente
 cp .env.local.example .env.local
+# Editar .env.local e preencher os valores secretos (ver secção abaixo)
 
-# 3. Arrancar em desenvolvimento
+# 4. Aplicar migrations no Supabase (SQL Editor)
+# supabase/migrations/001_initial_schema.sql
+# supabase/migrations/002_mock_data.sql
+# supabase/migrations/003_rls_fiscal_update_alertas.sql
+
+# 5. Arrancar em desenvolvimento
 npm run dev
 ```
 
-Abrir: http://localhost:3000
+Abrir: [http://localhost:3000](http://localhost:3000)
 
-## Setup Supabase
+### Credenciais demo (após migration 002)
 
-1. Criar projeto em [supabase.com](https://supabase.com)
-2. Preencher `.env.local` com `SUPABASE_URL` e `SUPABASE_ANON_KEY`
-3. Correr migrations no SQL Editor do Supabase:
-   - `supabase/migrations/001_initial_schema.sql`
-   - `supabase/migrations/002_mock_data.sql`
-4. Deploy das Edge Functions:
-   ```bash
-   npx supabase functions deploy scoring-engine
-   npx supabase functions deploy send-sms
-   npx supabase functions deploy ingest-data
-   ```
+| Role | Email | Password |
+|------|-------|----------|
+| Gestor de Perdas | `gestor@electra.cv` | `fiskix2026` |
+| Fiscal | `fiscal@electra.cv` | `fiskix2026` |
+| Diretor | `diretor@electra.cv` | `fiskix2026` |
 
-## Estrutura
+---
 
+## Variáveis de Ambiente
+
+Copiar `.env.local.example` para `.env.local` e preencher:
+
+| Variável | Obrigatória | Descrição |
+|----------|-------------|-----------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Sim | URL pública do projeto Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Sim | Chave anónima (pública) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Sim | Chave service role (secreta) |
+| `TWILIO_ACCOUNT_SID` | Para SMS | SID da conta Twilio |
+| `TWILIO_AUTH_TOKEN` | Para SMS | Token de autenticação Twilio |
+| `TWILIO_PHONE_NUMBER` | Para SMS | Número Twilio E.164 |
+| `CRON_SECRET` | Para cron | Segredo para proteger `/api/cron/scoring` |
+
+Obter valores em:
+- Supabase: `https://supabase.com/dashboard/project/rqplobwsdbceuqhjywgt/settings/api`
+- Twilio: `https://console.twilio.com`
+- `CRON_SECRET`: `openssl rand -hex 32`
+
+---
+
+## Deploy
+
+O deploy é automático via Vercel ao fazer push para `main`.
+
+### Variáveis no Vercel Dashboard
+
+Configurar todas as variáveis de ambiente em:
+**Vercel > fiskix > Settings > Environment Variables**
+
+### Edge Functions (Supabase)
+
+```bash
+npx supabase functions deploy scoring-engine
+npx supabase functions deploy send-sms
+npx supabase functions deploy ingest-data
+npx supabase functions deploy balanco-energetico
 ```
-src/modules/
-├── auth/          Login + RBAC
-├── dashboard/     KPIs, mapa, gráficos, alertas
-├── mobile/        PWA para fiscais (3 ecrãs)
-├── scoring/       Motor 9 regras graduais v2
-├── ingestao/      Import CSV/Excel
-└── admin/         Utilizadores + configuração
 
-supabase/
-├── migrations/    Schema SQL + dados mock
-└── functions/     Edge Functions (Deno)
+---
+
+## Edge Functions
+
+| Função | Método | Payload | Descrição |
+|--------|--------|---------|-----------|
+| `scoring-engine` | POST | `{ subestacao_id, mes_ano }` | Executa as 9 regras para uma subestação |
+| `send-sms` | POST | `{ alerta_id, tipo }` | Envia SMS amarelo/vermelho ao cliente |
+| `ingest-data` | POST | FormData com ficheiro CSV/Excel | Importa faturação ou injeção |
+| `balanco-energetico` | GET/POST | `?mes_ano=YYYY-MM[&subestacao_id]` | Calcula perdas agregadas por zona |
+
+---
+
+## Roles e Permissões
+
+| Role | Dashboard | Alertas | Admin | Mobile |
+|------|-----------|---------|-------|--------|
+| `admin_fiskix` | Leitura/escrita | Total | Total | — |
+| `gestor_perdas` | Leitura/escrita | Total | Parcial | — |
+| `diretor` | Só leitura | Só leitura | — | — |
+| `supervisor` | Leitura/escrita | Leitura | — | — |
+| `fiscal` | — | — | — | Só sua zona |
+
+O RLS (Row Level Security) está ativo em todas as tabelas. O fiscal acede apenas a alertas `Pendente_Inspecao` na sua zona (`id_zona` no perfil).
+
+---
+
+## PWA Mobile
+
+A app mobile é uma PWA instalável em Android Chrome.
+
+- **Manifest:** `/public/manifest.json` — scope `/mobile`, ícones 192/512px
+- **Service Worker:** `/public/sw.js`
+  - Cache-first para assets estáticos (`/_next/static`, ícones)
+  - Network-first para páginas `/mobile` e `/login`
+  - Nunca cacheia pedidos não-GET (mutations Supabase)
+  - Fallback offline via IndexedDB para relatórios de inspeção
+- **Registo:** automático no `mobile/layout.tsx` ao carregar a página
+
+Para instalar: abrir `/mobile` no Chrome Android → menu → "Adicionar ao ecrã inicial".
+
+---
+
+## Cron Automático
+
+O scoring corre automaticamente no **dia 1 de cada mês às 02:00 UTC** via Vercel Cron.
+
+- **Rota:** `GET /api/cron/scoring`
+- **Schedule:** `0 2 1 * *`
+- **Proteção:** header `Authorization: Bearer <CRON_SECRET>`
+- O Vercel injeta o header automaticamente se `CRON_SECRET` estiver configurado
+
+Para testar manualmente:
+```bash
+curl -H "Authorization: Bearer <CRON_SECRET>" https://fiskix.vercel.app/api/cron/scoring
 ```
 
-## Roles
+---
 
-| Role | Acesso |
-|------|--------|
-| `admin_fiskix` | Total |
-| `gestor_perdas` | Dashboard + Admin |
-| `diretor` | Dashboard só leitura |
-| `fiscal` | Apenas PWA mobile |
+## Roadmap
 
-## Motor de Scoring v2
-
-9 regras graduais + balanço energético:
-- R1: Queda Súbita (0-25 pts)
-- R2: Variância Zero (0-15 pts)
-- R3: Desvio de Cluster (0-20 pts)
-- R4: Divergência Sazonal (0-15 pts)
-- R5: Tendência Descendente (0-10 pts) ★
-- R6: Rácio CVE/kWh (0-5 pts) ★
-- R7: Reincidência (+5 bónus) ★
-- R8: Pico Histórico vs Atual (0-5 pts) ★
-- R9: Contágio de Zona (×1.0-1.3) ★
-
-★ = Regras novas vs motor original
+| Fase | Estado | Descrição |
+|------|--------|-----------|
+| **Fase 1** | ✅ Completo | MVP: scoring, dashboard, mobile, SMS, import |
+| **Fase 2** | Planeada | Modelo ML (`ml_predicoes`), balanço energético avançado |
+| **Fase 3** | Futura | API pública, integração AMI, multi-tenant |

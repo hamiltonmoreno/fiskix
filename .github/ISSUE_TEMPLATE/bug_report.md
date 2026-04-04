@@ -1,36 +1,42 @@
 ---
-name: Bug Report
-description: Use this template to report a bug.
-title: "[BUG]"
-labels: bug
+name: Relatório de Bug
+description: Reportar um comportamento inesperado
+title: "[BUG] "
+labels: ["bug"]
 assignees: []
 ---
 
-## Description
+## Descrição
 
-Please provide a clear and concise description of the bug.
+Descrição clara e concisa do bug.
 
-## Steps to Reproduce
+## Passos para Reproduzir
 
-1. Go to '...'
-2. Click on '...'
-3. Scroll down to '...'
-4. See error
+1. Ir a '...'
+2. Clicar em '...'
+3. Ver erro
 
-## Expected Behavior
+## Comportamento Esperado
 
-A clear and concise description of what you expected to happen.
+O que devia acontecer.
 
-## Actual Behavior
+## Comportamento Actual
 
-A clear and concise description of what actually happened.
+O que aconteceu de facto.
 
-## Environment
+## Ambiente
 
-- OS: [e.g. iOS]
-- Browser [e.g. chrome, safari]
-- Version [e.g. 22] 
+- **Role do utilizador:** (admin_fiskix / gestor_perdas / fiscal / ...)
+- **Módulo afectado:** (dashboard / alertas / mobile / scoring / import / ...)
+- **Browser / dispositivo:** (Chrome 123 / Android 13 / ...)
+- **URL:** (ex: `/admin/scoring`)
 
-## Additional Context
+## Logs / Erros
 
-Add any other context about the problem here.
+```
+Cole aqui erros da consola ou mensagens de erro visíveis
+```
+
+## Contexto adicional
+
+Qualquer outro detalhe relevante (dados de exemplo, screenshots, etc).
