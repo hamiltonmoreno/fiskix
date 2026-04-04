@@ -11,6 +11,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   scoring: "Motor de Scoring",
   utilizadores: "Utilizadores",
   configuracao: "Configuração",
+  perfil: "O Meu Perfil",
   mobile: "Mobile",
   report: "Relatório",
 };
