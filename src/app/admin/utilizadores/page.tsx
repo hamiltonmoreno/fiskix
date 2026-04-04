@@ -20,5 +20,5 @@ export default async function UtilizadoresPage() {
     .select("id, nome_completo, role, id_zona, ativo, criado_em")
     .order("criado_em", { ascending: false });
 
-  return <UtilizadoresClient utilizadores={utilizadores ?? []} />;
+  return <UtilizadoresClient utilizadores={utilizadores ?? []} currentUserId={user.id} />;
 }

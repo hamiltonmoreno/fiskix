@@ -184,20 +184,26 @@ export function Sidebar({ profile }: SidebarProps) {
       {/* User footer */}
       <div className={`border-t border-slate-100 p-3 ${collapsed ? "flex flex-col items-center gap-2" : ""}`}>
         {!collapsed ? (
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-semibold text-blue-700">
-                {getInitials(profile.nome_completo)}
-              </span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-slate-900 truncate leading-tight">
-                {profile.nome_completo}
-              </p>
-              <p className="text-xs text-slate-400 leading-tight">
-                {ROLE_LABELS[profile.role] ?? profile.role}
-              </p>
-            </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/perfil"
+              className="flex items-center gap-3 flex-1 min-w-0 rounded-lg p-1 hover:bg-slate-50 transition-colors"
+              title="Meu perfil"
+            >
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-semibold text-blue-700">
+                  {getInitials(profile.nome_completo)}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-slate-900 truncate leading-tight">
+                  {profile.nome_completo}
+                </p>
+                <p className="text-xs text-slate-400 leading-tight">
+                  {ROLE_LABELS[profile.role] ?? profile.role}
+                </p>
+              </div>
+            </Link>
             <button
               onClick={handleSignOut}
               className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
@@ -208,13 +214,30 @@ export function Sidebar({ profile }: SidebarProps) {
           </div>
         ) : (
           <>
-            <div
-              className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"
-              title={profile.nome_completo}
-            >
-              <span className="text-xs font-semibold text-blue-700">
-                {getInitials(profile.nome_completo)}
-              </span>
+            <div className="relative group">
+              <Link
+                href="/perfil"
+                className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center hover:ring-2 hover:ring-blue-300 transition-all"
+                title="Meu perfil"
+              >
+                <span className="text-xs font-semibold text-blue-700">
+                  {getInitials(profile.nome_completo)}
+                </span>
+              </Link>
+              {/* Tooltip */}
+              <div
+                className="
+                  pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50
+                  bg-slate-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-md
+                  whitespace-nowrap shadow-lg
+                  opacity-0 -translate-x-1 scale-95
+                  group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100
+                  transition-all duration-150 ease-out
+                "
+              >
+                Meu perfil
+                <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900" />
+              </div>
             </div>
             <button
               onClick={handleSignOut}

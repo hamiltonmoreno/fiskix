@@ -58,11 +58,12 @@ export async function updateSession(request: NextRequest) {
 
   const role = profile?.role;
 
-  // Fiscais only access /mobile
+  // Fiscais only access /mobile (except /perfil — accessible to all roles)
   if (
     role &&
     MOBILE_ONLY_ROLES.includes(role) &&
-    !pathname.startsWith("/mobile")
+    !pathname.startsWith("/mobile") &&
+    !pathname.startsWith("/perfil")
   ) {
     return NextResponse.redirect(new URL("/mobile", request.url));
   }
