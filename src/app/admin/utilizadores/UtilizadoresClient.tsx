@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { Plus, UserCheck, UserX, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { UserRole } from "@/types/database";
@@ -169,8 +169,8 @@ export function UtilizadoresClient({
             </thead>
             <tbody>
               {utilizadores.map((u) => (
-                <>
-                  <tr key={u.id} className="border-b border-slate-50 hover:bg-slate-50">
+                <Fragment key={u.id}>
+                  <tr className="border-b border-slate-50 hover:bg-slate-50">
                     <td className="px-4 py-3 font-medium text-slate-900">{u.nome_completo}</td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">
@@ -228,7 +228,7 @@ export function UtilizadoresClient({
                   </tr>
                   {/* Confirmação inline de eliminação */}
                   {confirmDelete === u.id && (
-                    <tr key={`delete-${u.id}`} className="bg-red-50 border-b border-red-100">
+                    <tr className="bg-red-50 border-b border-red-100">
                       <td colSpan={5} className="px-4 py-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 text-sm text-red-700">
@@ -256,7 +256,7 @@ export function UtilizadoresClient({
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>

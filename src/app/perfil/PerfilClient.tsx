@@ -165,7 +165,7 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
               <input
                 type="text"
                 value={nome}
-                onChange={(e) => setNome(e.target.value)}
+                onChange={(e) => { setNome(e.target.value); setFeedbackNome(null); }}
                 required
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -229,7 +229,7 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
               <input
                 type="password"
                 value={novaPassword}
-                onChange={(e) => setNovaPassword(e.target.value)}
+                onChange={(e) => { setNovaPassword(e.target.value); setFeedbackPassword(null); }}
                 placeholder="Mínimo 8 caracteres"
                 autoComplete="new-password"
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -243,7 +243,7 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
               <input
                 type="password"
                 value={confirmarPassword}
-                onChange={(e) => setConfirmarPassword(e.target.value)}
+                onChange={(e) => { setConfirmarPassword(e.target.value); setFeedbackPassword(null); }}
                 placeholder="Repetir password"
                 autoComplete="new-password"
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
