@@ -32,12 +32,12 @@ export function useAlertas({
       .from("alertas_fraude")
       .select(
         `
-        id, score_risco, status, mes_ano, resultado, motivo,
+        id, id_cliente, score_risco, status, mes_ano, resultado, motivo,
         clientes!inner (
           numero_contador, nome_titular, morada, tipo_tarifa, telemovel,
           subestacoes!inner (nome, zona_bairro)
         )
-        `,
+`,
         { count: "exact" }
       )
       .eq("mes_ano", mesAno)
@@ -79,6 +79,7 @@ export function useAlertas({
 
       return {
         id: r.id,
+        id_cliente: r.id_cliente,
         score_risco: r.score_risco,
         status: r.status,
         mes_ano: r.mes_ano,
@@ -108,6 +109,19 @@ export function useAlertas({
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("alertas-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "alertas_fraude" },
+        () => { load(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function enviarSMS(alertaId: string, tipo: "amarelo" | "vermelho") {
     const res = await fetch(

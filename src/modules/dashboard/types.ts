@@ -20,6 +20,7 @@ export interface SubestacaoMapa {
 
 export interface AlertaTabela {
   id: string;
+  id_cliente: string;
   score_risco: number;
   status: string;
   mes_ano: string;

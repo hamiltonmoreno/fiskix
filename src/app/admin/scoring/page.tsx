@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { ArrowLeft, Play, CheckCircle, Loader2 } from "lucide-react";
+import { Play, CheckCircle, Loader2, History, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentMesAno } from "@/lib/utils";
 
@@ -22,12 +21,42 @@ interface ResultadoScoring {
   error?: string;
 }
 
+interface HistoricoRun {
+  id: string; // timestamp as string
+  executado_em: string; // ISO string
+  mes_ano: string;
+  subestacao: string; // "todas" or nome
+  total_alertas: number;
+  total_subestacoes: number;
+  duracao_total_ms: number;
+  resultados: ResultadoScoring[];
+  sucesso: boolean;
+}
+
+const HISTORICO_KEY = "fiskix_scoring_historico";
+const MAX_HISTORICO = 10;
+
+function loadHistorico(): HistoricoRun[] {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORICO_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveHistorico(runs: HistoricoRun[]) {
+  localStorage.setItem(HISTORICO_KEY, JSON.stringify(runs.slice(0, MAX_HISTORICO)));
+}
+
 export default function ScoringPage() {
   const [subestacoes, setSubestacoes] = useState<Subestacao[]>([]);
   const [mesAno, setMesAno] = useState(getCurrentMesAno());
   const [subSelecionada, setSubSelecionada] = useState<string>("todas");
   const [executando, setExecutando] = useState(false);
   const [resultados, setResultados] = useState<ResultadoScoring[]>([]);
+  const [historico, setHistorico] = useState<HistoricoRun[]>([]);
+  const [expandedRun, setExpandedRun] = useState<string | null>(null);
+  const [showHistorico, setShowHistorico] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -36,7 +65,8 @@ export default function ScoringPage() {
       .select("id, nome, zona_bairro")
       .eq("ativo", true)
       .then(({ data }) => setSubestacoes(data ?? []));
-  }, []);
+    setHistorico(loadHistorico());
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function executarScoring() {
     setExecutando(true);
@@ -44,6 +74,7 @@ export default function ScoringPage() {
 
     const session = await supabase.auth.getSession();
     const token = session.data.session?.access_token;
+    const startTime = Date.now();
 
     const subsParaScoring =
       subSelecionada === "todas"
@@ -79,7 +110,38 @@ export default function ScoringPage() {
       setResultados([...novosResultados]);
     }
 
+    const duracaoTotal = Date.now() - startTime;
+    const run: HistoricoRun = {
+      id: String(Date.now()),
+      executado_em: new Date().toISOString(),
+      mes_ano: mesAno,
+      subestacao: subSelecionada === "todas"
+        ? "Todas as subestações"
+        : subestacoes.find((s) => s.id === subSelecionada)?.nome ?? subSelecionada,
+      total_alertas: novosResultados.reduce((s, r) => s + (r.alertas_gerados ?? 0), 0),
+      total_subestacoes: novosResultados.length,
+      duracao_total_ms: duracaoTotal,
+      resultados: novosResultados,
+      sucesso: !novosResultados.some((r) => r.error),
+    };
+
+    const newHistorico = [run, ...historico].slice(0, MAX_HISTORICO);
+    setHistorico(newHistorico);
+    saveHistorico(newHistorico);
+
     setExecutando(false);
+  }
+
+  function handleLimparHistorico() {
+    setHistorico([]);
+    localStorage.removeItem(HISTORICO_KEY);
+  }
+
+  function formatDate(iso: string) {
+    return new Date(iso).toLocaleString("pt-CV", {
+      day: "2-digit", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    });
   }
 
   return (
@@ -134,11 +196,17 @@ export default function ScoringPage() {
           </button>
         </div>
 
-        {/* Resultados */}
+        {/* Resultados da execução atual */}
         {resultados.length > 0 && (
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="p-4 border-b border-slate-100">
-              <p className="font-semibold text-slate-700">Resultados</p>
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <p className="font-semibold text-slate-700">Resultados — {mesAno}</p>
+              {executando && (
+                <span className="flex items-center gap-1.5 text-xs text-blue-600 animate-pulse">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Em curso...
+                </span>
+              )}
             </div>
             <table className="w-full text-sm">
               <thead>
@@ -158,25 +226,15 @@ export default function ScoringPage() {
                       {r.error ? (
                         <span className="text-red-500 text-xs">{r.error}</span>
                       ) : (
-                        <span
-                          className={
-                            parseFloat(r.perda_pct) >= 15
-                              ? "text-red-600 font-bold"
-                              : "text-slate-600"
-                          }
-                        >
+                        <span className={parseFloat(r.perda_pct) >= 15 ? "text-red-600 font-bold" : "text-slate-600"}>
                           {r.perda_pct}%
                         </span>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          r.zona_vermelha
-                            ? "bg-red-100 text-red-700"
-                            : "bg-green-100 text-green-700"
-                        }`}
-                      >
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        r.zona_vermelha ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+                      }`}>
                         {r.zona_vermelha ? "Vermelha" : "Verde"}
                       </span>
                     </td>
@@ -187,26 +245,137 @@ export default function ScoringPage() {
                         <span className="text-slate-400">0</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-400 text-xs">
-                      {r.duracao_ms}ms
-                    </td>
+                    <td className="px-4 py-3 text-slate-400 text-xs">{r.duracao_ms}ms</td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
-            {resultados.every((r) => !r.error) && (
+            {!executando && resultados.every((r) => !r.error) && (
               <div className="p-4 border-t border-slate-100 flex items-center gap-2 text-green-600">
                 <CheckCircle className="w-4 h-4" />
                 <span className="text-sm font-medium">
-                  Scoring concluído ·{" "}
-                  {resultados.reduce((s, r) => s + (r.alertas_gerados ?? 0), 0)}{" "}
-                  alertas gerados no total
+                  Scoring concluído · {resultados.reduce((s, r) => s + (r.alertas_gerados ?? 0), 0)} alertas gerados
                 </span>
               </div>
             )}
           </div>
         )}
+
+        {/* Histórico de execuções */}
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <button
+            onClick={() => setShowHistorico((v) => !v)}
+            className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-slate-400" />
+              <span className="font-semibold text-slate-700">Histórico de Execuções</span>
+              {historico.length > 0 && (
+                <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">
+                  {historico.length}
+                </span>
+              )}
+            </div>
+            {showHistorico ? (
+              <ChevronDown className="w-4 h-4 text-slate-400" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            )}
+          </button>
+
+          {showHistorico && (
+            <>
+              {historico.length === 0 ? (
+                <div className="px-4 pb-5 text-sm text-slate-400 text-center">
+                  Nenhuma execução registada nesta sessão
+                </div>
+              ) : (
+                <>
+                  <div className="divide-y divide-slate-50">
+                    {historico.map((run) => (
+                      <div key={run.id} className="px-4 py-3">
+                        <button
+                          onClick={() => setExpandedRun(expandedRun === run.id ? null : run.id)}
+                          className="w-full flex items-center justify-between text-left"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${run.sucesso ? "bg-green-500" : "bg-red-500"}`} />
+                            <div>
+                              <p className="text-sm font-medium text-slate-700">
+                                {run.mes_ano} · {run.subestacao}
+                              </p>
+                              <p className="text-xs text-slate-400">
+                                {formatDate(run.executado_em)} · {run.total_alertas} alertas · {(run.duracao_total_ms / 1000).toFixed(1)}s
+                              </p>
+                            </div>
+                          </div>
+                          {expandedRun === run.id ? (
+                            <ChevronDown className="w-4 h-4 text-slate-300" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-slate-300" />
+                          )}
+                        </button>
+
+                        {expandedRun === run.id && (
+                          <div className="mt-3 rounded-lg overflow-hidden border border-slate-100">
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="bg-slate-50 border-b border-slate-100">
+                                  <th className="text-left px-3 py-2 font-medium text-slate-500">Subestação</th>
+                                  <th className="text-left px-3 py-2 font-medium text-slate-500">Perda</th>
+                                  <th className="text-left px-3 py-2 font-medium text-slate-500">Zona</th>
+                                  <th className="text-right px-3 py-2 font-medium text-slate-500">Alertas</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {run.resultados.map((r) => (
+                                  <tr key={r.subestacao_id} className="border-b border-slate-50 last:border-0">
+                                    <td className="px-3 py-2 text-slate-700">{r.nome}</td>
+                                    <td className="px-3 py-2">
+                                      {r.error ? (
+                                        <span className="text-red-500">{r.error}</span>
+                                      ) : (
+                                        <span className={parseFloat(r.perda_pct) >= 15 ? "text-red-600 font-bold" : "text-slate-600"}>
+                                          {r.perda_pct}%
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td className="px-3 py-2">
+                                      <span className={`px-1.5 py-0.5 rounded text-xs ${
+                                        r.zona_vermelha ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+                                      }`}>
+                                        {r.zona_vermelha ? "Vermelha" : "Verde"}
+                                      </span>
+                                    </td>
+                                    <td className="px-3 py-2 text-right font-medium">
+                                      {r.alertas_gerados > 0 ? (
+                                        <span className="text-amber-600">{r.alertas_gerados}</span>
+                                      ) : "0"}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-3 border-t border-slate-100 flex justify-end">
+                    <button
+                      onClick={handleLimparHistorico}
+                      className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Limpar histórico
+                    </button>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
       </main>
     </div>
   );

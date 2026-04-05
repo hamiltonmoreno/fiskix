@@ -57,6 +57,14 @@
   min-height: 100dvh;
 }
 
+/* Print: hide sidebar and top bar so only content prints */
+@media print {
+  aside,
+  header {
+    display: none !important;
+  }
+}
+
 /* Score circle animation */
 @keyframes score-fill {
   from { stroke-dashoffset: 283; }

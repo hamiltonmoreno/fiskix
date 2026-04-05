@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   Bell,
+  FileBarChart2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -74,6 +75,7 @@ export function Sidebar({ profile }: SidebarProps) {
 
   const isAdmin = ["admin_fiskix", "gestor_perdas"].includes(profile.role);
   const isSuperAdmin = profile.role === "admin_fiskix";
+  const isRelatorios = ["admin_fiskix", "diretor", "gestor_perdas"].includes(profile.role);
 
   // Persist collapse state
   useEffect(() => {
@@ -142,6 +144,15 @@ export function Sidebar({ profile }: SidebarProps) {
         {NAV_ITEMS.map((item) => (
           <NavLink key={item.href} item={item} collapsed={collapsed} active={isActive(item.href)} />
         ))}
+
+        {/* Relatórios — visível para diretor, gestor_perdas, admin_fiskix */}
+        {isRelatorios && (
+          <NavLink
+            item={{ label: "Relatórios", href: "/relatorios", icon: FileBarChart2 }}
+            collapsed={collapsed}
+            active={isActive("/relatorios")}
+          />
+        )}
 
         {/* Admin section */}
         {isAdmin && (
