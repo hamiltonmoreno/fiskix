@@ -67,7 +67,7 @@ export function calcularBalanco(
 
   // R9: multiplicador = 1 + min(0.3, (perda_zona - 0.15) * 2)
   const multiplicador = zona_vermelha
-    ? 1 + Math.min(0.3, ((perda_percentual / 100) - 0.15) * 2)
+    ? 1 + Math.min(0.3, ((perda_percentual / 100) - (limiar_perda_pct / 100)) * 2)
     : 1.0;
 
   return {

@@ -13,6 +13,13 @@ import {
   XCircle,
   Wrench,
 } from "lucide-react";
+import type { AlertaStatus, InspecaoResultado } from "@/types/database";
+
+const ESTADOS_FINAIS: InspecaoResultado[] = [
+  "Fraude_Confirmada",
+  "Anomalia_Tecnica",
+  "Falso_Positivo",
+];
 
 const STATUS_LABELS: Record<string, { label: string; class: string }> = {
   Pendente: { label: "Pendente", class: "bg-slate-100 text-slate-700" },
@@ -84,14 +91,13 @@ export default function AlertasPage() {
       .order("score_risco", { ascending: false })
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
-    const FINAL_STATUSES = ["Fraude_Confirmada", "Anomalia_Tecnica", "Falso_Positivo"];
     if (statusFilter !== "todos") {
-      if (FINAL_STATUSES.includes(statusFilter)) {
+      if (ESTADOS_FINAIS.includes(statusFilter as InspecaoResultado)) {
         query = query
-          .eq("status", "Inspecionado" as unknown as "Pendente")
-          .eq("resultado", statusFilter as unknown as "Fraude_Confirmada");
+          .eq("status", "Inspecionado" as AlertaStatus)
+          .eq("resultado", statusFilter as InspecaoResultado);
       } else {
-        query = query.eq("status", statusFilter as unknown as "Pendente");
+        query = query.eq("status", statusFilter as AlertaStatus);
       }
     }
 
@@ -177,11 +183,11 @@ export default function AlertasPage() {
     setActionLoading(null);
   }
 
-  async function handleAtualizarStatus(alertaId: string, novoStatus: string) {
+  async function handleAtualizarStatus(alertaId: string, novoStatus: InspecaoResultado) {
     setActionLoading(alertaId);
     await supabase
       .from("alertas_fraude")
-      .update({ resultado: novoStatus as unknown as "Fraude_Confirmada" })
+      .update({ resultado: novoStatus, status: "Inspecionado" as AlertaStatus })
       .eq("id", alertaId);
     await load();
     setActionLoading(null);

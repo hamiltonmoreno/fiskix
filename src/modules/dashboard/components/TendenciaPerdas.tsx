@@ -72,6 +72,7 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
   useEffect(() => {
     async function load() {
       setLoading(true);
+      try {
       const meses = getLast12Months(mesAno);
 
       const injecoesSelect = zona
@@ -131,7 +132,9 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
       });
 
       setData(chartData);
-      setLoading(false);
+      } finally {
+        setLoading(false);
+      }
     }
 
     load();

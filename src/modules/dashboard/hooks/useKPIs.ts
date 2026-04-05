@@ -12,9 +12,9 @@ export function useKPIs(mesAno: string, zona?: string) {
   useEffect(() => {
     async function load() {
       setLoading(true);
-
+      try {
       // Query de alertas do mês atual
-      let query = supabase
+      let alertasQuery = supabase
         .from("alertas_fraude")
         .select(
           `score_risco, status, resultado,
@@ -24,20 +24,21 @@ export function useKPIs(mesAno: string, zona?: string) {
         )
         .eq("mes_ano", mesAno);
 
-      const { data: alertas } = await query;
+      if (zona) {
+        alertasQuery = (alertasQuery as typeof alertasQuery).eq(
+          "clientes.subestacoes.zona_bairro",
+          zona
+        );
+      }
 
-      const alertasArr = (alertas ?? []) as Array<{
+      const { data: alertas } = await alertasQuery;
+
+      const filtrados = (alertas ?? []) as Array<{
         score_risco: number;
         status: string;
         resultado: string | null;
         clientes: { subestacoes: { zona_bairro: string } };
       }>;
-
-      const filtrados = zona
-        ? alertasArr.filter(
-            (a) => a.clientes?.subestacoes?.zona_bairro === zona
-          )
-        : alertasArr;
 
       const criticos = filtrados.filter((a) => a.score_risco >= 75).length;
       const pendentes = filtrados.filter(
@@ -98,7 +99,7 @@ export function useKPIs(mesAno: string, zona?: string) {
         .eq("mes_ano", mesAno);
       let fatAntQuery = supabase
         .from("faturacao_clientes")
-        .select(zona ? "kwh_faturado, clientes!inner(subestacoes!inner(zona_bairro))" : "kwh_faturado")
+        .select(zona ? "kwh_faturado, valor_cve, clientes!inner(subestacoes!inner(zona_bairro))" : "kwh_faturado, valor_cve")
         .eq("mes_ano", mesAnterior);
 
       if (zona) {
@@ -125,9 +126,11 @@ export function useKPIs(mesAno: string, zona?: string) {
 
       // Variação vs mês anterior
       const totalInjetadoAnt = ((injecoesAnt ?? []) as unknown as Array<{ total_kwh_injetado: number }>).reduce((s, i) => s + i.total_kwh_injetado, 0);
-      const totalFaturadoAnt = ((faturacaoAnt ?? []) as unknown as Array<{ kwh_faturado: number }>).reduce((s, f) => s + f.kwh_faturado, 0);
+      const totalFaturadoAnt = ((faturacaoAnt ?? []) as unknown as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.kwh_faturado, 0);
+      const totalCVEFaturadoAnt = ((faturacaoAnt ?? []) as unknown as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.valor_cve, 0);
+      const tarifaMediaAnt = totalFaturadoAnt > 0 ? totalCVEFaturadoAnt / totalFaturadoAnt : tarifaMedia;
       const perdaKwhAnt = totalInjetadoAnt - totalFaturadoAnt;
-      const perdaCVEAnt = perdaKwhAnt * tarifaMedia;
+      const perdaCVEAnt = perdaKwhAnt * tarifaMediaAnt;
       const variacaoPerda =
         perdaCVEAnt > 0 ? ((perdaCVE - perdaCVEAnt) / perdaCVEAnt) * 100 : 0;
 
@@ -138,8 +141,9 @@ export function useKPIs(mesAno: string, zona?: string) {
         receita_recuperada_ytd: receitaYTD,
         variacao_perda_pct: Math.round(variacaoPerda * 10) / 10,
       });
-
-      setLoading(false);
+      } finally {
+        setLoading(false);
+      }
     }
 
     load();

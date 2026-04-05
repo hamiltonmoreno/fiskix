@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getScoreLabel, getCurrentMesAno } from "@/lib/utils";
@@ -56,7 +56,7 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [syncedCount, setSyncedCount] = useState(0);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const mesAno = getCurrentMesAno();
 
@@ -131,21 +131,22 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
   useEffect(() => {
     async function init() {
       setLoading(true);
-
-      // Tentar online primeiro
-      if (navigator.onLine) {
-        await carregarOrdens();
-      } else {
-        // Fallback offline
-        try {
-          const cached = localStorage.getItem("fiskix_ordens");
-          if (cached) {
-            setOrdens(JSON.parse(cached));
-          }
-        } catch {}
+      try {
+        // Tentar online primeiro
+        if (navigator.onLine) {
+          await carregarOrdens();
+        } else {
+          // Fallback offline
+          try {
+            const cached = localStorage.getItem("fiskix_ordens");
+            if (cached) {
+              setOrdens(JSON.parse(cached) as OrdemFiscal[]);
+            }
+          } catch {}
+        }
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
 
     init();
@@ -158,7 +159,7 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
         if (n > 0) setSyncedCount(n);
       });
     }
-  }, [fiscalId]);
+  }, [fiscalId, supabase]);
 
   async function handleRefresh() {
     setRefreshing(true);

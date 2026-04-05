@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { AlertaTabela } from "../types";
+import type { AlertaStatus, InspecaoResultado } from "@/types/database";
 
 interface UseAlertasOptions {
   mesAno: string;
@@ -26,7 +27,7 @@ export function useAlertas({
 
   const load = useCallback(async () => {
     setLoading(true);
-
+    try {
     let query = supabase
       .from("alertas_fraude")
       .select(
@@ -44,8 +45,20 @@ export function useAlertas({
       .order("score_risco", { ascending: false })
       .range(page * pageSize, (page + 1) * pageSize - 1);
 
+    const ESTADOS_FINAIS: InspecaoResultado[] = [
+      "Fraude_Confirmada",
+      "Anomalia_Tecnica",
+      "Falso_Positivo",
+    ];
+
     if (statusFilter && statusFilter !== "todos") {
-      query = query.eq("status", statusFilter as unknown as "Pendente");
+      if (ESTADOS_FINAIS.includes(statusFilter as InspecaoResultado)) {
+        query = query
+          .eq("status", "Inspecionado" as AlertaStatus)
+          .eq("resultado", statusFilter as InspecaoResultado);
+      } else {
+        query = query.eq("status", statusFilter as AlertaStatus);
+      }
     }
 
     if (zona) {
@@ -87,7 +100,9 @@ export function useAlertas({
 
     setData(alertas);
     setTotal(count ?? 0);
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }, [mesAno, zona, statusFilter, page, pageSize]);
 
   useEffect(() => {

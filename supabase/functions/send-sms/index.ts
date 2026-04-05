@@ -93,6 +93,14 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Throttle: não reenviar SMS se já está notificado (evitar duplicados por duplo-clique)
+    if (alerta.status === "Notificado_SMS" && tipo === "amarelo") {
+      return new Response(
+        JSON.stringify({ error: "SMS amarelo já enviado para este alerta", alerta_id }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const cliente = alerta.clientes as {
       telemovel: string | null;
       numero_contador: string;
