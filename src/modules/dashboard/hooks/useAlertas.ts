@@ -31,12 +31,12 @@ export function useAlertas({
       .from("alertas_fraude")
       .select(
         `
-        id, score_risco, status, mes_ano, resultado, motivo,
+        id, id_cliente, score_risco, status, mes_ano, resultado, motivo,
         clientes!inner (
           numero_contador, nome_titular, morada, tipo_tarifa, telemovel,
           subestacoes!inner (nome, zona_bairro)
         )
-        `,
+`,
         { count: "exact" }
       )
       .eq("mes_ano", mesAno)
@@ -66,6 +66,7 @@ export function useAlertas({
 
       return {
         id: r.id,
+        id_cliente: r.id_cliente,
         score_risco: r.score_risco,
         status: r.status,
         mes_ano: r.mes_ano,

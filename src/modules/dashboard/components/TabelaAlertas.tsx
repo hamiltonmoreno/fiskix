@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { useAlertas } from "../hooks/useAlertas";
 import { getScoreColor, getScoreLabel, formatMesAno } from "@/lib/utils";
-import { MessageSquare, ClipboardList, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { exportToExcel } from "@/lib/export";
+import { MessageSquare, ClipboardList, ChevronLeft, ChevronRight, RefreshCw, Eye, FileDown } from "lucide-react";
+import { AlertaDetalheModal } from "./AlertaDetalheModal";
+import type { AlertaTabela } from "../types";
 
 interface TabelaAlertasProps {
   mesAno: string;
@@ -21,6 +24,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [page, setPage] = useState(0);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [alertaDetalhe, setAlertaDetalhe] = useState<AlertaTabela | null>(null);
   const pageSize = 10;
 
   const { data, total, loading, reload, enviarSMS, gerarOrdem } = useAlertas({
@@ -30,6 +34,22 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
     page,
     pageSize,
   });
+
+  function handleExportExcel() {
+    const headers = ["Score", "Contador", "Titular", "Zona", "Tarifa", "Regras", "Estado", "Resultado", "Mês"];
+    const rows = data.map((a) => ({
+      "Score": a.score_risco,
+      "Contador": a.cliente.numero_contador,
+      "Titular": a.cliente.nome_titular,
+      "Zona": a.subestacao.zona_bairro,
+      "Tarifa": a.cliente.tipo_tarifa,
+      "Regras": a.motivo.filter((r) => r.pontos > 0).map((r) => r.regra).join(", "),
+      "Estado": a.status,
+      "Resultado": a.resultado ?? "",
+      "Mês": a.mes_ano,
+    }));
+    exportToExcel(`alertas_${mesAno}`, headers, rows);
+  }
 
   async function handleEnviarSMS(alertaId: string, score: number) {
     setActionLoading(alertaId);
@@ -76,6 +96,14 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
             <option value="Pendente_Inspecao">Em Inspeção</option>
             <option value="Inspecionado">Inspecionado</option>
           </select>
+          <button
+            onClick={handleExportExcel}
+            disabled={data.length === 0}
+            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 disabled:opacity-40"
+            title="Exportar Excel"
+          >
+            <FileDown className="w-4 h-4" />
+          </button>
           <button
             onClick={reload}
             className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
@@ -133,7 +161,8 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
                 return (
                   <tr
                     key={alerta.id}
-                    className="border-b border-slate-50 hover:bg-slate-50 transition-colors"
+                    className="border-b border-slate-50 hover:bg-blue-50/40 transition-colors cursor-pointer"
+                    onClick={() => setAlertaDetalhe(alerta)}
                   >
                     <td className="px-4 py-3">
                       <span
@@ -180,7 +209,14 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => setAlertaDetalhe(alerta)}
+                          className="p-1.5 rounded-lg hover:bg-blue-100 text-slate-400 hover:text-blue-600 transition-colors"
+                          title="Ver detalhes"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
                         {podeEnviarSMS && (
                           <button
                             onClick={() =>
@@ -242,6 +278,14 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
           </div>
         </div>
       )}
+
+      {/* Modal de detalhe */}
+      <AlertaDetalheModal
+        alerta={alertaDetalhe}
+        open={alertaDetalhe !== null}
+        onClose={() => setAlertaDetalhe(null)}
+        onAction={() => { reload(); }}
+      />
     </div>
   );
 }
