@@ -95,6 +95,19 @@ export function useAlertas({
     load();
   }, [load]);
 
+  useEffect(() => {
+    const channel = supabase
+      .channel("alertas-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "alertas_fraude" },
+        () => { load(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   async function enviarSMS(alertaId: string, tipo: "amarelo" | "vermelho") {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-sms`,
