@@ -62,6 +62,10 @@ fiskix/
 │   │   │   └── configuracao/        # Limiares do motor
 │   │   └── api/
 │   │       └── cron/scoring/        # Cron automático mensal
+│   ├── __tests__/                   # Suite de testes (Vitest)
+│   │   ├── engine.test.ts           # Testes do motor de scoring
+│   │   ├── useAuth.test.ts          # Testes de autenticação
+│   │   └── ...                      # Testes de UI e PWA
 │   ├── components/
 │   │   ├── Sidebar.tsx              # Navegação lateral responsiva
 │   │   └── Breadcrumb.tsx           # Caminho da página actual
@@ -207,7 +211,10 @@ cp .env.local.example .env.local
 # supabase/migrations/002_mock_data.sql
 # supabase/migrations/003_rls_fiscal_update_alertas.sql
 
-# 5. Arrancar em desenvolvimento
+# 5. Executar testes (opcional)
+npm run test
+
+# 6. Arrancar em desenvolvimento
 npm run dev
 ```
 
@@ -302,6 +309,34 @@ A app mobile é uma PWA instalável em Android Chrome.
 - **Registo:** automático no `mobile/layout.tsx` ao carregar a página
 
 Para instalar: abrir `/mobile` no Chrome Android → menu → "Adicionar ao ecrã inicial".
+
+---
+
+## Qualidade e Testes
+
+O Fiskix utiliza **Vitest** para garantir a integridade da plataforma.  
+Atualmente conta com **163 testes automatizados** (100% pass rate).
+
+### Comandos de Teste
+
+```bash
+# Executar todos os testes
+npm run test
+
+# Executar testes com relatório de cobertura (coverage)
+npm run test:coverage
+
+# Executar linting e type-check
+npm run lint
+npx tsc --noEmit
+```
+
+### Áreas Cobertas
+- **Motor de Scoring:** R1 a R9, lógica de balanço e multiplicadores.
+- **PWA Mobile:** Roteiro offline, ficha de inteligência e relatórios com mock de GPS.
+- **Dashboard:** Gráficos Recharts, Mapas Leaflet e KPICards.
+- **Autenticação:** Sessão, persistência de perfil e logout.
+- **Ingestão:** Upload de CSV, validação de preview e erros de linha.
 
 ---
 

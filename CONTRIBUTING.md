@@ -149,6 +149,12 @@ docs: atualizar README com instruções de deploy Supabase
 Antes de submeter um PR, verificar:
 
 ```bash
+# Executar todos os testes (Vitest)
+npm run test
+
+# Executar testes com relatório de cobertura
+npm run test:coverage
+
 # Build de produção (obrigatório — não submeter se falhar)
 npm run build
 

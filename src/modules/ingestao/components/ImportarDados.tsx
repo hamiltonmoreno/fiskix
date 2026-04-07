@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Link from "next/link";
-import { Upload, CheckCircle, AlertCircle, ArrowLeft, FileText } from "lucide-react";
+import { Upload, CheckCircle, AlertCircle, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 interface HistoricoItem {

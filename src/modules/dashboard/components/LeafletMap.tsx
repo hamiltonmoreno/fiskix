@@ -7,7 +7,6 @@ import "leaflet/dist/leaflet.css";
 
 interface LeafletMapProps {
   subestacoes: SubestacaoMapa[];
-  mesAno: string;
 }
 
 function getColor(perdaPct: number): string {
@@ -22,7 +21,7 @@ function getRadius(kwh: number): number {
   return Math.min(35, Math.max(10, base));
 }
 
-export function LeafletMap({ subestacoes, mesAno }: LeafletMapProps) {
+export function LeafletMap({ subestacoes }: LeafletMapProps) {
   // Centrar em Cabo Verde (Santiago)
   const center: [number, number] = [14.93, -23.51];
 

@@ -43,7 +43,7 @@ describe("KPICards", () => {
 
   it("exibe as ordens pendentes", () => {
     render(<KPICards data={mockKPIData} loading={false} />);
-    expect(screen.getByText("7")).toBeInTheDocument();
+    expect(screen.getByText("7 ordens")).toBeInTheDocument();
   });
 
   it("exibe os subtítulos descritivos", () => {

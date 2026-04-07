@@ -138,7 +138,7 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
     }
 
     load();
-  }, [mesAno, zona]);
+  }, [mesAno, zona, supabase]);
 
   const maxPerda = Math.max(...data.map((d) => d.perda_pct), 20);
 

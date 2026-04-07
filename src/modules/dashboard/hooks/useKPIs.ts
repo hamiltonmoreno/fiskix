@@ -147,7 +147,7 @@ export function useKPIs(mesAno: string, zona?: string) {
     }
 
     load();
-  }, [mesAno, zona]);
+  }, [mesAno, zona, supabase]);
 
   return { data, loading };
 }

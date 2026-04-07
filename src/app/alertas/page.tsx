@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/client";
 import { getScoreColor, getScoreLabel, getCurrentMesAno } from "@/lib/utils";
 import {
   MessageSquare,
-  ClipboardList,
   RefreshCw,
   ChevronLeft,
   ChevronRight,

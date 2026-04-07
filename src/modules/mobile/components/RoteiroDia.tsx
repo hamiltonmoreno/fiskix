@@ -61,7 +61,7 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
   const mesAno = getCurrentMesAno();
 
   const carregarOrdens = useCallback(async () => {
-    let query = supabase
+    const query = supabase
       .from("alertas_fraude")
       .select(
         `
@@ -126,7 +126,7 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
     } catch {}
 
     setOrdens(mapped);
-  }, [zona, mesAno]);
+  }, [zona, mesAno, supabase]);
 
   useEffect(() => {
     async function init() {

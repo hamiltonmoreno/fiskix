@@ -13,7 +13,7 @@ import {
   Line,
   ResponsiveContainer,
 } from "recharts";
-import { Zap, TrendingDown, Activity, AlertTriangle } from "lucide-react";
+import { Zap, TrendingDown, AlertTriangle } from "lucide-react";
 import { formatKWh, formatCVE } from "@/lib/utils";
 import { useBalancoEnergeticoData } from "../hooks/useRelatoriosData";
 import type { RelatoriosFiltros } from "../types";

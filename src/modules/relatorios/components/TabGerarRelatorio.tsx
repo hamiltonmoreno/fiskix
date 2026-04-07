@@ -37,7 +37,7 @@ const TIPOS: { value: TipoRelatorio; label: string; desc: string; icon: React.El
   { value: "personalizado", label: "Relatório Personalizado", desc: "Escolher secções à medida", icon: Settings2 },
 ];
 
-export function TabGerarRelatorio({ filtros, active: _active, onExportReady: _onExportReady }: Props) {
+export function TabGerarRelatorio({ filtros }: Props) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [tipo, setTipo] = useState<TipoRelatorio | "">("");
   const [periodoInicio, setPeriodoInicio] = useState(filtros.mesAno);

@@ -12,7 +12,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { ArrowLeft, Phone, ClipboardCheck } from "lucide-react";
-import { getScoreColor, getScoreLabel } from "@/lib/utils";
+import { getScoreLabel } from "@/lib/utils";
 
 interface Regra {
   regra: string;
@@ -119,7 +119,6 @@ export function FichaInteligencia({
   const router = useRouter();
   const cliente = alerta.clientes;
   const regrasPontuadas = alerta.motivo.filter((r) => r.pontos > 0);
-  const regrasZero = alerta.motivo.filter((r) => r.pontos === 0);
 
   // Dados para o gráfico
   const chartData = faturacaoHistorico.slice(-12).map((f) => ({

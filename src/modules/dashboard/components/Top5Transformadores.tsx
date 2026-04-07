@@ -128,7 +128,7 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
     }
 
     load();
-  }, [mesAno]);
+  }, [mesAno, supabase]);
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-4">

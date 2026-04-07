@@ -41,16 +41,6 @@ async function salvarOffline(relatorio: RelatorioOffline) {
   await db.put("relatorios", relatorio);
 }
 
-async function getRelatoriosOffline(): Promise<RelatorioOffline[]> {
-  const db = await getDB();
-  return db.getAll("relatorios");
-}
-
-async function removerOffline(alertaId: string) {
-  const db = await getDB();
-  await db.delete("relatorios", alertaId);
-}
-
 export function RelatorioInspecao({
   alertaId,
   fiscalId,
@@ -95,7 +85,7 @@ export function RelatorioInspecao({
         await videoRef.current.play();
       }
       setCamAtiva(true);
-    } catch (err) {
+    } catch {
       alert("Não foi possível aceder à câmara. Verifique as permissões.");
     }
   }, []);
@@ -219,7 +209,7 @@ export function RelatorioInspecao({
         .eq("id", alertaId);
 
       setSucesso(true);
-    } catch (err) {
+    } catch {
       // Fallback offline
       await salvarOffline(relatorioData);
       setSucesso(true);

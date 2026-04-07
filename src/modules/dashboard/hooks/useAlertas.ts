@@ -104,7 +104,7 @@ export function useAlertas({
     } finally {
       setLoading(false);
     }
-  }, [mesAno, zona, statusFilter, page, pageSize]);
+  }, [mesAno, zona, statusFilter, page, pageSize, supabase]);
 
   useEffect(() => {
     load();

@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		}
+	],
+	"settings": {
+		"claudeCode.useTerminal": true,
+		"chat.tools.terminal.autoApprove": {
+			"git fetch": true,
+			"git pull": true,
+			"git remote": true
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"anthropic.claude-code"
+		]
+	}
+}
