@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   XCircle,
   Wrench,
+  ClipboardList,
 } from "lucide-react";
 import type { AlertaStatus, InspecaoResultado } from "@/types/database";
 

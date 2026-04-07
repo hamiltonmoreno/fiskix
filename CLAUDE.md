@@ -9,7 +9,7 @@ Plataforma SaaS de deteção de fraudes e perdas comerciais de energia elétrica
 - **Deploy**: Vercel (frontend) + Supabase Edge Functions
 - **SMS**: Twilio (alphanumeric sender "Electra" + fallback numérico)
 - **Mobile**: PWA (Android Chrome) — rotas `/mobile`
-- **Testes**: Vitest (163 testes automatizados, 100% de sucesso)
+- **Testes**: Vitest (172 testes automatizados, 100% de sucesso)
 
 ## Supabase
 - **Project ID**: `rqplobwsdbceuqhjywgt`
@@ -87,7 +87,7 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 - ✅ Edge function balanco-energetico
 - ✅ Deploy produção: Vercel + Supabase Edge Functions
 - ✅ Service Worker PWA corrigido (não cacheia POST/mutations)
-- ✅ Testes: 163 testes integrados (Vitest) com cobertura de core, UI e PWA
+- ✅ Testes: 172 testes integrados (Vitest) com cobertura de core, UI e PWA
 - ✅ Documentação completa (README, CONTRIBUTING, SECURITY)
 
 ## Bugs já corrigidos (não voltar a introduzir)

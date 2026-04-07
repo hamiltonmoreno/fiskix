@@ -315,7 +315,7 @@ Para instalar: abrir `/mobile` no Chrome Android → menu → "Adicionar ao ecr�
 ## Qualidade e Testes
 
 O Fiskix utiliza **Vitest** para garantir a integridade da plataforma.  
-Atualmente conta com **163 testes automatizados** (100% pass rate).
+Atualmente conta com **172 testes automatizados** (100% pass rate).
 
 ### Comandos de Teste
 
