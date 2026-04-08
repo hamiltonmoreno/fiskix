@@ -1,31 +1,35 @@
-import { expect, test } from "@playwright/test";
+import {
+  adminTest,
+  expect,
+  fiscalTest,
+  hasAdminCreds,
+  hasFiscalCreds,
+} from "./fixtures/auth";
 
-const adminEmail = process.env.FISKIX_E2E_ADMIN_EMAIL;
-const adminPassword = process.env.FISKIX_E2E_ADMIN_PASSWORD;
-const fiscalEmail = process.env.FISKIX_E2E_FISCAL_EMAIL;
-const fiscalPassword = process.env.FISKIX_E2E_FISCAL_PASSWORD;
+adminTest.describe("Authenticated Flows - Admin", () => {
+  adminTest.skip(!hasAdminCreds, "Missing FISKIX_E2E_ADMIN_EMAIL/PASSWORD");
 
-async function login(page: import("@playwright/test").Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Entrar" }).click();
-}
-
-test.describe("Authenticated Flows", () => {
-  test("admin can sign in and access dashboard", async ({ page }) => {
-    test.skip(!adminEmail || !adminPassword, "Missing FISKIX_E2E_ADMIN_EMAIL/PASSWORD");
-
-    await login(page, adminEmail!, adminPassword!);
-    await expect(page).toHaveURL(/\/dashboard$/);
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  adminTest("admin can sign in and access dashboard", async ({ adminPage }) => {
+    await expect(adminPage).toHaveURL(/\/dashboard$/);
+    await expect(adminPage.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   });
 
-  test("fiscal is redirected to mobile area after sign in", async ({ page }) => {
-    test.skip(!fiscalEmail || !fiscalPassword, "Missing FISKIX_E2E_FISCAL_EMAIL/PASSWORD");
+  adminTest("admin cannot access /mobile", async ({ adminPage }) => {
+    await adminPage.goto("/mobile");
+    await expect(adminPage).toHaveURL(/\/dashboard$/);
+  });
+});
 
-    await login(page, fiscalEmail!, fiscalPassword!);
-    await expect(page).toHaveURL(/\/mobile$/);
-    await expect(page.getByText("ordem(s) para hoje")).toBeVisible();
+fiscalTest.describe("Authenticated Flows - Fiscal", () => {
+  fiscalTest.skip(!hasFiscalCreds, "Missing FISKIX_E2E_FISCAL_EMAIL/PASSWORD");
+
+  fiscalTest("fiscal is redirected to mobile area after sign in", async ({ fiscalPage }) => {
+    await expect(fiscalPage).toHaveURL(/\/mobile$/);
+    await expect(fiscalPage.getByText("ordem(s) para hoje")).toBeVisible();
+  });
+
+  fiscalTest("fiscal is redirected from /dashboard back to /mobile", async ({ fiscalPage }) => {
+    await fiscalPage.goto("/dashboard");
+    await expect(fiscalPage).toHaveURL(/\/mobile$/);
   });
 });

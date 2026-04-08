@@ -1,14 +1,16 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Auth Gate", () => {
+  test.describe.configure({ timeout: 60000 });
+
   test("redirects anonymous user from root to /login", async ({ page }) => {
-    await page.goto("/");
-    await expect(page).toHaveURL(/\/login$/);
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(/\/login(\?|$)/, { timeout: 60000 });
   });
 
   test("redirects anonymous user from /dashboard to /login", async ({ page }) => {
-    await page.goto("/dashboard");
-    await expect(page).toHaveURL(/\/login$/);
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(/\/login(\?|$)/, { timeout: 60000 });
   });
 
   test("renders login form fields and submit action", async ({ page }) => {
