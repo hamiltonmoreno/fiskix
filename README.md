@@ -381,6 +381,21 @@ npm run e2e:debug
 - Redirect de utilizador anónimo `/` → `/login`
 - Redirect de utilizador anónimo `/dashboard` → `/login`
 - Render da página de login com campos e ação principal
+- Rotas protegidas anónimas (`/alertas`, `/admin`, `/perfil`, `/mobile`) redirecionam para `/login`
+- Smoke tests de assets públicos (`/manifest.json`, `/sw.js`)
+
+### Cenários autenticados (opcional)
+
+Para ativar E2E de login real (admin/fiscal), definir:
+
+```bash
+FISKIX_E2E_ADMIN_EMAIL=...
+FISKIX_E2E_ADMIN_PASSWORD=...
+FISKIX_E2E_FISCAL_EMAIL=...
+FISKIX_E2E_FISCAL_PASSWORD=...
+```
+
+Sem estas variáveis, os testes autenticados são marcados como `skipped`.
 
 ---
 

@@ -184,6 +184,9 @@ npm run lint
 
 - Localização: `e2e/*.spec.ts`
 - Configuração: `playwright.config.ts`
+- Credenciais opcionais para fluxos autenticados:
+  - `FISKIX_E2E_ADMIN_EMAIL`, `FISKIX_E2E_ADMIN_PASSWORD`
+  - `FISKIX_E2E_FISCAL_EMAIL`, `FISKIX_E2E_FISCAL_PASSWORD`
 - Recomendações:
   - Preferir `getByRole` e `getByLabel` em vez de seletores CSS frágeis
   - Evitar dependência de dados instáveis

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Camera, Upload, CheckCircle, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -373,10 +374,13 @@ export function RelatorioInspecao({
 
           {fotoUrl && (
             <div className="space-y-3">
-              <img
+              <Image
                 src={fotoUrl}
                 alt="Foto da inspeção"
-                className="w-full rounded-xl"
+                width={1280}
+                height={720}
+                unoptimized
+                className="w-full h-auto rounded-xl"
               />
               {gps && (
                 <p className="text-xs text-slate-400 text-center">
