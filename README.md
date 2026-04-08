@@ -20,6 +20,8 @@ Cliente inicial: **Electra (Cabo Verde)** — Fase MVP/PoC (Fase 1 de 3).
 - [Edge Functions](#edge-functions)
 - [Roles e Permissões](#roles-e-permissões)
 - [PWA Mobile](#pwa-mobile)
+- [Qualidade e Testes](#qualidade-e-testes)
+- [Testes E2E (Playwright)](#testes-e2e-playwright)
 - [Cron Automático](#cron-automático)
 
 ---
@@ -213,6 +215,8 @@ cp .env.local.example .env.local
 
 # 5. Executar testes (opcional)
 npm run test
+npm run e2e:install
+npm run e2e
 
 # 6. Arrancar em desenvolvimento
 npm run dev
@@ -273,12 +277,12 @@ npx supabase functions deploy balanco-energetico
 
 ## Edge Functions
 
-| Função | Método | Payload | Descrição |
-|--------|--------|---------|-----------|
-| `scoring-engine` | POST | `{ subestacao_id, mes_ano }` | Executa as 9 regras para uma subestação |
-| `send-sms` | POST | `{ alerta_id, tipo }` | Envia SMS amarelo/vermelho ao cliente |
-| `ingest-data` | POST | FormData com ficheiro CSV/Excel | Importa faturação ou injeção |
-| `balanco-energetico` | GET/POST | `?mes_ano=YYYY-MM[&subestacao_id]` | Calcula perdas agregadas por zona |
+| Função | Método | Payload | Descrição | Autorização |
+|--------|--------|---------|-----------|-------------|
+| `scoring-engine` | POST | `{ subestacao_id, mes_ano }` | Executa as 9 regras para uma subestação | JWT + role (`admin_fiskix`, `diretor`, `gestor_perdas`, `supervisor`) ou chamada interna com service role |
+| `send-sms` | POST | `{ alerta_id, tipo }` | Envia SMS amarelo/vermelho ao cliente | JWT + role (`admin_fiskix`, `diretor`, `gestor_perdas`, `supervisor`) |
+| `ingest-data` | POST | FormData com ficheiro CSV/Excel | Importa faturação ou injeção | JWT válido |
+| `balanco-energetico` | GET/POST | `?mes_ano=YYYY-MM[&subestacao_id]` | Calcula perdas agregadas por zona | JWT + role (`admin_fiskix`, `diretor`, `gestor_perdas`, `supervisor`, `fiscal`) ou chamada interna com service role |
 
 ---
 
@@ -314,8 +318,11 @@ Para instalar: abrir `/mobile` no Chrome Android → menu → "Adicionar ao ecr�
 
 ## Qualidade e Testes
 
-O Fiskix utiliza **Vitest** para garantir a integridade da plataforma.  
-Atualmente conta com **172 testes automatizados** (100% pass rate).
+O Fiskix utiliza **Vitest** (unit/integration) e **Playwright** (E2E).
+
+Atualmente:
+- **172 testes automatizados** em Vitest
+- **3 cenários E2E iniciais** em Playwright (auth/redirect/login)
 
 ### Comandos de Teste
 
@@ -328,7 +335,17 @@ npm run test:coverage
 
 # Executar linting e type-check
 npm run lint
-npx tsc --noEmit
+npm run type-check
+```
+
+### Pipeline de Qualidade Recomendada (local/CI)
+
+```bash
+npm run lint
+npm run type-check
+npm run test
+npm run e2e
+npm run build
 ```
 
 ### Áreas Cobertas
@@ -337,6 +354,33 @@ npx tsc --noEmit
 - **Dashboard:** Gráficos Recharts, Mapas Leaflet e KPICards.
 - **Autenticação:** Sessão, persistência de perfil e logout.
 - **Ingestão:** Upload de CSV, validação de preview e erros de linha.
+
+---
+
+## Testes E2E (Playwright)
+
+Os testes E2E ficam em `e2e/` e usam `playwright.config.ts`.
+
+### Comandos
+
+```bash
+# Instalar browser de teste (uma vez por máquina)
+npm run e2e:install
+
+# Suite E2E
+npm run e2e
+
+# Modo UI
+npm run e2e:ui
+
+# Debug interativo
+npm run e2e:debug
+```
+
+### Cenários base atuais
+- Redirect de utilizador anónimo `/` → `/login`
+- Redirect de utilizador anónimo `/dashboard` → `/login`
+- Render da página de login com campos e ação principal
 
 ---
 

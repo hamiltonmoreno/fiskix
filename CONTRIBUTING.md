@@ -12,6 +12,7 @@ Obrigado pelo interesse em contribuir para o Fiskix. Este guia descreve as conve
 - [Pull Requests](#pull-requests)
 - [Estrutura de Branches](#estrutura-de-branches)
 - [Testes e Verificação](#testes-e-verificação)
+- [Testes E2E](#testes-e2e)
 
 ---
 
@@ -21,6 +22,7 @@ Obrigado pelo interesse em contribuir para o Fiskix. Este guia descreve as conve
 - npm 10+
 - Conta Supabase (ou acesso ao projeto existente)
 - Git
+- Playwright Chromium (`npm run e2e:install`)
 
 ---
 
@@ -84,6 +86,7 @@ supabase/migrations/003_rls_fiscal_update_alertas.sql
 - Ficheiros em `supabase/functions/<nome>/index.ts`
 - Sempre incluir CORS headers
 - Usar `Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")` — nunca hardcoded
+- Validar autenticação/autorização antes de executar operações privilegiadas
 
 ---
 
@@ -155,11 +158,14 @@ npm run test
 # Executar testes com relatório de cobertura
 npm run test:coverage
 
+# Executar testes E2E
+npm run e2e
+
 # Build de produção (obrigatório — não submeter se falhar)
 npm run build
 
 # Type check
-npx tsc --noEmit
+npm run type-check
 
 # Lint
 npm run lint
@@ -173,5 +179,14 @@ npm run lint
 - **Edge Functions:** testar localmente com `npx supabase functions serve <nome>`
 
 ---
+
+## Testes E2E
+
+- Localização: `e2e/*.spec.ts`
+- Configuração: `playwright.config.ts`
+- Recomendações:
+  - Preferir `getByRole` e `getByLabel` em vez de seletores CSS frágeis
+  - Evitar dependência de dados instáveis
+  - Cobrir primeiro fluxos críticos (auth, redirects, rotas protegidas)
 
 Para dúvidas, abrir uma [issue](https://github.com/hamiltonmoreno/fiskix/issues) com o label `question`.

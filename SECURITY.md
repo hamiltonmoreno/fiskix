@@ -48,8 +48,12 @@ Resposta esperada em **48 horas**. Correção e deploy em **7 dias** para vulner
 - Service Role Key usada apenas em Edge Functions e API routes server-side — nunca no browser
 
 ### API Routes
-- `/api/cron/scoring` protegida por `CRON_SECRET` (Bearer token)
-- Edge Functions protegidas por JWT Supabase no header `Authorization`
+- `/api/cron/scoring` protegida por `CRON_SECRET` (Bearer token) e fail-fast quando a variável não está configurada
+- Edge Functions com validação explícita de `Authorization`:
+  - `send-sms`: JWT válido + allowlist de roles
+  - `scoring-engine`: JWT válido + allowlist de roles ou chamada interna service-to-service
+  - `balanco-energetico`: JWT válido + allowlist de roles ou chamada interna service-to-service
+  - `ingest-data`: JWT válido
 
 ### Headers de Segurança (Vercel)
 Configurados em `vercel.json`:
@@ -61,7 +65,16 @@ Configurados em `vercel.json`:
 ### Dados Sensíveis
 - Segredos em variáveis de ambiente — nunca hardcoded
 - `.env.local` no `.gitignore`
+- ficheiros de recuperação/códigos de 2FA não devem ser versionados
 - Fotos de inspeção em bucket privado Supabase Storage (`inspecoes`)
+
+### Gestão de Segredos (resposta a incidente)
+
+Se qualquer segredo for exposto em commit/log/screenshot:
+1. Revogar/rotacionar imediatamente no provedor (Supabase, Twilio, Vercel)
+2. Remover a referência do código e bloquear futuros commits (`.gitignore`)
+3. Reescrever histórico git apenas se necessário
+4. Registar o incidente e validar impacto
 
 ---
 
