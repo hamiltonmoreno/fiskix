@@ -12,6 +12,8 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+type UserRole = "admin_fiskix" | "diretor" | "gestor_perdas" | "supervisor" | "fiscal";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -32,16 +34,67 @@ interface BalancoSubestacao {
   num_clientes: number;
 }
 
+const BALANCO_ALLOWED_ROLES: UserRole[] = [
+  "admin_fiskix",
+  "diretor",
+  "gestor_perdas",
+  "supervisor",
+  "fiscal",
+];
+
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !serviceRoleKey || !anonKey) {
+      return jsonResponse({ error: "Configuração de ambiente incompleta" }, 500);
+    }
+
+    const authHeader = req.headers.get("Authorization") ?? req.headers.get("authorization");
+    if (!authHeader) {
+      return jsonResponse({ error: "Não autenticado" }, 401);
+    }
+
+    const isServiceRequest = authHeader === `Bearer ${serviceRoleKey}`;
+
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      supabaseUrl,
+      serviceRoleKey
     );
+
+    if (!isServiceRequest) {
+      const authClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const {
+        data: { user },
+        error: authError,
+      } = await authClient.auth.getUser();
+      if (authError || !user) {
+        return jsonResponse({ error: "Token inválido" }, 401);
+      }
+
+      const { data: perfil } = await supabase
+        .from("perfis")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      if (!perfil?.role || !BALANCO_ALLOWED_ROLES.includes(perfil.role as UserRole)) {
+        return jsonResponse({ error: "Sem permissão para consultar balanço energético" }, 403);
+      }
+    }
 
     // Suportar GET (query params) e POST (body)
     let mes_ano: string | null = null;
@@ -58,10 +111,7 @@ Deno.serve(async (req) => {
     }
 
     if (!mes_ano || !/^\d{4}-\d{2}$/.test(mes_ano)) {
-      return new Response(
-        JSON.stringify({ error: "mes_ano é obrigatório no formato YYYY-MM" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ error: "mes_ano é obrigatório no formato YYYY-MM" }, 400);
     }
 
     // Limiar de zona vermelha das configurações
@@ -86,10 +136,7 @@ Deno.serve(async (req) => {
     const { data: subestacoes, error: subError } = await subQuery;
 
     if (subError || !subestacoes?.length) {
-      return new Response(
-        JSON.stringify({ error: "Subestações não encontradas" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ error: "Subestações não encontradas" }, 404);
     }
 
     const resultados: BalancoSubestacao[] = [];
@@ -165,24 +212,15 @@ Deno.serve(async (req) => {
           )
         : 0;
 
-    return new Response(
-      JSON.stringify({ mes_ano, totais, subestacoes: resultados }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return jsonResponse({ mes_ano, totais, subestacoes: resultados }, 200);
   } catch (err) {
     console.error("[balanco-energetico]", err);
-    return new Response(
-      JSON.stringify({
+    return jsonResponse(
+      {
         error: "Erro interno",
         detail: err instanceof Error ? err.message : String(err),
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
+      500
     );
   }
 });

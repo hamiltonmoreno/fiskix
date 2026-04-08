@@ -240,65 +240,68 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
             const regrasPontuadas = ordem.motivo.filter((r) => r.pontos > 0);
 
             return (
-              <Link
+              <div
                 key={ordem.id}
-                href={`/mobile/${ordem.id}`}
-                className="block bg-white rounded-2xl p-4 shadow-sm active:scale-98 transition-transform"
+                className="bg-white rounded-2xl shadow-sm"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900 text-base">
-                      {ordem.cliente.nome_titular}
-                    </p>
-                    <p className="text-slate-500 text-sm mt-0.5">
-                      {ordem.cliente.morada}
-                    </p>
-                  </div>
-                  <span
-                    className={`ml-3 px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${
-                      isCritico
-                        ? "bg-red-100 text-red-700"
-                        : "bg-amber-100 text-amber-700"
-                    }`}
-                  >
-                    {getScoreLabel(ordem.score_risco)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-sm text-slate-400">
-                    <span className="font-mono text-xs">{ordem.cliente.numero_contador}</span>
-                    <span>·</span>
-                    <span>{ordem.subestacao.zona_bairro.replace(/_/g, " ")}</span>
+                <Link
+                  href={`/mobile/${ordem.id}`}
+                  className="block p-4 active:scale-98 transition-transform"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <p className="font-semibold text-slate-900 text-base">
+                        {ordem.cliente.nome_titular}
+                      </p>
+                      <p className="text-slate-500 text-sm mt-0.5">
+                        {ordem.cliente.morada}
+                      </p>
+                    </div>
+                    <span
+                      className={`ml-3 px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${
+                        isCritico
+                          ? "bg-red-100 text-red-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {getScoreLabel(ordem.score_risco)}
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
-                    {regrasPontuadas.slice(0, 3).map((r) => (
-                      <span
-                        key={r.regra}
-                        className="text-xs px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded font-mono"
-                      >
-                        {r.regra}
-                      </span>
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-sm text-slate-400">
+                      <span className="font-mono text-xs">{ordem.cliente.numero_contador}</span>
+                      <span>·</span>
+                      <span>{ordem.subestacao.zona_bairro.replace(/_/g, " ")}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {regrasPontuadas.slice(0, 3).map((r) => (
+                        <span
+                          key={r.regra}
+                          className="text-xs px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded font-mono"
+                        >
+                          {r.regra}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                </Link>
 
                 {ordem.cliente.lat && ordem.cliente.lng && (
-                  <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-1.5">
+                  <div className="px-4 pb-4 pt-3 border-t border-slate-100 flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-slate-400" />
                     <a
                       href={`https://maps.google.com/?q=${ordem.cliente.lat},${ordem.cliente.lng}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 text-sm font-medium"
-                      onClick={(e) => e.stopPropagation()}
                     >
                       Abrir no Mapa
                     </a>
                   </div>
                 )}
-              </Link>
+              </div>
             );
           })
         )}

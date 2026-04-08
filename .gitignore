@@ -22,6 +22,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+twilio_2FA_recovery_code.txt
 
 # local env files
 .env*.local

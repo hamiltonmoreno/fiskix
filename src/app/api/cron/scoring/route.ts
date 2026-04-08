@@ -8,14 +8,29 @@ import { createClient } from "@supabase/supabase-js";
  * Protegido por CRON_SECRET — Vercel injeta o header Authorization automaticamente.
  */
 export async function GET(request: Request) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    return NextResponse.json(
+      { error: "CRON_SECRET não configurado" },
+      { status: 500 }
+    );
+  }
+
   // Verificar autorização do cron
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl) {
+    return NextResponse.json(
+      { error: "NEXT_PUBLIC_SUPABASE_URL não configurada" },
+      { status: 500 }
+    );
+  }
 
   if (!serviceRoleKey) {
     return NextResponse.json(

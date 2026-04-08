@@ -8,11 +8,27 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+type UserRole = "admin_fiskix" | "diretor" | "gestor_perdas" | "supervisor" | "fiscal";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+const SCORING_ALLOWED_ROLES: UserRole[] = [
+  "admin_fiskix",
+  "diretor",
+  "gestor_perdas",
+  "supervisor",
+];
+
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -22,18 +38,51 @@ Deno.serve(async (req) => {
   const start = Date.now();
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !serviceRoleKey || !anonKey) {
+      return jsonResponse({ error: "Configuração de ambiente incompleta" }, 500);
+    }
+
+    const authHeader = req.headers.get("Authorization") ?? req.headers.get("authorization");
+    if (!authHeader) {
+      return jsonResponse({ error: "Não autenticado" }, 401);
+    }
+
+    const isServiceRequest = authHeader === `Bearer ${serviceRoleKey}`;
+
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      supabaseUrl,
+      serviceRoleKey
     );
+
+    if (!isServiceRequest) {
+      const authClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const {
+        data: { user },
+        error: authError,
+      } = await authClient.auth.getUser();
+      if (authError || !user) {
+        return jsonResponse({ error: "Token inválido" }, 401);
+      }
+
+      const { data: perfil } = await supabase
+        .from("perfis")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      if (!perfil?.role || !SCORING_ALLOWED_ROLES.includes(perfil.role as UserRole)) {
+        return jsonResponse({ error: "Sem permissão para executar scoring" }, 403);
+      }
+    }
 
     const { subestacao_id, mes_ano } = await req.json();
 
     if (!subestacao_id || !mes_ano) {
-      return new Response(
-        JSON.stringify({ error: "subestacao_id e mes_ano são obrigatórios" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ error: "subestacao_id e mes_ano são obrigatórios" }, 400);
     }
 
     // 1. Carregar limiares configuráveis
@@ -67,10 +116,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (!injecao) {
-      return new Response(
-        JSON.stringify({ error: `Sem dados de injeção para ${subestacao_id} em ${mes_ano}` }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ error: `Sem dados de injeção para ${subestacao_id} em ${mes_ano}` }, 404);
     }
 
     // Clientes da subestação
@@ -81,10 +127,7 @@ Deno.serve(async (req) => {
       .eq("ativo", true);
 
     if (!clientes || clientes.length === 0) {
-      return new Response(
-        JSON.stringify({ message: "Sem clientes ativos nesta subestação", scored: 0 }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ message: "Sem clientes ativos nesta subestação", scored: 0 });
     }
 
     const clienteIds = clientes.map((c) => c.id);
@@ -112,18 +155,15 @@ Deno.serve(async (req) => {
 
     // Se zona não é vermelha, não pontuar clientes individuais
     if (!zona_vermelha) {
-      return new Response(
-        JSON.stringify({
-          subestacao_id,
-          mes_ano,
-          perda_pct: perda_pct.toFixed(2),
-          zona_vermelha: false,
-          multiplicador_zona: 1.0,
-          message: "Zona verde — sem scoring individual necessário",
-          duracao_ms: Date.now() - start,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({
+        subestacao_id,
+        mes_ano,
+        perda_pct: perda_pct.toFixed(2),
+        zona_vermelha: false,
+        multiplicador_zona: 1.0,
+        message: "Zona verde — sem scoring individual necessário",
+        duracao_ms: Date.now() - start,
+      });
     }
 
     // 3. ETAPA B: Histórico de faturação (36 meses) para scoring

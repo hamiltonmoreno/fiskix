@@ -9,11 +9,27 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+type UserRole = "admin_fiskix" | "diretor" | "gestor_perdas" | "supervisor" | "fiscal";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+const SMS_ALLOWED_ROLES: UserRole[] = [
+  "admin_fiskix",
+  "diretor",
+  "gestor_perdas",
+  "supervisor",
+];
+
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
 
 function getTemplate(tipo: "amarelo" | "vermelho", numeroContador: string): string {
   if (tipo === "amarelo") {
@@ -60,18 +76,47 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !serviceRoleKey || !anonKey) {
+      return jsonResponse({ error: "Configuração de ambiente incompleta" }, 500);
+    }
+
+    const authHeader = req.headers.get("Authorization") ?? req.headers.get("authorization");
+    if (!authHeader) {
+      return jsonResponse({ error: "Não autenticado" }, 401);
+    }
+
+    const authClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const {
+      data: { user },
+      error: authError,
+    } = await authClient.auth.getUser();
+    if (authError || !user) {
+      return jsonResponse({ error: "Token inválido" }, 401);
+    }
+
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      supabaseUrl,
+      serviceRoleKey
     );
+
+    const { data: perfil } = await supabase
+      .from("perfis")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!perfil?.role || !SMS_ALLOWED_ROLES.includes(perfil.role as UserRole)) {
+      return jsonResponse({ error: "Sem permissão para enviar SMS" }, 403);
+    }
 
     const { alerta_id, tipo } = await req.json();
 
     if (!alerta_id || !tipo || !["amarelo", "vermelho"].includes(tipo)) {
-      return new Response(
-        JSON.stringify({ error: "alerta_id e tipo (amarelo|vermelho) são obrigatórios" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ error: "alerta_id e tipo (amarelo|vermelho) são obrigatórios" }, 400);
     }
 
     // Buscar alerta + dados do cliente
@@ -87,18 +132,12 @@ Deno.serve(async (req) => {
       .single();
 
     if (alertaError || !alerta) {
-      return new Response(
-        JSON.stringify({ error: "Alerta não encontrado" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ error: "Alerta não encontrado" }, 404);
     }
 
     // Throttle: não reenviar SMS se já está notificado (evitar duplicados por duplo-clique)
     if (alerta.status === "Notificado_SMS" && tipo === "amarelo") {
-      return new Response(
-        JSON.stringify({ error: "SMS amarelo já enviado para este alerta", alerta_id }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ error: "SMS amarelo já enviado para este alerta", alerta_id }, 409);
     }
 
     const cliente = alerta.clientes as {
@@ -108,10 +147,7 @@ Deno.serve(async (req) => {
     } | null;
 
     if (!cliente?.telemovel) {
-      return new Response(
-        JSON.stringify({ error: "Cliente sem número de telemóvel", alerta_id }),
-        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ error: "Cliente sem número de telemóvel", alerta_id }, 422);
     }
 
     const mensagem = getTemplate(tipo, cliente.numero_contador);
@@ -160,24 +196,18 @@ Deno.serve(async (req) => {
         .eq("id", alerta_id);
     }
 
-    return new Response(
-      JSON.stringify({
-        alerta_id,
-        tipo,
-        telemovel: cliente.telemovel.replace(/\d(?=\d{4})/g, "*"),
-        remetente: resultado.from,
-        mensagem_enviada: resultado.ok,
-        sid: resultado.ok ? resultado.sid : undefined,
-        erro: resultado.ok ? undefined : resultado.error,
-        status_atualizado: resultado.ok ? "Notificado_SMS" : "Pendente",
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return jsonResponse({
+      alerta_id,
+      tipo,
+      telemovel: cliente.telemovel.replace(/\d(?=\d{4})/g, "*"),
+      remetente: resultado.from,
+      mensagem_enviada: resultado.ok,
+      sid: resultado.ok ? resultado.sid : undefined,
+      erro: resultado.ok ? undefined : resultado.error,
+      status_atualizado: resultado.ok ? "Notificado_SMS" : "Pendente",
+    });
   } catch (error) {
     console.error("Erro ao enviar SMS:", error);
-    return new Response(
-      JSON.stringify({ error: String(error) }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return jsonResponse({ error: String(error) }, 500);
   }
 });
