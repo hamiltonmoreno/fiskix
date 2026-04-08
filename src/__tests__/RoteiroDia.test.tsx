@@ -10,7 +10,7 @@
  * - Banner de sincronização offline
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { RoteiroDia } from "@/modules/mobile/components/RoteiroDia";
 
 // ── Mocks Next.js ──────────────────────────────────────────────────────────────
@@ -99,10 +99,34 @@ const ordemMedia = {
   },
 };
 
+const ordemCache = {
+  id: "ordem-cache-003",
+  score_risco: 78,
+  status: "Pendente_Inspecao",
+  mes_ano: "2026-04",
+  motivo: [{ regra: "R1", pontos: 25 }],
+  cliente: {
+    id: "cliente-cache-003",
+    numero_contador: "CV-11223",
+    nome_titular: "Paulo Lima",
+    morada: "Palmarejo, Praia",
+    tipo_tarifa: "BT_Residencial",
+    telemovel: "+2389911122",
+    lat: 14.92,
+    lng: -23.52,
+  },
+  subestacao: {
+    nome: "Sub. Palmarejo",
+    zona_bairro: "Palmarejo",
+  },
+};
+
 // ── Reset mocks antes de cada teste ───────────────────────────────────────────
 beforeEach(() => {
   mockQueryData = [];
   mockOrder.mockImplementation(() => ({ data: mockQueryData }));
+  mockFrom.mockClear();
+  localStorage.clear();
   // navigator.onLine = true por omissão no jsdom
   Object.defineProperty(navigator, "onLine", { value: true, writable: true });
 });
@@ -288,5 +312,42 @@ describe("RoteiroDia — Estado de loading", () => {
     );
     const skeletons = container.querySelectorAll(".animate-pulse");
     expect(skeletons.length).toBeGreaterThan(0);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+describe("RoteiroDia — Fluxo offline no arranque", () => {
+  it("carrega ordens do cache local quando inicia offline", async () => {
+    Object.defineProperty(navigator, "onLine", { value: false, writable: true });
+    localStorage.setItem("fiskix_ordens", JSON.stringify([ordemCache]));
+
+    render(
+      <RoteiroDia fiscalId="fiscal-001" zona="Praia_Centro" nomeFiscal="Carlos Fonseca" />
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText("Paulo Lima")).toBeInTheDocument()
+    );
+    expect(screen.getByText("1 ordem(s) para hoje")).toBeInTheDocument();
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it("mostra aviso offline e remove aviso ao voltar online", async () => {
+    Object.defineProperty(navigator, "onLine", { value: false, writable: true });
+
+    render(
+      <RoteiroDia fiscalId="fiscal-001" zona="Praia_Centro" nomeFiscal="Carlos Fonseca" />
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/Modo offline/i)).toBeInTheDocument()
+    );
+
+    Object.defineProperty(navigator, "onLine", { value: true, writable: true });
+    fireEvent(window, new Event("online"));
+
+    await waitFor(() =>
+      expect(screen.queryByText(/Modo offline/i)).not.toBeInTheDocument()
+    );
   });
 });
