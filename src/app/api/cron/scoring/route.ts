@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { logger } from "@/lib/observability/logger";
 
 /**
  * Cron route: executa o motor de scoring para todas as subestações ativas.
@@ -7,35 +8,114 @@ import { createClient } from "@supabase/supabase-js";
  *
  * Protegido por CRON_SECRET — Vercel injeta o header Authorization automaticamente.
  */
+
+const SCORING_ENGINE_TIMEOUT_MS = 20000;
+const SCORING_ENGINE_MAX_ATTEMPTS = 3;
+
+function withRequestId(body: unknown, status: number, requestId: string) {
+  return NextResponse.json(body, {
+    status,
+    headers: { "x-request-id": requestId },
+  });
+}
+
+async function invokeScoringEngineWithRetry(params: {
+  supabaseUrl: string;
+  serviceRoleKey: string;
+  subestacaoId: string;
+  mesAno: string;
+  requestId: string;
+}) {
+  const { supabaseUrl, serviceRoleKey, subestacaoId, mesAno, requestId } = params;
+  const log = logger({ request_id: requestId, subestacao_id: subestacaoId, mes_ano: mesAno });
+
+  let lastError = "Unknown error";
+
+  for (let attempt = 1; attempt <= SCORING_ENGINE_MAX_ATTEMPTS; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), SCORING_ENGINE_TIMEOUT_MS);
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/scoring-engine`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${serviceRoleKey}`,
+          "x-request-id": requestId,
+        },
+        body: JSON.stringify({ subestacao_id: subestacaoId, mes_ano: mesAno }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      const payload = await response
+        .json()
+        .catch(() => ({ error: `Resposta inválida (HTTP ${response.status})` }));
+
+      if (!response.ok) {
+        lastError = String(payload?.error ?? `HTTP ${response.status}`);
+        log.warn("cron.scoring_engine.http_error", {
+          attempt,
+          http_status: response.status,
+          error: lastError,
+        });
+      } else {
+        return payload;
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : "Erro desconhecido";
+      log.warn("cron.scoring_engine.exception", { attempt, error: lastError });
+    }
+
+    if (attempt < SCORING_ENGINE_MAX_ATTEMPTS) {
+      await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+    }
+  }
+
+  return { error: `Falha após ${SCORING_ENGINE_MAX_ATTEMPTS} tentativas: ${lastError}` };
+}
+
 export async function GET(request: Request) {
+  const requestId = crypto.randomUUID();
+  const log = logger({ request_id: requestId, route: "/api/cron/scoring" });
+  const startedAt = Date.now();
+
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
-    return NextResponse.json(
+    log.error("cron.config_missing", { missing: "CRON_SECRET" });
+    return withRequestId(
       { error: "CRON_SECRET não configurado" },
-      { status: 500 }
+      500,
+      requestId
     );
   }
 
   // Verificar autorização do cron
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    log.warn("cron.unauthorized");
+    return withRequestId({ error: "Unauthorized" }, 401, requestId);
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl) {
-    return NextResponse.json(
+    log.error("cron.config_missing", { missing: "NEXT_PUBLIC_SUPABASE_URL" });
+    return withRequestId(
       { error: "NEXT_PUBLIC_SUPABASE_URL não configurada" },
-      { status: 500 }
+      500,
+      requestId
     );
   }
 
   if (!serviceRoleKey) {
-    return NextResponse.json(
+    log.error("cron.config_missing", { missing: "SUPABASE_SERVICE_ROLE_KEY" });
+    return withRequestId(
       { error: "SUPABASE_SERVICE_ROLE_KEY não configurada" },
-      { status: 500 }
+      500,
+      requestId
     );
   }
 
@@ -52,9 +132,11 @@ export async function GET(request: Request) {
     .eq("ativo", true);
 
   if (subError || !subestacoes) {
-    return NextResponse.json(
+    log.error("cron.subestacoes_query_failed", { detail: subError?.message });
+    return withRequestId(
       { error: "Erro ao obter subestações", detail: subError?.message },
-      { status: 500 }
+      500,
+      requestId
     );
   }
 
@@ -68,48 +150,44 @@ export async function GET(request: Request) {
 
   // Chamar scoring-engine para cada subestação
   for (const sub of subestacoes) {
-    try {
-      const res = await fetch(
-        `${supabaseUrl}/functions/v1/scoring-engine`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${serviceRoleKey}`,
-          },
-          body: JSON.stringify({ subestacao_id: sub.id, mes_ano: mesAno }),
-        }
-      );
+    const data = await invokeScoringEngineWithRetry({
+      supabaseUrl,
+      serviceRoleKey,
+      subestacaoId: sub.id,
+      mesAno,
+      requestId,
+    });
 
-      const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-      resultados.push({
-        subestacao_id: sub.id,
-        nome: sub.nome,
-        alertas_gerados: data.alertas_gerados ?? 0,
-        perda_pct: data.perda_pct,
-        error: data.error,
-      });
-    } catch (err) {
-      resultados.push({
-        subestacao_id: sub.id,
-        nome: sub.nome,
-        error: err instanceof Error ? err.message : "Erro desconhecido",
-      });
-    }
+    resultados.push({
+      subestacao_id: sub.id,
+      nome: sub.nome,
+      alertas_gerados: data.alertas_gerados ?? 0,
+      perda_pct: data.perda_pct,
+      error: data.error,
+    });
   }
 
   const totalAlertas = resultados.reduce((s, r) => s + (r.alertas_gerados ?? 0), 0);
   const erros = resultados.filter((r) => r.error);
 
-  console.log(
-    `[cron/scoring] ${mesAno} — ${subestacoes.length} subestações, ${totalAlertas} alertas gerados, ${erros.length} erros`
-  );
-
-  return NextResponse.json({
+  log.info("cron.completed", {
     mes_ano: mesAno,
     subestacoes_processadas: subestacoes.length,
     total_alertas_gerados: totalAlertas,
     erros: erros.length,
-    resultados,
+    duration_ms: Date.now() - startedAt,
   });
+
+  return withRequestId(
+    {
+      request_id: requestId,
+      mes_ano: mesAno,
+      subestacoes_processadas: subestacoes.length,
+      total_alertas_gerados: totalAlertas,
+      erros: erros.length,
+      resultados,
+    },
+    200,
+    requestId
+  );
 }

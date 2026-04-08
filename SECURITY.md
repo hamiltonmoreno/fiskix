@@ -49,6 +49,7 @@ Resposta esperada em **48 horas**. Correção e deploy em **7 dias** para vulner
 
 ### API Routes
 - `/api/cron/scoring` protegida por `CRON_SECRET` (Bearer token) e fail-fast quando a variável não está configurada
+- `/api/cron/scoring` inclui `x-request-id` para rastreabilidade de ponta a ponta
 - Edge Functions com validação explícita de `Authorization`:
   - `send-sms`: JWT válido + allowlist de roles
   - `scoring-engine`: JWT válido + allowlist de roles ou chamada interna service-to-service

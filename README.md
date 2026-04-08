@@ -22,6 +22,7 @@ Cliente inicial: **Electra (Cabo Verde)** — Fase MVP/PoC (Fase 1 de 3).
 - [PWA Mobile](#pwa-mobile)
 - [Qualidade e Testes](#qualidade-e-testes)
 - [Testes E2E (Playwright)](#testes-e2e-playwright)
+- [Observabilidade](#observabilidade)
 - [Cron Automático](#cron-automático)
 
 ---
@@ -396,6 +397,15 @@ FISKIX_E2E_FISCAL_PASSWORD=...
 ```
 
 Sem estas variáveis, os testes autenticados são marcados como `skipped`.
+
+---
+
+## Observabilidade
+
+- Logs estruturados JSON em rotas server-side (via `src/lib/observability/logger.ts`)
+- `request_id` propagado na resposta da rota de cron (`/api/cron/scoring`)
+- Cron com retry e timeout na chamada à edge function `scoring-engine`
+- Evento final de execução inclui duração (`duration_ms`) e métricas agregadas
 
 ---
 
