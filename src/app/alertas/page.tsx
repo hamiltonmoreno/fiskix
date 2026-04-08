@@ -74,7 +74,7 @@ export default function AlertasPage() {
         const unique = [...new Set((data ?? []).map((s) => s.zona_bairro))].sort();
         setZonas(unique);
       });
-  }, []);
+  }, [supabase]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -137,7 +137,7 @@ export default function AlertasPage() {
     setAlertas(parsed);
     setTotal(count ?? 0);
     setLoading(false);
-  }, [mesAno, statusFilter, zona, page]);
+  }, [mesAno, statusFilter, zona, page, supabase]);
 
   useEffect(() => {
     load();

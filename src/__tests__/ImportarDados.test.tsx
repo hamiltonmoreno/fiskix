@@ -10,20 +10,22 @@ const mockFrom = vi.fn();
 const mockOrder = vi.fn().mockReturnThis();
 const mockLimit = vi.fn().mockResolvedValue({ data: [], error: null });
 
-vi.mock("@/lib/supabase/client", () => ({
-  createClient: () => ({
-    auth: {
-      getSession: vi.fn().mockResolvedValue({
-        data: { session: { access_token: "mock-token-123" } },
-      }),
-    },
-    from: () => ({
-      select: () => ({
-        order: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }),
+const mockSupabase = {
+  auth: {
+    getSession: vi.fn().mockResolvedValue({
+      data: { session: { access_token: "mock-token-123" } },
+    }),
+  },
+  from: () => ({
+    select: () => ({
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({ data: [], error: null }),
     }),
   }),
+};
+
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => mockSupabase,
 }));
 
 // Mock global fetch

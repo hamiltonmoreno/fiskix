@@ -13,32 +13,35 @@ const mockUnsubscribe = vi.fn();
 // Callback guardada para simular mudanças de sessão
 let authChangeCallback: ((event: string, session: unknown) => void) | null = null;
 
-vi.mock("@/lib/supabase/client", () => ({
-  createClient: () => ({
-    auth: {
-      getUser: mockGetUser,
-      signInWithPassword: mockSignInWithPassword,
-      signOut: mockSignOut,
-      onAuthStateChange: (cb: (event: string, session: unknown) => void) => {
-        authChangeCallback = cb;
-        return { data: { subscription: { unsubscribe: mockUnsubscribe } } };
-      },
+const mockSupabase = {
+  auth: {
+    getUser: mockGetUser,
+    signInWithPassword: mockSignInWithPassword,
+    signOut: mockSignOut,
+    onAuthStateChange: (cb: (event: string, session: unknown) => void) => {
+      authChangeCallback = cb;
+      return { data: { subscription: { unsubscribe: mockUnsubscribe } } };
     },
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          single: mockSingle,
-        }),
+  },
+  from: () => ({
+    select: () => ({
+      eq: () => ({
+        single: mockSingle,
       }),
     }),
   }),
+};
+
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => mockSupabase,
 }));
 
 const mockProfile = {
   id: "user-123",
-  nome: "Ana Fiscal",
-  email: "ana@electra.cv",
-  role: "fiscal",
+  nome_completo: "Ana Fiscal",
+  role: "fiscal" as const,
+  id_zona: null,
+  ativo: true,
 };
 
 describe("useAuth.ts", () => {
@@ -47,13 +50,16 @@ describe("useAuth.ts", () => {
     authChangeCallback = null;
   });
 
-  it("começa com loading: true e profile: null", () => {
+  it("começa com loading: true e profile: null", async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
     const { result } = renderHook(() => useAuth());
 
     // Estado inicial antes de qualquer resolução
     expect(result.current.loading).toBe(true);
     expect(result.current.profile).toBeNull();
+
+    // Esperamos que o loading termine para evitar avisos de act()
+    await waitFor(() => expect(result.current.loading).toBe(false));
   });
 
   it("retorna profile: null quando não há user autenticado", async () => {
@@ -81,7 +87,7 @@ describe("useAuth.ts", () => {
     });
 
     expect(result.current.profile).toEqual(mockProfile);
-    expect(result.current.profile?.nome).toBe("Ana Fiscal");
+    expect(result.current.profile?.nome_completo).toBe("Ana Fiscal");
     expect(result.current.profile?.role).toBe("fiscal");
   });
 

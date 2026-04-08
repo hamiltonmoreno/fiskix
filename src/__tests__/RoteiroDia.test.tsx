@@ -42,11 +42,13 @@ const mockSelect = vi.fn().mockReturnValue({ eq: mockEqMes });
 const mockFrom = vi.fn().mockReturnValue({ select: mockSelect });
 const mockSignOut = vi.fn().mockResolvedValue({});
 
+const mockSupabase = {
+  from: mockFrom,
+  auth: { signOut: mockSignOut },
+};
+
 vi.mock("@/lib/supabase/client", () => ({
-  createClient: () => ({
-    from: mockFrom,
-    auth: { signOut: mockSignOut },
-  }),
+  createClient: () => mockSupabase,
 }));
 
 // ── Dados mock ─────────────────────────────────────────────────────────────────

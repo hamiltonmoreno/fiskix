@@ -3,7 +3,7 @@
  * O cliente Supabase é mockado — sem chamadas reais à BD.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import type { AlertaTabela } from "@/modules/dashboard/types";
 
 // ---------------------------------------------------------------------------
@@ -176,7 +176,9 @@ describe("useAlertas", () => {
     const queryBuilder = makeQueryBuilder({ data: mockRows, count: 2 });
     mockSupabase.from.mockReturnValue(queryBuilder);
 
-    await result.current.gerarOrdem("alerta-1");
+    await act(async () => {
+      await result.current.gerarOrdem("alerta-1");
+    });
 
     expect(mockSupabase.from).toHaveBeenCalledWith("alertas_fraude");
     expect(queryBuilder.update).toHaveBeenCalledWith({

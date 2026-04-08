@@ -7,8 +7,7 @@ on:
       - main
       - master
 
-permissions:
-  administration: write
+permissions: write-all
 
 jobs:
   protect:

@@ -9,76 +9,75 @@ const mockOrder = vi.fn().mockReturnThis();
 const mockRange = vi.fn();
 const mockUpdate = vi.fn().mockResolvedValue({ error: null });
 
-vi.mock("@/lib/supabase/client", () => ({
-  createClient: () => ({
-    auth: {
-      getSession: vi.fn().mockResolvedValue({
-        data: { session: { access_token: "mock-token-123" } },
-      }),
-    },
-    from: (table: string) => ({
-      select: (fields: string, opts?: any) => {
-        mockSelect(table, fields, opts);
-        const chain = {
-          eq: (col: string, val: any) => {
-            mockEq(col, val);
-            return chain;
-          },
-          order: () => {
-            mockOrder();
-            return chain;
-          },
-          range: (start: number, end: number) => {
-            mockRange(start, end);
-            // Retorno simulado para a tabela alertas_fraude
-            if (table === "alertas_fraude") {
-              return Promise.resolve({
-                data: [
-                  {
-                    id: "alerta-1",
-                    score_risco: 85,
-                    status: "Pendente",
-                    mes_ano: "2026-03",
-                    resultado: null,
-                    motivo: [{ regra: "R1", pontos: 25, descricao: "Queda de consumo" }],
-                    clientes: {
-                      numero_contador: "C-001",
-                      nome_titular: "João Alerta",
-                      morada: "Rua do Palmarejo",
-                      tipo_tarifa: "Doméstica",
-                      telemovel: "9998877",
-                      subestacoes: { nome: "Subestação 1", zona_bairro: "Palmarejo" }
-                    }
-                  }
-                ],
-                count: 1,
-                error: null
-              });
-            }
-            return Promise.resolve({ data: [], count: 0, error: null });
-          },
-          // Para a tabela subestacoes (carregamento de filtros)
-          then: (resolve: any) => {
-            if (table === "subestacoes") {
-              return resolve({ data: [{ zona_bairro: "Palmarejo" }, { zona_bairro: "Achada" }], error: null });
-            }
-            return resolve({ data: [], error: null });
-          }
-        };
-        return chain;
-      },
-      update: (val: any) => {
-        mockUpdate(val);
-        const updateChain = {
-          eq: (col: string, id: any) => {
-            mockEq(col, id);
-            return Promise.resolve({ error: null });
-          }
-        };
-        return updateChain;
-      }
+const mockSupabase = {
+  auth: {
+    getSession: vi.fn().mockResolvedValue({
+      data: { session: { access_token: "mock-token-123" } },
     }),
+  },
+  from: (table: string) => ({
+    select: (fields: string, opts?: any) => {
+      mockSelect(table, fields, opts);
+      const chain = {
+        eq: (col: string, val: any) => {
+          mockEq(col, val);
+          return chain;
+        },
+        order: () => {
+          mockOrder();
+          return chain;
+        },
+        range: (start: number, end: number) => {
+          mockRange(start, end);
+          if (table === "alertas_fraude") {
+            return Promise.resolve({
+              data: [
+                {
+                  id: "alerta-1",
+                  score_risco: 85,
+                  status: "Pendente",
+                  mes_ano: "2026-03",
+                  resultado: null,
+                  motivo: [{ regra: "R1", pontos: 25, descricao: "Queda de consumo" }],
+                  clientes: {
+                    numero_contador: "C-001",
+                    nome_titular: "João Alerta",
+                    morada: "Rua do Palmarejo",
+                    tipo_tarifa: "Doméstica",
+                    telemovel: "9998877",
+                    subestacoes: { nome: "Subestação 1", zona_bairro: "Palmarejo" }
+                  }
+                }
+              ],
+              count: 1,
+              error: null
+            });
+          }
+          return Promise.resolve({ data: [], count: 0, error: null });
+        },
+        then: (resolve: any) => {
+          if (table === "subestacoes") {
+            return resolve({ data: [{ zona_bairro: "Palmarejo" }, { zona_bairro: "Achada" }], error: null });
+          }
+          return resolve({ data: [], error: null });
+        }
+      };
+      return chain;
+    },
+    update: (val: any) => {
+      mockUpdate(val);
+      return {
+        eq: (col: string, id: any) => {
+          mockEq(col, id);
+          return Promise.resolve({ error: null });
+        }
+      };
+    }
   }),
+};
+
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => mockSupabase,
 }));
 
 // Mock do Fetch para as Edge Functions

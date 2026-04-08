@@ -20,22 +20,44 @@ const mockInsert = vi.fn().mockResolvedValue({ error: null });
 const mockUpdate = vi.fn().mockResolvedValue({ error: null });
 const mockUpload = vi.fn().mockResolvedValue({ data: { path: "teste.jpg" }, error: null });
 const mockGetPublicUrl = vi.fn().mockReturnValue({ data: { publicUrl: "http://temp.url/teste.jpg" } });
+const mockEq = vi.fn();
 
-// Supabase Mock
-vi.mock("@/lib/supabase/client", () => ({
-  createClient: () => ({
-    from: (tabela: string) => ({
-      insert: mockInsert,
-      update: mockUpdate,
-      eq: vi.fn().mockReturnThis(),
+const mockSupabase = {
+  from: (table: string) => ({
+    select: (fields?: string) => ({
+      eq: (col: string, val: any) => {
+        mockEq(col, val);
+        return Promise.resolve({ data: [], error: null });
+      },
+      then: (resolve: any) => {
+        if (table === "alertas_fraude") {
+          return resolve({
+            data: [{ id: "alerta-1", status: "Pendente" }],
+            error: null
+          });
+        }
+        return resolve({ data: [], error: null });
+      }
     }),
-    storage: {
-      from: () => ({
-        upload: mockUpload,
-        getPublicUrl: mockGetPublicUrl,
-      }),
+    insert: (val: any) => {
+      mockInsert(val);
+      return Promise.resolve({ error: null });
     },
+    update: (val: any) => {
+      mockUpdate(val);
+      return { eq: () => Promise.resolve({ error: null }) };
+    }
   }),
+  storage: {
+    from: () => ({
+      upload: mockUpload,
+      getPublicUrl: () => ({ data: { publicUrl: "http://mock-url.jpg" } }),
+    }),
+  },
+};
+
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => mockSupabase,
 }));
 
 // ── Props Base ─────────────────────────────────────────────────────────────────

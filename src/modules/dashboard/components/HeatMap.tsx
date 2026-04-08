@@ -1,25 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { SubestacaoMapa } from "../types";
 import { createClient } from "@/lib/supabase/client";
-import { formatCVE } from "@/lib/utils";
 
 interface HeatMapProps {
   mesAno: string;
   zona?: string;
 }
 
-function getMarkerColor(perdaPct: number): string {
-  if (perdaPct >= 15) return "#DC2626"; // vermelho
-  if (perdaPct >= 10) return "#D97706"; // âmbar
-  return "#16A34A"; // verde
-}
 
 export function HeatMap({ mesAno, zona }: HeatMapProps) {
   const [subestacoes, setSubestacoes] = useState<SubestacaoMapa[]>([]);
   const [Map, setMap] = useState<React.ComponentType<{ subestacoes: SubestacaoMapa[]; mesAno: string }> | null>(null);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     // Carregar Leaflet apenas no cliente (SSR não suporta)
@@ -87,7 +81,7 @@ export function HeatMap({ mesAno, zona }: HeatMapProps) {
     }
 
     load();
-  }, [mesAno, zona]);
+  }, [mesAno, zona, supabase]);
 
   if (!Map) {
     return (

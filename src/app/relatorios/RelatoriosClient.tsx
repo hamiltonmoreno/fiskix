@@ -93,7 +93,9 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
       {/* Top bar */}
       <header className="sticky top-0 lg:top-0 z-30 bg-white border-b border-slate-200 px-4 lg:px-6">
         <div className="flex flex-wrap items-center gap-3 py-3">
-          <h1 className="text-base font-semibold text-slate-900 mr-2">Relatórios</h1>
+          <h1 className="text-base font-semibold text-slate-900 mr-2">
+            Relatórios <span className="font-normal text-slate-400">· {profile.nome_completo}</span>
+          </h1>
 
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">

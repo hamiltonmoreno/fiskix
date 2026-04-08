@@ -28,12 +28,14 @@ vi.mock("next/link", () => ({
 }));
 
 // ── Mock Supabase client ───────────────────────────────────────────────────────
+const mockSupabase = {
+  auth: {
+    signOut: vi.fn().mockResolvedValue({}),
+  },
+};
+
 vi.mock("@/lib/supabase/client", () => ({
-  createClient: () => ({
-    auth: {
-      signOut: vi.fn().mockResolvedValue({}),
-    },
-  }),
+  createClient: () => mockSupabase,
 }));
 
 // ── Helper — renderiza e retorna o <aside> do desktop ─────────────────────────

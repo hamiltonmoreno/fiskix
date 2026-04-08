@@ -5,52 +5,54 @@ import { HeatMap } from "@/modules/dashboard/components/HeatMap";
 const mockEq = vi.fn();
 const mockGte = vi.fn();
 
-// Mock Supabase
-vi.mock("@/lib/supabase/client", () => ({
-  createClient: () => ({
-    from: (table: string) => ({
-      select: () => {
-        const chain = {
-          eq: (col: string, val: any) => {
-            mockEq(col, val);
-            return chain;
-          },
-          gte: (col: string, val: any) => {
-            mockGte(col, val);
-            return chain;
-          },
-          then: (resolve: any) => {
-            if (table === "subestacoes") {
-              return resolve({
-                data: [{ id: "sub-1", nome: "Sub 1", zona_bairro: "Centro", lat: 10, lng: 10, ativo: true }],
-                error: null
-              });
-            }
-            if (table === "injecao_energia") {
-              return resolve({
-                data: [{ id_subestacao: "sub-1", total_kwh_injetado: 50000 }],
-                error: null
-              });
-            }
-            if (table === "alertas_fraude") {
-              return resolve({
-                data: [{ id: "alt-1", score_risco: 80, clientes: { id_subestacao: "sub-1" } }],
-                error: null
-              });
-            }
-            if (table === "faturacao_clientes") {
-              return resolve({
-                data: [{ kwh_faturado: 35000, clientes: { id_subestacao: "sub-1" } }],
-                error: null
-              });
-            }
-            return resolve({ data: [], error: null });
+// Mock Supabase stable instance
+const mockSupabase = {
+  from: (table: string) => ({
+    select: () => {
+      const chain = {
+        eq: (col: string, val: any) => {
+          mockEq(col, val);
+          return chain;
+        },
+        gte: (col: string, val: any) => {
+          mockGte(col, val);
+          return chain;
+        },
+        then: (resolve: any) => {
+          if (table === "subestacoes") {
+            return resolve({
+              data: [{ id: "sub-1", nome: "Sub 1", zona_bairro: "Centro", lat: 10, lng: 10, ativo: true }],
+              error: null
+            });
           }
-        };
-        return chain;
-      }
-    })
+          if (table === "injecao_energia") {
+            return resolve({
+              data: [{ id_subestacao: "sub-1", total_kwh_injetado: 50000 }],
+              error: null
+            });
+          }
+          if (table === "alertas_fraude") {
+            return resolve({
+              data: [{ id: "alt-1", score_risco: 80, clientes: { id_subestacao: "sub-1" } }],
+              error: null
+            });
+          }
+          if (table === "faturacao_clientes") {
+            return resolve({
+              data: [{ kwh_faturado: 35000, clientes: { id_subestacao: "sub-1" } }],
+              error: null
+            });
+          }
+          return resolve({ data: [], error: null });
+        }
+      };
+      return chain;
+    }
   })
+};
+
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => mockSupabase
 }));
 
 // Mock do import dinâmico que o HeatMap faz
