@@ -125,6 +125,7 @@ docs: atualizar README com instruções de deploy Supabase
 - Título em formato `tipo: descrição` (igual ao commit principal)
 - Preencher o template de PR (`/.github/PULL_REQUEST_TEMPLATE.md`)
 - O PR deve passar o build (`npm run build`) sem erros
+- O check obrigatório `Quality Gate` deve estar verde para merge em `main`
 - Descrever como testar as alterações
 - Referenciar issues relacionadas com `Fixes #123`
 
@@ -176,6 +177,7 @@ npm run lint
 - **Motor de scoring:** se alterar `engine.ts`, verificar que a lógica é igual à edge function `scoring-engine/index.ts`
 - **RLS:** se alterar políticas RLS, criar migration e testar com cada role
 - **PWA:** se alterar `sw.js`, incrementar `CACHE_NAME` para invalidar o cache antigo
+- **PWA offline:** validar abertura inicial sem internet para confirmar que o roteiro usa cache local e não o substitui por lista vazia
 - **Edge Functions:** testar localmente com `npx supabase functions serve <nome>`
 
 ---

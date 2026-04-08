@@ -311,6 +311,7 @@ A app mobile é uma PWA instalável em Android Chrome.
   - Network-first para páginas `/mobile` e `/login`
   - Nunca cacheia pedidos não-GET (mutations Supabase)
   - Fallback offline via IndexedDB para relatórios de inspeção
+  - Deteção de conectividade no arranque (`navigator.onLine`) para evitar sobrescrever cache quando a app abre offline
 - **Registo:** automático no `mobile/layout.tsx` ao carregar a página
 
 Para instalar: abrir `/mobile` no Chrome Android → menu → "Adicionar ao ecrã inicial".
@@ -349,7 +350,7 @@ npm run e2e
 npm run build
 ```
 
-No GitHub, este fluxo é aplicado automaticamente pelo check obrigatório `Quality Gate` em Pull Requests para `main`.
+No GitHub, este fluxo é aplicado automaticamente pelo check obrigatório `Quality Gate` em Pull Requests para `main` (branch protection em `main` e `master`).
 
 ### Áreas Cobertas
 - **Motor de Scoring:** R1 a R9, lógica de balanço e multiplicadores.

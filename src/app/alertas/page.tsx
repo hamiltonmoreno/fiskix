@@ -63,6 +63,12 @@ export default function AlertasPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{
+    alertaId: string;
+    novoStatus: InspecaoResultado;
+    label: string;
+  } | null>(null);
 
   // Load available zones
   useEffect(() => {
@@ -150,64 +156,101 @@ export default function AlertasPage() {
 
   async function handleEnviarSMS(alerta: Alerta) {
     setActionLoading(alerta.id);
-    const tipo = alerta.score_risco >= 75 ? "vermelho" : "amarelo";
-    const session = await supabase.auth.getSession();
-    const token = session.data.session?.access_token;
+    setFeedback(null);
+    try {
+      const tipo = alerta.score_risco >= 75 ? "vermelho" : "amarelo";
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-sms`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ alerta_id: alerta.id, tipo }),
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-sms`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ alerta_id: alerta.id, tipo }),
+        }
+      );
+      const json = await res.json();
+      if (!json.mensagem_enviada) {
+        setFeedback({ type: "error", message: `Erro ao enviar SMS: ${json.erro ?? "Desconhecido"}` });
+      } else {
+        setFeedback({ type: "success", message: "SMS enviado com sucesso." });
       }
-    );
-    const json = await res.json();
-    if (!json.mensagem_enviada) {
-      alert(`Erro ao enviar SMS: ${json.erro ?? "Desconhecido"}`);
+      await load();
+    } catch {
+      setFeedback({ type: "error", message: "Falha ao enviar SMS. Tente novamente." });
+    } finally {
+      setActionLoading(null);
     }
-    await load();
-    setActionLoading(null);
   }
 
   async function handleGerarOrdem(alertaId: string) {
     setActionLoading(alertaId);
-    await supabase
-      .from("alertas_fraude")
-      .update({ status: "Pendente_Inspecao" })
-      .eq("id", alertaId);
-    await load();
-    setActionLoading(null);
+    setFeedback(null);
+    try {
+      await supabase
+        .from("alertas_fraude")
+        .update({ status: "Pendente_Inspecao" })
+        .eq("id", alertaId);
+      await load();
+      setFeedback({ type: "success", message: "Ordem de inspeção gerada." });
+    } catch {
+      setFeedback({ type: "error", message: "Falha ao gerar ordem de inspeção." });
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   async function handleAtualizarStatus(alertaId: string, novoStatus: InspecaoResultado) {
     setActionLoading(alertaId);
-    await supabase
-      .from("alertas_fraude")
-      .update({ resultado: novoStatus, status: "Inspecionado" as AlertaStatus })
-      .eq("id", alertaId);
-    await load();
-    setActionLoading(null);
+    setFeedback(null);
+    try {
+      await supabase
+        .from("alertas_fraude")
+        .update({ resultado: novoStatus, status: "Inspecionado" as AlertaStatus })
+        .eq("id", alertaId);
+      await load();
+      setFeedback({ type: "success", message: "Estado do alerta atualizado." });
+    } catch {
+      setFeedback({ type: "error", message: "Falha ao atualizar o estado do alerta." });
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 py-4">
+      <header className="bg-white border-b border-slate-200 px-6 py-4 no-print">
         <h1 className="text-lg font-bold text-slate-900">Alertas de Fraude</h1>
-        <p className="text-sm text-slate-400">Gestão completa dos alertas gerados pelo motor de scoring</p>
+        <p className="text-sm text-slate-500">Gestão completa dos alertas gerados pelo motor de scoring</p>
       </header>
 
       <main className="p-6 space-y-4">
+        <div aria-live="polite" role="status">
+          {feedback && (
+            <div
+              className={`rounded-xl border px-4 py-2.5 text-sm ${
+                feedback.type === "error"
+                  ? "bg-red-50 text-red-700 border-red-200"
+                  : "bg-green-50 text-green-700 border-green-200"
+              }`}
+            >
+              {feedback.message}
+            </div>
+          )}
+        </div>
+
         {/* Filtros */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-wrap items-center gap-3">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-wrap items-center gap-3 no-print">
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Mês</label>
+            <label htmlFor="alertas-mes" className="block text-xs text-slate-500 mb-1">Mês</label>
             <input
+              id="alertas-mes"
               type="month"
               value={mesAno}
               onChange={(e) => setMesAno(e.target.value)}
@@ -215,8 +258,9 @@ export default function AlertasPage() {
             />
           </div>
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Estado</label>
+            <label htmlFor="alertas-estado" className="block text-xs text-slate-500 mb-1">Estado</label>
             <select
+              id="alertas-estado"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -232,8 +276,9 @@ export default function AlertasPage() {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-slate-500 mb-1">Zona</label>
+            <label htmlFor="alertas-zona" className="block text-xs text-slate-500 mb-1">Zona</label>
             <select
+              id="alertas-zona"
               value={zona}
               onChange={(e) => setZona(e.target.value)}
               className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -377,24 +422,45 @@ export default function AlertasPage() {
                             {alerta.status === "Inspecionado" && (
                               <>
                                 <button
-                                  onClick={() => handleAtualizarStatus(alerta.id, "Fraude_Confirmada")}
+                                  onClick={() =>
+                                    setPendingStatusUpdate({
+                                      alertaId: alerta.id,
+                                      novoStatus: "Fraude_Confirmada",
+                                      label: "Fraude Confirmada",
+                                    })
+                                  }
                                   disabled={isLoading}
+                                  aria-label="Marcar como fraude confirmada"
                                   title="Confirmar fraude"
                                   className="p-1.5 bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white rounded-lg transition-colors"
                                 >
                                   <CheckCircle2 className="w-3.5 h-3.5" />
                                 </button>
                                 <button
-                                  onClick={() => handleAtualizarStatus(alerta.id, "Anomalia_Tecnica")}
+                                  onClick={() =>
+                                    setPendingStatusUpdate({
+                                      alertaId: alerta.id,
+                                      novoStatus: "Anomalia_Tecnica",
+                                      label: "Anomalia Técnica",
+                                    })
+                                  }
                                   disabled={isLoading}
+                                  aria-label="Marcar como anomalia técnica"
                                   title="Anomalia técnica"
                                   className="p-1.5 bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white rounded-lg transition-colors"
                                 >
                                   <Wrench className="w-3.5 h-3.5" />
                                 </button>
                                 <button
-                                  onClick={() => handleAtualizarStatus(alerta.id, "Falso_Positivo")}
+                                  onClick={() =>
+                                    setPendingStatusUpdate({
+                                      alertaId: alerta.id,
+                                      novoStatus: "Falso_Positivo",
+                                      label: "Falso Positivo",
+                                    })
+                                  }
                                   disabled={isLoading}
+                                  aria-label="Marcar como falso positivo"
                                   title="Falso positivo"
                                   className="p-1.5 bg-slate-400 hover:bg-slate-500 disabled:bg-slate-300 text-white rounded-lg transition-colors"
                                 >
@@ -422,6 +488,7 @@ export default function AlertasPage() {
                 <button
                   onClick={() => setPage((p) => Math.max(0, p - 1))}
                   disabled={page === 0}
+                  aria-label="Página anterior"
                   className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-40"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -429,6 +496,7 @@ export default function AlertasPage() {
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                   disabled={page >= totalPages - 1}
+                  aria-label="Página seguinte"
                   className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-40"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -438,6 +506,37 @@ export default function AlertasPage() {
           )}
         </div>
       </main>
+
+      {pendingStatusUpdate && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white border border-slate-200 shadow-xl p-5">
+            <h2 className="text-base font-semibold text-slate-900">Confirmar atualização de estado</h2>
+            <p className="text-sm text-slate-500 mt-2">
+              Pretende marcar este alerta como <strong>{pendingStatusUpdate.label}</strong>?
+            </p>
+            <div className="mt-5 flex gap-2 justify-end">
+              <button
+                onClick={() => setPendingStatusUpdate(null)}
+                className="px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  await handleAtualizarStatus(
+                    pendingStatusUpdate.alertaId,
+                    pendingStatusUpdate.novoStatus
+                  );
+                  setPendingStatusUpdate(null);
+                }}
+                className="px-3 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-sm text-white transition-colors"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

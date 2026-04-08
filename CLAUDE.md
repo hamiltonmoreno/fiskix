@@ -86,7 +86,9 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 - ✅ Cron automático mensal (Vercel Cron → /api/cron/scoring)
 - ✅ Edge function balanco-energetico
 - ✅ Deploy produção: Vercel + Supabase Edge Functions
+- ✅ Branch protection automática com check obrigatório `Quality Gate` em PR para `main`
 - ✅ Service Worker PWA corrigido (não cacheia POST/mutations)
+- ✅ Roteiro mobile inicializa estado online pelo `navigator.onLine` para preservar fallback offline
 - ✅ Testes: 172 testes integrados (Vitest) com cobertura de core, UI e PWA
 - ✅ Documentação completa (README, CONTRIBUTING, SECURITY)
 

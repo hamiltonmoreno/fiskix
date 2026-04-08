@@ -91,10 +91,10 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Top bar */}
-      <header className="sticky top-0 lg:top-0 z-30 bg-white border-b border-slate-200 px-4 lg:px-6">
+      <header className="sticky top-0 lg:top-0 z-30 bg-white border-b border-slate-200 px-4 lg:px-6 no-print">
         <div className="flex flex-wrap items-center gap-3 py-3">
           <h1 className="text-base font-semibold text-slate-900 mr-2">
-            Relatórios <span className="font-normal text-slate-400">· {profile.nome_completo}</span>
+            Relatórios <span className="font-normal text-slate-500">· {profile.nome_completo}</span>
           </h1>
 
           {/* Filters */}
@@ -160,6 +160,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
             <button
               onClick={handleExportExcel}
               disabled={!exportPayload}
+              aria-label="Exportar relatório em Excel"
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               title="Exportar dados como Excel"
             >
@@ -169,6 +170,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
 
             <button
               onClick={() => window.print()}
+              aria-label="Imprimir ou exportar PDF"
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
               title="Imprimir / Exportar PDF"
             >
@@ -178,6 +180,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
 
             <button
               onClick={() => { setAgendarOpen(true); setAgendarSuccess(false); }}
+              aria-label="Agendar envio de relatório"
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-blue-700 hover:bg-blue-800 text-white rounded-lg transition-colors"
             >
               <Calendar className="w-4 h-4" />
@@ -195,7 +198,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
           setExportPayload(null);
         }}
       >
-        <Tabs.List className="flex border-b border-slate-200 bg-white px-4 lg:px-6 sticky top-[57px] z-20 overflow-x-auto">
+        <Tabs.List className="flex border-b border-slate-200 bg-white px-4 lg:px-6 sticky top-[57px] z-20 overflow-x-auto no-print">
           {TAB_DEFS.map((tab) => (
             <Tabs.Trigger
               key={tab.value}
@@ -203,7 +206,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
               className="px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors
                 data-[state=active]:border-blue-600 data-[state=active]:text-blue-700
                 data-[state=inactive]:border-transparent data-[state=inactive]:text-slate-500
-                hover:text-slate-700 focus:outline-none"
+                hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               {tab.label}
             </Tabs.Trigger>

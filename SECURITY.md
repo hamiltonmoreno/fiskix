@@ -63,6 +63,11 @@ Configurados em `vercel.json`:
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Permissions-Policy: camera=(self), geolocation=(self)` (apenas em `/mobile`)
 
+### Proteção de Branches (GitHub)
+- `main` e `master` com branch protection gerida por workflow
+- Check obrigatório `Quality Gate` para Pull Requests antes de merge
+- Revisão obrigatória e proteção contra force-push/delete
+
 ### Dados Sensíveis
 - Segredos em variáveis de ambiente — nunca hardcoded
 - `.env.local` no `.gitignore`

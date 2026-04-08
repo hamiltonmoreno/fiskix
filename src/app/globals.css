@@ -41,6 +41,11 @@
     color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  :where(a, button, input, select, textarea, [role="button"]):focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
 }
 
 /* Leaflet map fixes */
@@ -57,10 +62,9 @@
   min-height: 100dvh;
 }
 
-/* Print: hide sidebar and top bar so only content prints */
+/* Print: hide only elements explicitly marked as no-print */
 @media print {
-  aside,
-  header {
+  .no-print {
     display: none !important;
   }
 }
