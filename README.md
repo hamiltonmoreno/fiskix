@@ -349,6 +349,8 @@ npm run e2e
 npm run build
 ```
 
+No GitHub, este fluxo é aplicado automaticamente pelo check obrigatório `Quality Gate` em Pull Requests para `main`.
+
 ### Áreas Cobertas
 - **Motor de Scoring:** R1 a R9, lógica de balanço e multiplicadores.
 - **PWA Mobile:** Roteiro offline, ficha de inteligência e relatórios com mock de GPS.
