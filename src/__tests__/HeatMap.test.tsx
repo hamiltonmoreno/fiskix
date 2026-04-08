@@ -10,15 +10,15 @@ const mockSupabase = {
   from: (table: string) => ({
     select: () => {
       const chain = {
-        eq: (col: string, val: any) => {
+        eq: (col: string, val: unknown) => {
           mockEq(col, val);
           return chain;
         },
-        gte: (col: string, val: any) => {
+        gte: (col: string, val: unknown) => {
           mockGte(col, val);
           return chain;
         },
-        then: (resolve: any) => {
+        then: (resolve: (value: { data: unknown[]; error: null }) => unknown) => {
           if (table === "subestacoes") {
             return resolve({
               data: [{ id: "sub-1", nome: "Sub 1", zona_bairro: "Centro", lat: 10, lng: 10, ativo: true }],
@@ -57,7 +57,7 @@ vi.mock("@/lib/supabase/client", () => ({
 
 // Mock do import dinâmico que o HeatMap faz
 vi.mock("@/modules/dashboard/components/LeafletMap", () => ({
-  LeafletMap: ({ subestacoes, mesAno }: any) => (
+  LeafletMap: ({ subestacoes }: { subestacoes: unknown[] }) => (
     <div data-testid="mock-leaflet-map">
       Mock Map Container, subestacoes count: {subestacoes.length}
     </div>

@@ -69,10 +69,10 @@ vi.mock("@/lib/supabase/client", () => ({
 
 // Mock do Recharts
 vi.mock("recharts", async () => {
-  const OriginalRecharts = await vi.importActual<any>("recharts");
+  const OriginalRecharts = await vi.importActual<typeof import("recharts")>("recharts");
   return {
     ...OriginalRecharts,
-    ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   };
 });
 

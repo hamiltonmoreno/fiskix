@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { TabBalancoEnergetico } from "@/modules/relatorios/components/TabBalancoEnergetico";
 import { useBalancoEnergeticoData } from "@/modules/relatorios/hooks/useRelatoriosData";
+import type { RelatoriosFiltros } from "@/modules/relatorios/types";
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
 
@@ -12,15 +13,15 @@ vi.mock("@/modules/relatorios/hooks/useRelatoriosData", () => ({
 
 // Mock do Recharts
 vi.mock("recharts", async () => {
-  const Original = await vi.importActual<any>("recharts");
+  const Original = await vi.importActual<typeof import("recharts")>("recharts");
   return {
     ...Original,
-    ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="responsive-container">{children}</div>,
   };
 });
 
 describe("TabBalancoEnergetico.tsx", () => {
-  const mockFilters: any = { 
+  const mockFilters: RelatoriosFiltros = {
     mesAno: "2026-03", 
     periodo: "mes",
     zona: "todas",
@@ -31,7 +32,7 @@ describe("TabBalancoEnergetico.tsx", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Default mock implementation
-    vi.mocked(useBalancoEnergeticoData).mockImplementation((filtros: any, active: boolean) => {
+    vi.mocked(useBalancoEnergeticoData).mockImplementation((_filtros: RelatoriosFiltros, active: boolean) => {
       if (!active) return { data: null, loading: false };
       return {
         data: {

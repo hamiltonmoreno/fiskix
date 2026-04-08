@@ -13,22 +13,22 @@ const mockSupabase = {
   from: (table: string) => ({
     select: () => {
       const chain = {
-        eq: (col: string, val: any) => {
+        eq: (col: string, val: unknown) => {
           mockEq(col, val);
           return chain;
         },
-        gte: (col: string, val: any) => {
+        gte: (col: string, val: unknown) => {
           mockGte(col, val);
           return chain;
         },
-        lte: (col: string, val: any) => {
+        lte: (col: string, val: unknown) => {
           mockLte(col, val);
           return chain;
         },
-        in: (col: string, val: string[]) => {
+        in: () => {
           return chain;
         },
-        then: (resolve: any) => {
+        then: (resolve: (value: { data: unknown[]; error: null }) => unknown) => {
           if (table === "injecao_energia") {
             return resolve({
               data: [
@@ -64,10 +64,10 @@ vi.mock("@/lib/supabase/client", () => ({
 
 // Mock do Recharts (evita o ResizeObserver error)
 vi.mock("recharts", async () => {
-  const OriginalRecharts = await vi.importActual<any>("recharts");
+  const OriginalRecharts = await vi.importActual<typeof import("recharts")>("recharts");
   return {
     ...OriginalRecharts,
-    ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   };
 });
 

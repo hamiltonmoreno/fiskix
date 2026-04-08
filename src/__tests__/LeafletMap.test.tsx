@@ -6,14 +6,14 @@ import { SubestacaoMapa } from "@/modules/dashboard/types";
 // ── Mock react-leaflet ────────────────────────────────────────────────────────
 vi.mock("react-leaflet", () => {
   return {
-    MapContainer: ({ children }: any) => <div data-testid="map-container">{children}</div>,
+    MapContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="map-container">{children}</div>,
     TileLayer: () => <div data-testid="tile-layer" />,
-    CircleMarker: ({ children, pathOptions }: any) => (
+    CircleMarker: ({ children, pathOptions }: { children: React.ReactNode; pathOptions: { color: string } }) => (
       <div data-testid="circle-marker" data-color={pathOptions.color}>
         {children}
       </div>
     ),
-    Popup: ({ children }: any) => <div data-testid="popup">{children}</div>,
+    Popup: ({ children }: { children: React.ReactNode }) => <div data-testid="popup">{children}</div>,
   };
 });
 

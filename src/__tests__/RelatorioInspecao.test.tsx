@@ -19,17 +19,16 @@ vi.mock("idb", () => ({
 const mockInsert = vi.fn().mockResolvedValue({ error: null });
 const mockUpdate = vi.fn().mockResolvedValue({ error: null });
 const mockUpload = vi.fn().mockResolvedValue({ data: { path: "teste.jpg" }, error: null });
-const mockGetPublicUrl = vi.fn().mockReturnValue({ data: { publicUrl: "http://temp.url/teste.jpg" } });
 const mockEq = vi.fn();
 
 const mockSupabase = {
   from: (table: string) => ({
-    select: (fields?: string) => ({
-      eq: (col: string, val: any) => {
+    select: () => ({
+      eq: (col: string, val: unknown) => {
         mockEq(col, val);
         return Promise.resolve({ data: [], error: null });
       },
-      then: (resolve: any) => {
+      then: (resolve: (value: { data: unknown[]; error: null }) => unknown) => {
         if (table === "alertas_fraude") {
           return resolve({
             data: [{ id: "alerta-1", status: "Pendente" }],
@@ -39,11 +38,11 @@ const mockSupabase = {
         return resolve({ data: [], error: null });
       }
     }),
-    insert: (val: any) => {
+    insert: (val: unknown) => {
       mockInsert(val);
       return Promise.resolve({ error: null });
     },
-    update: (val: any) => {
+    update: (val: unknown) => {
       mockUpdate(val);
       return { eq: () => Promise.resolve({ error: null }) };
     }

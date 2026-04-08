@@ -16,10 +16,10 @@ const mockSupabase = {
     }),
   },
   from: (table: string) => ({
-    select: (fields: string, opts?: any) => {
+    select: (fields: string, opts?: { count?: "exact" | "planned" | "estimated" }) => {
       mockSelect(table, fields, opts);
       const chain = {
-        eq: (col: string, val: any) => {
+        eq: (col: string, val: unknown) => {
           mockEq(col, val);
           return chain;
         },
@@ -55,7 +55,7 @@ const mockSupabase = {
           }
           return Promise.resolve({ data: [], count: 0, error: null });
         },
-        then: (resolve: any) => {
+        then: (resolve: (value: { data: unknown[]; error: null }) => unknown) => {
           if (table === "subestacoes") {
             return resolve({ data: [{ zona_bairro: "Palmarejo" }, { zona_bairro: "Achada" }], error: null });
           }
@@ -64,10 +64,10 @@ const mockSupabase = {
       };
       return chain;
     },
-    update: (val: any) => {
+    update: (val: unknown) => {
       mockUpdate(val);
       return {
-        eq: (col: string, id: any) => {
+        eq: (col: string, id: unknown) => {
           mockEq(col, id);
           return Promise.resolve({ error: null });
         }

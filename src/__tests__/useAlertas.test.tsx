@@ -111,10 +111,6 @@ describe("useAlertas", () => {
   });
 
   it("mapeia linhas Supabase para AlertaTabela correctamente", async () => {
-    let hookResult: ReturnType<
-      typeof import("@/modules/dashboard/hooks/useAlertas").useAlertas
-    >;
-
     const { useAlertas } = await import("@/modules/dashboard/hooks/useAlertas");
     const { result } = renderHook(() =>
       useAlertas({ mesAno: "2024-12" })
@@ -124,7 +120,7 @@ describe("useAlertas", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    hookResult = result.current;
+    const hookResult = result.current;
     expect(hookResult.data).toHaveLength(2);
 
     const first = hookResult.data[0] as AlertaTabela;

@@ -5,7 +5,6 @@ import { useAuth } from "@/modules/auth/hooks/useAuth";
 // ── Controlo dos mocks ─────────────────────────────────────────────────────────
 const mockGetUser = vi.fn();
 const mockSingle = vi.fn();
-const mockEq = vi.fn();
 const mockSignInWithPassword = vi.fn();
 const mockSignOut = vi.fn();
 const mockUnsubscribe = vi.fn();

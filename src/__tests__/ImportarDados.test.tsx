@@ -3,13 +3,6 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { ImportarDados } from "@/modules/ingestao/components/ImportarDados";
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
-const mockGetSession = vi.fn().mockResolvedValue({
-  data: { session: { access_token: "mock-token-123" } },
-});
-const mockFrom = vi.fn();
-const mockOrder = vi.fn().mockReturnThis();
-const mockLimit = vi.fn().mockResolvedValue({ data: [], error: null });
-
 const mockSupabase = {
   auth: {
     getSession: vi.fn().mockResolvedValue({
