@@ -9,7 +9,7 @@ Plataforma SaaS de deteção de fraudes e perdas comerciais de energia elétrica
 - **Deploy**: Vercel (frontend) + Supabase Edge Functions
 - **SMS**: Twilio (alphanumeric sender "Electra" + fallback numérico)
 - **Mobile**: PWA (Android Chrome) — rotas `/mobile`
-- **Testes**: Vitest (192 testes automatizados, 100% de sucesso)
+- **Testes**: Vitest (300 testes automatizados em 31 ficheiros, 100% de sucesso)
 
 ## Supabase
 - **Project ID**: `rqplobwsdbceuqhjywgt`
@@ -72,6 +72,30 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 5. Fiscal abre PWA `/mobile` → vê roteiro → abre ficha → inspeção com foto GPS
 6. Resultado sincronizado → receita recuperada atualizada no KPI
 
+## Fase 2 implementada (Abril 2026)
+
+### Feature 1 — Score ML (`ml_predicoes`)
+- Edge function `ml-scoring` (Deno) — regressão logística heurística com 7 features extraídas dos motivos R1-R8
+- Pesos guardados em `configuracoes` (chave `ml_pesos_v1`), actualizáveis sem deploy
+- Cron automático: dia 2 de cada mês às 03:00 UTC (`/api/cron/ml`)
+- `modelo_versao = "heuristic_v1"` — substituir por `"logistic_v1"` após 100+ inspeções confirmadas
+
+### Feature 2 — Balanço Energético Avançado
+- Nova tab "Análise Avançada" em `/relatorios` (TabAnaliseAvancada)
+- Separação perdas técnicas vs comerciais (limiar configurável `perda_tecnica_estimada_pct`, default 5%)
+- Índice de Recuperabilidade por subestação: `(alertas_críticos / total) × perda_pct`
+- Evolução mensal técnica vs comercial em gráfico de área
+
+### Feature 3 — API Pública REST
+- `GET /api/v1/alertas` — lista com filtros (mes_ano, status, min_score, subestacao_id)
+- `GET /api/v1/alertas/:id` — detalhe com motivo e dados do cliente
+- `GET /api/v1/balanco` — balanço com split técnico/comercial
+- `GET /api/v1/predicoes` — predições ML
+- Autenticação por API key (`Authorization: Bearer <key>`) guardada em `configuracoes`
+- Rate limit: 60 req/min por key (in-memory, adequado para PoC B2B)
+- Página de gestão: `/admin/api-keys`
+- **IMPORTANTE:** substituir valor de `api_key_electra` em configuracoes por chave real gerada com `openssl rand -hex 32`
+
 ## Status atual (Abril 2026)
 - ✅ Auth + RLS completo (5 roles, isolamento por zona)
 - ✅ Dashboard: KPIs, mapa React Leaflet, tabela alertas, gráficos Recharts, TendenciaPerdas 12 meses
@@ -89,7 +113,7 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 - ✅ Branch protection automática com check obrigatório `Quality Gate` em PR para `main`
 - ✅ Service Worker PWA corrigido (não cacheia POST/mutations)
 - ✅ Roteiro mobile inicializa estado online pelo `navigator.onLine` para preservar fallback offline
-- ✅ Testes: 192 testes integrados (Vitest) com cobertura de core, UI e PWA
+- ✅ Testes: 300 testes integrados em 31 ficheiros (Vitest) com cobertura de core, UI, PWA, hooks, API REST e utilitários
 - ✅ Documentação completa (README, CONTRIBUTING, SECURITY)
 
 ## Bugs já corrigidos (não voltar a introduzir)

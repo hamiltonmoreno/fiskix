@@ -37,11 +37,14 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
-Aplicar as migrations no SQL Editor do Supabase:
+Aplicar as migrations no SQL Editor do Supabase (por ordem):
 ```
 supabase/migrations/001_initial_schema.sql
 supabase/migrations/002_mock_data.sql
 supabase/migrations/003_rls_fiscal_update_alertas.sql
+supabase/migrations/004_ml_weights_config.sql
+supabase/migrations/006_balanco_avancado_config.sql
+supabase/migrations/007_api_keys.sql
 ```
 
 ---
@@ -50,8 +53,9 @@ supabase/migrations/003_rls_fiscal_update_alertas.sql
 
 1. Criar uma branch a partir de `main`
 2. Fazer as alterações
-3. Verificar que o build passa: `npm run build`
-4. Submeter um Pull Request para `main`
+3. Verificar que os testes passam: `npm run test`
+4. Verificar que o build passa: `npm run build`
+5. Submeter um Pull Request para `main`
 
 ---
 
@@ -77,10 +81,22 @@ supabase/migrations/003_rls_fiscal_update_alertas.sql
 - Client Components (`"use client"`) apenas quando necessário (estado, eventos, hooks)
 - Server Components por defeito para páginas com dados Supabase
 - Páginas que inicializam clientes Supabase devem ter `export const dynamic = "force-dynamic"`
+- Hooks com `setLoading` devem usar `try/finally` para evitar estados travados
 
 ### Estilos
 - TailwindCSS — sem CSS custom a não ser em `globals.css`
 - Paleta: `slate-*` para neutros, `blue-700` para ações primárias, `red-*` para crítico, `amber-*` para médio
+
+### API REST (`/api/v1/`)
+- Toda a autenticação passa por `verificarApiKey` de `@/lib/api/auth`
+- Toda a paginação usa `parsePaginacao` de `@/lib/api/response`
+- Todas as respostas usam `apiSuccess` / `apiError` com CORS e `Cache-Control: no-store`
+- Verificar rate limit com `checkRateLimit` antes de executar a query
+
+### Crons (`/api/cron/`)
+- Verificar `CRON_SECRET` antes de qualquer operação
+- Usar `runPool` para processar subestações em paralelo (limite ≤ 5)
+- Incluir `x-request-id` e métricas agregadas na resposta (`erros`, `total_scored`, `duration_ms`)
 
 ### Edge Functions (Deno)
 - Ficheiros em `supabase/functions/<nome>/index.ts`
@@ -105,6 +121,7 @@ Seguir o formato **Conventional Commits** em português:
 | `feat` | Nova funcionalidade |
 | `fix` | Correção de bug |
 | `docs` | Alterações só em documentação |
+| `test` | Adição ou correção de testes |
 | `refactor` | Reorganização sem mudar comportamento |
 | `chore` | Tarefas de manutenção (deps, config) |
 | `style` | Formatação, espaços, sem lógica |
@@ -115,7 +132,9 @@ feat: adicionar filtro por zona na tabela de alertas
 
 fix: corrigir cálculo de perdas quando kWh injetado é zero
 
-docs: atualizar README com instruções de deploy Supabase
+test: cobrir useKPIs e hooks de relatórios com Vitest
+
+docs: atualizar README para Fase 2 — ML e API REST
 ```
 
 ---
@@ -144,11 +163,14 @@ docs: atualizar README com instruções de deploy Supabase
 | `main` | Produção — deploy automático para Vercel |
 | `feature/<nome>` | Nova funcionalidade |
 | `fix/<nome>` | Correção de bug |
+| `chore/<nome>` | Manutenção, configuração, deps |
 | `docs/<nome>` | Documentação |
 
 ---
 
 ## Testes e Verificação
+
+O Fiskix tem **300 testes Vitest em 31 ficheiros** — todos devem passar antes de um PR.
 
 Antes de submeter um PR, verificar:
 
@@ -172,13 +194,25 @@ npm run type-check
 npm run lint
 ```
 
+### Convenções para novos testes
+
+- Um ficheiro de teste por módulo/hook/componente em `src/__tests__/`
+- Nomenclatura: `<ComponenteOuHook>.test.tsx` / `.test.ts`
+- Mocks ao nível do módulo com `vi.mock()` — nunca inline nos testes
+- Usar `vi.clearAllMocks()` em `beforeEach`; re-mockar valores após `clearAllMocks` quando necessário
+- Para hooks com Supabase: mockar `@/lib/supabase/client` com `{ createClient: () => ({ from: mockFrom }) }`
+- Importar hooks/componentes no topo do ficheiro — não usar `require()` dentro dos testes
+- Para componentes de tabs: mockar o hook de dados e testar loading, dados, export e tab inativa
+
 ### Verificações específicas do Fiskix
 
 - **Motor de scoring:** se alterar `engine.ts`, verificar que a lógica é igual à edge function `scoring-engine/index.ts`
 - **RLS:** se alterar políticas RLS, criar migration e testar com cada role
 - **PWA:** se alterar `sw.js`, incrementar `CACHE_NAME` para invalidar o cache antigo
-- **PWA offline:** validar abertura inicial sem internet para confirmar que o roteiro usa cache local e não o substitui por lista vazia
+- **PWA offline:** validar abertura inicial sem internet para confirmar que o roteiro usa cache local
 - **Edge Functions:** testar localmente com `npx supabase functions serve <nome>`
+- **API REST:** verificar auth, rate limit e formato de resposta após alterações em `/api/v1/`
+- **Cron ML:** se alterar pesos, actualizar `configuracoes` (chave `ml_pesos_v1`) — não hardcoded
 
 ---
 

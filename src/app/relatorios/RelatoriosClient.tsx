@@ -13,9 +13,10 @@ import { TabInspecoes } from "@/modules/relatorios/components/TabInspecoes";
 import { TabPerdasZona } from "@/modules/relatorios/components/TabPerdasZona";
 import { TabRecidivismo } from "@/modules/relatorios/components/TabRecidivismo";
 import { TabBalancoEnergetico } from "@/modules/relatorios/components/TabBalancoEnergetico";
+import { TabAnaliseAvancada } from "@/modules/relatorios/components/TabAnaliseAvancada";
 import { TabGerarRelatorio } from "@/modules/relatorios/components/TabGerarRelatorio";
 
-type TabId = "executivo" | "inspecoes" | "perdas-zona" | "recidivismo" | "balanco" | "gerar";
+type TabId = "executivo" | "inspecoes" | "perdas-zona" | "recidivismo" | "balanco" | "analise-avancada" | "gerar";
 
 const TAB_DEFS: { value: TabId; label: string }[] = [
   { value: "executivo", label: "Executivo" },
@@ -23,6 +24,7 @@ const TAB_DEFS: { value: TabId; label: string }[] = [
   { value: "perdas-zona", label: "Perdas por Zona" },
   { value: "recidivismo", label: "Recidivismo" },
   { value: "balanco", label: "Balanço Energético" },
+  { value: "analise-avancada", label: "Análise Avançada" },
   { value: "gerar", label: "+ Gerar Relatório" },
 ];
 
@@ -232,6 +234,10 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
 
           <Tabs.Content value="balanco" className="focus:outline-none">
             <TabBalancoEnergetico filtros={filtros} active={activeTab === "balanco"} onExportReady={handleExportReady} />
+          </Tabs.Content>
+
+          <Tabs.Content value="analise-avancada" className="focus:outline-none">
+            <TabAnaliseAvancada filtros={filtros} active={activeTab === "analise-avancada"} onExportReady={handleExportReady} />
           </Tabs.Content>
 
           <Tabs.Content value="gerar" className="focus:outline-none">
