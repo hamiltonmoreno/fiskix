@@ -323,7 +323,7 @@ Para instalar: abrir `/mobile` no Chrome Android → menu → "Adicionar ao ecr�
 O Fiskix utiliza **Vitest** (unit/integration) e **Playwright** (E2E).
 
 Atualmente:
-- **172 testes automatizados** em Vitest
+- **192 testes automatizados** em Vitest
 - **3 cenários E2E iniciais** em Playwright (auth/redirect/login)
 
 ### Comandos de Teste
@@ -408,7 +408,9 @@ Sem estas variáveis, os testes autenticados são marcados como `skipped`.
 - Logs estruturados JSON em rotas server-side (via `src/lib/observability/logger.ts`)
 - `request_id` propagado na resposta da rota de cron (`/api/cron/scoring`)
 - Cron com retry e timeout na chamada à edge function `scoring-engine`
+- Batches assíncronos via `runPool` com captura de erros por tarefa (não aborta o lote)
 - Evento final de execução inclui duração (`duration_ms`) e métricas agregadas
+- Hardening geral: todos os componentes e hooks usam `try/finally` para manter consistência de estados
 
 ---
 
@@ -418,8 +420,9 @@ O scoring corre automaticamente no **dia 1 de cada mês às 02:00 UTC** via Verc
 
 - **Rota:** `GET /api/cron/scoring`
 - **Schedule:** `0 2 1 * *`
-- **Proteção:** header `Authorization: Bearer <CRON_SECRET>`
+- Proteção: header `Authorization: Bearer <CRON_SECRET>`
 - O Vercel injeta o header automaticamente se `CRON_SECRET` estiver configurado
+- **Lógica Temporal:** Ao correr no dia 1, a função calcula automaticamente o score do mês anterior (concluído).
 
 Para testar manualmente:
 ```bash

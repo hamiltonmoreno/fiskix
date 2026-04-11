@@ -9,7 +9,7 @@ Plataforma SaaS de deteção de fraudes e perdas comerciais de energia elétrica
 - **Deploy**: Vercel (frontend) + Supabase Edge Functions
 - **SMS**: Twilio (alphanumeric sender "Electra" + fallback numérico)
 - **Mobile**: PWA (Android Chrome) — rotas `/mobile`
-- **Testes**: Vitest (172 testes automatizados, 100% de sucesso)
+- **Testes**: Vitest (192 testes automatizados, 100% de sucesso)
 
 ## Supabase
 - **Project ID**: `rqplobwsdbceuqhjywgt`
@@ -89,7 +89,7 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 - ✅ Branch protection automática com check obrigatório `Quality Gate` em PR para `main`
 - ✅ Service Worker PWA corrigido (não cacheia POST/mutations)
 - ✅ Roteiro mobile inicializa estado online pelo `navigator.onLine` para preservar fallback offline
-- ✅ Testes: 172 testes integrados (Vitest) com cobertura de core, UI e PWA
+- ✅ Testes: 192 testes integrados (Vitest) com cobertura de core, UI e PWA
 - ✅ Documentação completa (README, CONTRIBUTING, SECURITY)
 
 ## Bugs já corrigidos (não voltar a introduzir)
@@ -101,6 +101,9 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 - KPIs: filtro por zona aplica-se também a injecao_energia e faturacao_clientes
 - Login page: `export const dynamic = "force-dynamic"` para evitar pré-renderização estática
 - SW: não fazer cache de pedidos não-GET (impedia mutations Supabase)
+- Cron: recua um mês no cálculo de `mesAno` para processar dados consolidados do mês que acabou de terminar
+- runPool: captura erros individuais dentro dos workers para garantir que o lote termina mesmo que uma tarefa falhe (resiliência)
+- Hardening: uso de `try/finally` em todos os hooks e componentes com `setLoading` para evitar botões travados
 
 ## Variáveis de Ambiente necessárias (.env.local)
 Ver `.env.local.example` — copiar para `.env.local` e preencher os valores secretos.
