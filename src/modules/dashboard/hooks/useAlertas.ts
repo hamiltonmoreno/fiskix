@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { AlertaTabela } from "../types";
 import type { AlertaStatus, InspecaoResultado } from "@/types/database";
@@ -110,18 +110,25 @@ export function useAlertas({
     load();
   }, [load]);
 
+  // Manter ref sempre actualizada para o listener de realtime não capturar
+  // uma versão stale de load() quando os filtros mudam.
+  const loadRef = useRef(load);
+  useEffect(() => {
+    loadRef.current = load;
+  }, [load]);
+
   useEffect(() => {
     const channel = supabase
       .channel("alertas-realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "alertas_fraude" },
-        () => { load(); }
+        () => { loadRef.current(); }
       )
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [supabase]);
 
   async function enviarSMS(alertaId: string, tipo: "amarelo" | "vermelho") {
     const res = await fetch(

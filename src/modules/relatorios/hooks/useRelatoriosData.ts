@@ -38,6 +38,7 @@ export function useExecutivoData(filtros: RelatoriosFiltros, active: boolean) {
 
   const load = useCallback(async () => {
     setLoading(true);
+    try {
     const meses = getMesesRange(filtros);
 
     // Parallel: alertas + injecao + faturacao
@@ -111,7 +112,9 @@ export function useExecutivoData(filtros: RelatoriosFiltros, active: boolean) {
       kpis: { totalAlertas, fraudesConfirmadas, receitaRecuperada, taxaDetecao },
       serie,
     });
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }, [filtros]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -137,6 +140,7 @@ export function useInspecoesData(filtros: RelatoriosFiltros, active: boolean) {
 
   const load = useCallback(async () => {
     setLoading(true);
+    try {
     const meses = getMesesRange(filtros);
 
     let query = supabase
@@ -207,7 +211,9 @@ export function useInspecoesData(filtros: RelatoriosFiltros, active: boolean) {
         { name: "Pendente", value: totals.pendentes, color: "#3B82F6" },
       ],
     });
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }, [filtros]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -233,6 +239,7 @@ export function usePerdasZonaData(filtros: RelatoriosFiltros, active: boolean) {
 
   const load = useCallback(async () => {
     setLoading(true);
+    try {
     const meses = getMesesRange(filtros);
 
     const [injecaoRes, faturacaoRes] = await Promise.all([
@@ -321,7 +328,9 @@ export function usePerdasZonaData(filtros: RelatoriosFiltros, active: boolean) {
     const perdaPct = totalInjetado > 0 ? parseFloat(((perdaKwh / totalInjetado) * 100).toFixed(1)) : 0;
 
     setData({ kpis: { totalInjetado, totalFaturado, perdaKwh, perdaPct }, top7, tabela: tabelaFiltrada, radarIlha });
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }, [filtros]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -347,6 +356,7 @@ export function useRecidivismoData(filtros: RelatoriosFiltros, active: boolean) 
 
   const load = useCallback(async () => {
     setLoading(true);
+    try {
     const meses = getMesesRange(filtros);
 
     let query = supabase
@@ -443,7 +453,9 @@ export function useRecidivismoData(filtros: RelatoriosFiltros, active: boolean) 
       top10: reincidentes.slice(0, 10),
       tabela: reincidentes,
     });
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }, [filtros]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -469,6 +481,7 @@ export function useBalancoEnergeticoData(filtros: RelatoriosFiltros, active: boo
 
   const load = useCallback(async () => {
     setLoading(true);
+    try {
     const meses = getMesesRange(filtros);
 
     const [injecaoRes, faturacaoRes] = await Promise.all([
@@ -545,7 +558,9 @@ export function useBalancoEnergeticoData(filtros: RelatoriosFiltros, active: boo
     const perdaPct = totalInjetado > 0 ? parseFloat(((perdaKwh / totalInjetado) * 100).toFixed(1)) : 0;
 
     setData({ kpis: { totalInjetado, totalFaturado, perdaKwh, perdaPct }, porSubestacao: porSubFiltrada, evolucaoPerda });
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }, [filtros]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

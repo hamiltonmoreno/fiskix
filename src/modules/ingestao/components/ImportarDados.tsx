@@ -4,6 +4,16 @@ import { useState, useRef } from "react";
 import { Upload, CheckCircle, AlertCircle, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+const ALLOWED_EXTENSIONS = new Set([".csv", ".xls", ".xlsx"]);
+const ALLOWED_MIME_TYPES = new Set([
+  "text/csv",
+  "application/csv",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "text/plain",
+]);
+
 interface HistoricoItem {
   id: string;
   tipo: string;
@@ -44,13 +54,64 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
   const supabase = createClient();
 
   async function handleFile(file: File) {
+    const ext = `.${file.name.split(".").pop()?.toLowerCase() ?? ""}`;
+    const mimeOk = !file.type || ALLOWED_MIME_TYPES.has(file.type);
+    const extOk = ALLOWED_EXTENSIONS.has(ext);
+
+    if (!extOk || !mimeOk) {
+      setFicheiro(null);
+      setPreview({
+        preview: [],
+        total: 0,
+        validos: 0,
+        erros_count: 1,
+        erros: [
+          {
+            linha: 0,
+            campo: "ficheiro",
+            valor: file.name,
+            motivo: "Formato inválido. Use CSV, XLS ou XLSX.",
+          },
+        ],
+      });
+      setResultado(null);
+      return;
+    }
+
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setFicheiro(null);
+      setPreview({
+        preview: [],
+        total: 0,
+        validos: 0,
+        erros_count: 1,
+        erros: [
+          {
+            linha: 0,
+            campo: "ficheiro",
+            valor: file.name,
+            motivo: "Ficheiro excede o limite de 10MB.",
+          },
+        ],
+      });
+      setResultado(null);
+      return;
+    }
+
     setFicheiro(file);
     setPreview(null);
     setResultado(null);
     setLoading(true);
+    try {
 
     const session = await supabase.auth.getSession();
     const token = session.data.session?.access_token;
+
+    if (!token) {
+      setPreview({ preview: [], total: 0, validos: 0, erros_count: 1, erros: [{ linha: 0, campo: "sessão", valor: "", motivo: "Sessão expirada. Recarregue a página e tente novamente." }] });
+      setLoading(false);
+      return;
+    }
 
     const form = new FormData();
     form.append("file", file);
@@ -75,15 +136,24 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
 
     const data = await res.json();
     setPreview(data);
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleImportar() {
     if (!ficheiro) return;
     setLoading(true);
+    try {
 
     const session = await supabase.auth.getSession();
     const token = session.data.session?.access_token;
+
+    if (!token) {
+      setResultado({ total: 0, sucesso: 0, erros: 1, detalhes_erros: [{ linha: 0, campo: "sessão", motivo: "Sessão expirada. Recarregue a página e tente novamente." }] });
+      setLoading(false);
+      return;
+    }
 
     const form = new FormData();
     form.append("file", ficheiro);
@@ -111,7 +181,9 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
       .limit(10);
 
     if (hist) setHistorico(hist);
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

@@ -76,7 +76,9 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
   }, []);
 
   const carregarOrdens = useCallback(async () => {
-    const query = supabase
+    setRefreshing(true);
+    try {
+      const query = supabase
       .from("alertas_fraude")
       .select(
         `
@@ -141,7 +143,10 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
     } catch {}
 
     setOrdens(mapped);
-  }, [zona, mesAno, supabase]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [mesAno, supabase]);
 
   useEffect(() => {
     async function init() {
@@ -177,9 +182,7 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
   }, [fiscalId, supabase, isOnline]);
 
   async function handleRefresh() {
-    setRefreshing(true);
     await carregarOrdens();
-    setRefreshing(false);
   }
 
   async function handleSignOut() {

@@ -1,16 +1,22 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/observability/logger";
+import { runPool } from "@/lib/concurrency";
 
 /**
  * Cron route: executa o motor de scoring para todas as subestações ativas.
  * Chamado automaticamente no dia 1 de cada mês às 02:00 UTC (via Vercel Cron).
  *
  * Protegido por CRON_SECRET — Vercel injeta o header Authorization automaticamente.
+ *
+ * Executa as subestações em paralelo com pool limitado (CONCURRENCY_LIMIT) para
+ * evitar timeout do Vercel Cron: ceil(N/C) × timeout_por_sub em vez de N × timeout.
+ * Exemplo: 20 subestações, C=5 → 4 rondas × 20s = ~80s em vez de 400s sequencial.
  */
 
 const SCORING_ENGINE_TIMEOUT_MS = 20000;
 const SCORING_ENGINE_MAX_ATTEMPTS = 3;
+const CONCURRENCY_LIMIT = 5;
 
 function withRequestId(body: unknown, status: number, requestId: string) {
   return NextResponse.json(body, {
@@ -121,9 +127,10 @@ export async function GET(request: Request) {
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-  // Calcular mês atual no formato YYYY-MM
-  const now = new Date();
-  const mesAno = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  // Calcular mês a ser processado (o mês que acabou de terminar)
+  const d = new Date();
+  d.setMonth(d.getMonth() - 1);
+  const mesAno = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 
   // Obter todas as subestações ativas
   const { data: subestacoes, error: subError } = await supabase
@@ -140,32 +147,28 @@ export async function GET(request: Request) {
     );
   }
 
-  const resultados: Array<{
-    subestacao_id: string;
-    nome: string;
-    alertas_gerados?: number;
-    perda_pct?: string;
-    error?: string;
-  }> = [];
+  // Chamar scoring-engine para cada subestação em paralelo (pool limitado)
+  const resultados = await runPool(
+    subestacoes,
+    CONCURRENCY_LIMIT,
+    async (sub) => {
+      const data = await invokeScoringEngineWithRetry({
+        supabaseUrl,
+        serviceRoleKey,
+        subestacaoId: sub.id,
+        mesAno,
+        requestId,
+      });
 
-  // Chamar scoring-engine para cada subestação
-  for (const sub of subestacoes) {
-    const data = await invokeScoringEngineWithRetry({
-      supabaseUrl,
-      serviceRoleKey,
-      subestacaoId: sub.id,
-      mesAno,
-      requestId,
-    });
-
-    resultados.push({
-      subestacao_id: sub.id,
-      nome: sub.nome,
-      alertas_gerados: data.alertas_gerados ?? 0,
-      perda_pct: data.perda_pct,
-      error: data.error,
-    });
-  }
+      return {
+        subestacao_id: sub.id,
+        nome: sub.nome,
+        alertas_gerados: data.alertas_gerados ?? 0,
+        perda_pct: data.perda_pct as string | undefined,
+        error: data.error as string | undefined,
+      };
+    }
+  );
 
   const totalAlertas = resultados.reduce((s, r) => s + (r.alertas_gerados ?? 0), 0);
   const erros = resultados.filter((r) => r.error);

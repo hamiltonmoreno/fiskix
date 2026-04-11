@@ -14,7 +14,8 @@
 	},
 	"extensions": {
 		"recommendations": [
-			"anthropic.claude-code"
+			"anthropic.claude-code",
+			"openai.chatgpt"
 		]
 	}
 }

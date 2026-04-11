@@ -84,8 +84,8 @@ export default function AlertasPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-
-    let query = supabase
+    try {
+      let query = supabase
       .from("alertas_fraude")
       .select(
         `id, score_risco, status, mes_ano, resultado, motivo,
@@ -142,7 +142,9 @@ export default function AlertasPage() {
 
     setAlertas(parsed);
     setTotal(count ?? 0);
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }, [mesAno, statusFilter, zona, page, supabase]);
 
   useEffect(() => {
