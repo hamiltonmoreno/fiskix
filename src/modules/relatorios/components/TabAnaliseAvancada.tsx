@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChart,
   Bar,
@@ -66,7 +67,7 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
             <span className="text-sm font-medium text-slate-500">Perda Comercial</span>
             <div className="p-2 rounded-lg bg-red-100 text-red-600"><ShieldAlert className="w-4 h-4" /></div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-red-700">{data ? formatKWh(data.kpis.perda_comercial_kwh) : "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">fraude + erros de medição</p>
@@ -77,7 +78,7 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
             <span className="text-sm font-medium text-slate-500">Perda Técnica</span>
             <div className="p-2 rounded-lg bg-amber-100 text-amber-600"><Wrench className="w-4 h-4" /></div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data ? formatKWh(data.kpis.perda_tecnica_kwh) : "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">resistência de cabos e transformadores</p>
@@ -88,7 +89,7 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
             <span className="text-sm font-medium text-slate-500">% Comercial/Total</span>
             <div className="p-2 rounded-lg bg-rose-100 text-rose-600"><TrendingDown className="w-4 h-4" /></div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-rose-700">{data ? `${data.kpis.perda_comercial_pct}%` : "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">das perdas são de origem comercial</p>
@@ -99,7 +100,7 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
             <span className="text-sm font-medium text-slate-500">CVE Comercial</span>
             <div className="p-2 rounded-lg bg-green-100 text-green-600"><DollarSign className="w-4 h-4" /></div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data ? formatCVE(data.kpis.cve_comercial_estimado) : "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">potencial de recuperação</p>
@@ -112,7 +113,7 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-4">Perdas Técnicas vs Comerciais por Subestação</h3>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (data?.porSubestacao ?? []).length === 0 ? (
             <div className="h-64 flex items-center justify-center text-slate-400 text-sm">
               Sem dados para o período selecionado
@@ -144,7 +145,7 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-4">Evolução Mensal — % Perda por Tipo</h3>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={data?.evolucaoComercial} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
@@ -174,7 +175,7 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
           <p className="text-xs text-slate-400 mt-0.5">Índice Recup. = (alertas críticos / total) × % perda — quanto maior, maior o potencial de recuperação</p>
         </div>
         {loading ? (
-          <div className="h-40 bg-slate-50 animate-pulse" />
+          <Skeleton className="h-40" />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

@@ -7,18 +7,19 @@ import { TabelaAlertas } from "@/modules/dashboard/components/TabelaAlertas";
 import { AlertasCriticosPanel } from "@/modules/dashboard/components/AlertasCriticosPanel";
 import { useKPIs } from "@/modules/dashboard/hooks/useKPIs";
 import { getCurrentMesAno } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const HeatMap = dynamic(
   () => import("@/modules/dashboard/components/HeatMap").then((m) => m.HeatMap),
-  { ssr: false, loading: () => <div className="h-64 bg-slate-100 rounded-xl animate-pulse" /> }
+  { ssr: false, loading: () => <Skeleton className="h-64 rounded-xl" /> }
 );
 const Top5Transformadores = dynamic(
   () => import("@/modules/dashboard/components/Top5Transformadores").then((m) => m.Top5Transformadores),
-  { ssr: false, loading: () => <div className="h-64 bg-slate-100 rounded-xl animate-pulse" /> }
+  { ssr: false, loading: () => <Skeleton className="h-64 rounded-xl" /> }
 );
 const TendenciaPerdas = dynamic(
   () => import("@/modules/dashboard/components/TendenciaPerdas").then((m) => m.TendenciaPerdas),
-  { ssr: false, loading: () => <div className="h-48 bg-slate-100 rounded-xl animate-pulse" /> }
+  { ssr: false, loading: () => <Skeleton className="h-48 rounded-xl" /> }
 );
 
 interface DashboardClientProps {

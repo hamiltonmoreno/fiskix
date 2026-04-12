@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChart,
   Bar,
@@ -59,7 +60,7 @@ export function TabPerdasZona({ filtros, active, onExportReady }: Props) {
               <Zap className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data ? formatKWh(data.kpis.totalInjetado) : "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">na rede no período</p>
@@ -72,7 +73,7 @@ export function TabPerdasZona({ filtros, active, onExportReady }: Props) {
               <Zap className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data ? formatKWh(data.kpis.totalFaturado) : "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">cobrado aos clientes</p>
@@ -85,7 +86,7 @@ export function TabPerdasZona({ filtros, active, onExportReady }: Props) {
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data ? formatKWh(data.kpis.perdaKwh) : "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">{data ? `${data.kpis.perdaPct}% da rede` : ""}</p>
@@ -100,7 +101,7 @@ export function TabPerdasZona({ filtros, active, onExportReady }: Props) {
               {zonaCritica ? <MapPin className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">
               {zonaCritica ? zonaCritica.nome : data ? `${data.kpis.perdaPct}%` : "—"}
             </div>
@@ -117,7 +118,7 @@ export function TabPerdasZona({ filtros, active, onExportReady }: Props) {
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-4">Top 7 Subestações — Injetado vs Faturado</h3>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart
@@ -153,7 +154,7 @@ export function TabPerdasZona({ filtros, active, onExportReady }: Props) {
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-4">Índice de Risco por Ilha (%)</h3>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (data?.radarIlha && data.radarIlha.length > 0) ? (
             <ResponsiveContainer width="100%" height={260}>
               <RadarChart data={data.radarIlha} margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
@@ -188,7 +189,7 @@ export function TabPerdasZona({ filtros, active, onExportReady }: Props) {
           <h3 className="text-sm font-semibold text-slate-700">Detalhe por Subestação</h3>
         </div>
         {loading ? (
-          <div className="h-40 bg-slate-50 animate-pulse" />
+          <Skeleton className="h-40" />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
