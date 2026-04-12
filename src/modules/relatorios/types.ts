@@ -120,6 +120,39 @@ export interface RecidivismoData {
   tabela: ReincidenteRow[];
 }
 
+// ── Tab Análise Avançada ───────────────────────────────────────────────────────
+
+export interface EficienciaSubRow {
+  id: string;
+  nome: string;
+  zona_bairro: string;
+  kwh_injetado: number;
+  perda_kwh: number;
+  perda_pct: number;
+  perda_tecnica_kwh: number;
+  perda_comercial_kwh: number;
+  perda_comercial_pct: number;
+  cve_comercial_estimado: number;
+  irec: number; // índice de recuperabilidade 0-100
+  alertas_alto_score: number;
+  total_alertas: number;
+}
+
+export interface AnaliseAvancadaKPIs {
+  perda_total_kwh: number;
+  perda_tecnica_kwh: number;
+  perda_comercial_kwh: number;
+  perda_comercial_pct: number; // % da perda total que é comercial
+  cve_comercial_estimado: number;
+  perda_tecnica_estimada_pct: number; // limiar configurado (ex: 5%)
+}
+
+export interface AnaliseAvancadaData {
+  kpis: AnaliseAvancadaKPIs;
+  porSubestacao: EficienciaSubRow[];
+  evolucaoComercial: Array<{ mes: string; pct_comercial: number; pct_tecnica: number }>;
+}
+
 // ── Tab Balanço Energético ─────────────────────────────────────────────────────
 
 export interface BalancoSubRow {

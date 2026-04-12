@@ -130,6 +130,7 @@ export function Sidebar({ profile }: SidebarProps) {
         {!collapsed && (
           <button
             onClick={toggleCollapsed}
+            aria-label="Recolher menu lateral"
             className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors hidden lg:flex"
             title="Recolher menu"
           >
@@ -184,6 +185,7 @@ export function Sidebar({ profile }: SidebarProps) {
         <div className="px-2 pb-2 hidden lg:block">
           <button
             onClick={toggleCollapsed}
+            aria-label="Expandir menu lateral"
             className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
             title="Expandir menu"
           >
@@ -217,6 +219,7 @@ export function Sidebar({ profile }: SidebarProps) {
             </Link>
             <button
               onClick={handleSignOut}
+              aria-label="Terminar sessão"
               className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
               title="Terminar sessão"
             >
@@ -252,6 +255,7 @@ export function Sidebar({ profile }: SidebarProps) {
             </div>
             <button
               onClick={handleSignOut}
+              aria-label="Terminar sessão"
               className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
               title="Terminar sessão"
             >
@@ -266,9 +270,12 @@ export function Sidebar({ profile }: SidebarProps) {
   return (
     <>
       {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-white border-b border-slate-200 flex items-center px-4 gap-3">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-white border-b border-slate-200 flex items-center px-4 gap-3 no-print">
         <button
           onClick={() => setMobileOpen(true)}
+          aria-label="Abrir menu"
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-sidebar-drawer"
           className="p-2 rounded-lg hover:bg-slate-100 text-slate-500"
         >
           <Menu className="w-5 h-5" />
@@ -291,7 +298,8 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Mobile sidebar drawer */}
       <div
-        className={`lg:hidden fixed top-0 left-0 bottom-0 z-50 w-64 bg-white shadow-xl transition-transform duration-300 ease-in-out ${
+        id="mobile-sidebar-drawer"
+        className={`lg:hidden fixed top-0 left-0 bottom-0 z-50 w-64 bg-white shadow-xl transition-transform duration-300 ease-in-out no-print ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -304,6 +312,7 @@ export function Sidebar({ profile }: SidebarProps) {
           </div>
           <button
             onClick={() => setMobileOpen(false)}
+            aria-label="Fechar menu"
             className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"
           >
             <X className="w-4 h-4" />
@@ -314,7 +323,7 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 bg-white border-r border-slate-200 transition-all duration-300 ease-in-out ${
+        className={`hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 bg-white border-r border-slate-200 transition-all duration-300 ease-in-out no-print ${
           collapsed ? "w-16" : "w-60"
         }`}
       >
@@ -323,7 +332,7 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Spacer to push content right on desktop */}
       <div
-        className={`hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out ${
+        className={`hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out no-print ${
           collapsed ? "w-16" : "w-60"
         }`}
       />
@@ -345,6 +354,7 @@ function NavLink({
     <div className="relative group">
       <Link
         href={item.href}
+        aria-current={active ? "page" : undefined}
         className={`relative flex items-center gap-3 py-2.5 rounded-lg transition-all duration-150 text-sm font-medium overflow-hidden ${
           collapsed ? "justify-center px-3" : "px-3"
         } ${

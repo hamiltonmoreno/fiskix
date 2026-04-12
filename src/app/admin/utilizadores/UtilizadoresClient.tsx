@@ -57,7 +57,8 @@ export function UtilizadoresClient({
   // ── Criar ──────────────────────────────────────────────────────────────────
   async function handleCriar() {
     setLoading(true);
-    const { error } = await supabase.auth.admin.createUser({
+    try {
+      const { error } = await supabase.auth.admin.createUser({
       email: novoUser.email,
       password: novoUser.password,
       email_confirm: true,
@@ -78,15 +79,17 @@ export function UtilizadoresClient({
         .order("criado_em", { ascending: false });
       if (data) setUtilizadores(data);
     }
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }
 
   // ── Editar ─────────────────────────────────────────────────────────────────
   async function handleEditar() {
     if (!editUser) return;
     setLoading(true);
-
-    const { error } = await supabase
+    try {
+      const { error } = await supabase
       .from("perfis")
       .update({
         nome_completo: editUser.nome_completo,
@@ -112,7 +115,9 @@ export function UtilizadoresClient({
       );
       setEditUser(null);
     }
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }
 
   // ── Toggle Ativo ───────────────────────────────────────────────────────────
@@ -126,7 +131,8 @@ export function UtilizadoresClient({
   // ── Eliminar ───────────────────────────────────────────────────────────────
   async function handleEliminar(id: string) {
     setLoadingDelete(true);
-    const { error } = await supabase.auth.admin.deleteUser(id);
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(id);
 
     if (error) {
       alert(`Erro: ${error.message}`);
@@ -134,7 +140,9 @@ export function UtilizadoresClient({
       setUtilizadores((prev) => prev.filter((u) => u.id !== id));
       setConfirmDelete(null);
     }
-    setLoadingDelete(false);
+    } finally {
+      setLoadingDelete(false);
+    }
   }
 
   return (

@@ -16,17 +16,19 @@ export function LoginForm() {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    try {
+      const { error } = await signIn(email, password);
 
-    const { error } = await signIn(email, password);
+      if (error) {
+        setError("Email ou password incorretos. Tente novamente.");
+        return;
+      }
 
-    if (error) {
-      setError("Email ou password incorretos. Tente novamente.");
+      router.push("/dashboard");
+      router.refresh();
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (

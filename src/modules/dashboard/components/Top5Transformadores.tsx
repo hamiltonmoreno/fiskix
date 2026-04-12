@@ -60,18 +60,18 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
   useEffect(() => {
     async function load() {
       setLoading(true);
-
-      const { data: injecoes } = await supabase
+      try {
+        const { data: injecoes } = await supabase
         .from("injecao_energia")
         .select("id_subestacao, total_kwh_injetado, subestacoes(nome)")
         .eq("mes_ano", mesAno)
         .order("total_kwh_injetado", { ascending: false })
         .limit(5);
 
-      if (!injecoes?.length) {
-        setLoading(false);
-        return;
-      }
+        if (!injecoes?.length) {
+          setData([]);
+          return;
+        }
 
       const subIds = injecoes.map((i) => i.id_subestacao);
 
@@ -124,7 +124,9 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
       });
 
       setData(chartData);
-      setLoading(false);
+      } finally {
+        setLoading(false);
+      }
     }
 
     load();

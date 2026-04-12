@@ -44,7 +44,7 @@ export function Breadcrumb() {
         <span key={crumb.href} className="flex items-center gap-1">
           <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
           {crumb.isLast ? (
-            <span className="text-slate-700 font-medium">{crumb.label}</span>
+            <span className="text-slate-700 font-medium" aria-current="page">{crumb.label}</span>
           ) : (
             <Link
               href={crumb.href}

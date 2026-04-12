@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { Users, Upload, Settings, BarChart3 } from "lucide-react";
+import { Users, Upload, Settings, BarChart3, Key } from "lucide-react";
 // Link is used for admin cards below
 
 export default async function AdminPage() {
@@ -97,6 +97,23 @@ export default async function AdminPage() {
               </div>
             </div>
           </Link>
+
+          {isAdmin && (
+            <Link
+              href="/admin/api-keys"
+              className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-slate-100 rounded-xl group-hover:bg-slate-200 transition-colors">
+                  <Key className="w-6 h-6 text-slate-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900">API Keys</p>
+                  <p className="text-sm text-slate-400 mt-0.5">Acesso externo à API REST pública</p>
+                </div>
+              </div>
+            </Link>
+          )}
         </div>
       </main>
     </div>

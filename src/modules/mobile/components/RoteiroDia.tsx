@@ -56,12 +56,29 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [syncedCount, setSyncedCount] = useState(0);
+  const [isOnline, setIsOnline] = useState(
+    typeof window !== "undefined" ? navigator.onLine : true
+  );
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const mesAno = getCurrentMesAno();
 
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, []);
+
   const carregarOrdens = useCallback(async () => {
-    const query = supabase
+    setRefreshing(true);
+    try {
+      const query = supabase
       .from("alertas_fraude")
       .select(
         `
@@ -75,11 +92,6 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
       .eq("mes_ano", mesAno)
       .eq("status", "Pendente_Inspecao")
       .order("score_risco", { ascending: false });
-
-    if (zona) {
-      // Filtrar por zona através da subestação
-      // RLS já faz isso, mas filtro adicional por segurança
-    }
 
     const { data } = await query;
 
@@ -126,14 +138,17 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
     } catch {}
 
     setOrdens(mapped);
-  }, [zona, mesAno, supabase]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [mesAno, supabase]);
 
   useEffect(() => {
     async function init() {
       setLoading(true);
       try {
         // Tentar online primeiro
-        if (navigator.onLine) {
+        if (isOnline) {
           await carregarOrdens();
         } else {
           // Fallback offline
@@ -150,21 +165,19 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
     }
 
     init();
-  }, [carregarOrdens]);
+  }, [carregarOrdens, isOnline]);
 
   // Sync pending offline reports when online
   useEffect(() => {
-    if (navigator.onLine) {
+    if (isOnline) {
       syncPendingReports(supabase, fiscalId).then((n) => {
         if (n > 0) setSyncedCount(n);
       });
     }
-  }, [fiscalId, supabase]);
+  }, [fiscalId, supabase, isOnline]);
 
   async function handleRefresh() {
-    setRefreshing(true);
     await carregarOrdens();
-    setRefreshing(false);
   }
 
   async function handleSignOut() {
@@ -184,18 +197,20 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
               </div>
               <span className="font-bold text-slate-900">Fiskix</span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">{nomeFiscal}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{nomeFiscal}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleRefresh}
               disabled={refreshing}
+              aria-label="Atualizar ordens"
               className="p-2.5 rounded-xl bg-slate-100 text-slate-600"
             >
               <RefreshCw className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`} />
             </button>
             <button
               onClick={handleSignOut}
+              aria-label="Terminar sessão"
               className="p-2.5 rounded-xl bg-slate-100 text-slate-600"
             >
               <LogOut className="w-5 h-5" />
@@ -230,7 +245,7 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
           <div className="bg-white rounded-2xl p-8 text-center">
             <ClipboardList className="w-10 h-10 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-500 font-medium">Sem ordens para hoje</p>
-            <p className="text-slate-400 text-sm mt-1">
+            <p className="text-slate-500 text-sm mt-1">
               Toque em atualizar para verificar novamente
             </p>
           </div>
@@ -317,7 +332,7 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
       )}
 
       {/* Aviso offline */}
-      {!navigator.onLine && (
+      {!isOnline && (
         <div className="fixed bottom-4 left-4 right-4 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
           <p className="text-amber-700 text-sm">Modo offline — a mostrar dados guardados</p>

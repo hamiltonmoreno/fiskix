@@ -177,6 +177,24 @@ describe("ImportarDados.tsx", () => {
     });
   });
 
+  it("bloqueia ficheiro com formato inválido sem chamar a API", async () => {
+    render(<ImportarDados historico={[]} />);
+
+    const input = document.querySelector("input[type='file']")!;
+    const fakeFile = new File(["content"], "malicioso.exe", {
+      type: "application/x-msdownload",
+    });
+    fireEvent.change(input, { target: { files: [fakeFile] } });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Formato inválido\. Use CSV, XLS ou XLSX\./)
+      ).toBeInTheDocument();
+    });
+
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
   // ── 6. Submissão Final ───────────────────────────────────────────────────────
   it("submete a importação, chama a API e exibe ecrã de resultado", async () => {
     // Chamada 1: preview

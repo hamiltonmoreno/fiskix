@@ -5,7 +5,12 @@ import { useAlertas } from "../hooks/useAlertas";
 import { getScoreColor, getScoreLabel, formatMesAno } from "@/lib/utils";
 import { exportToExcel } from "@/lib/export";
 import { MessageSquare, ClipboardList, ChevronLeft, ChevronRight, RefreshCw, Eye, FileDown } from "lucide-react";
-import { AlertaDetalheModal } from "./AlertaDetalheModal";
+import dynamic from "next/dynamic";
+
+const AlertaDetalheModal = dynamic(
+  () => import("./AlertaDetalheModal").then((m) => m.AlertaDetalheModal),
+  { ssr: false }
+);
 import type { AlertaTabela } from "../types";
 
 interface TabelaAlertasProps {
@@ -28,6 +33,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
   const [page, setPage] = useState(0);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [alertaDetalhe, setAlertaDetalhe] = useState<AlertaTabela | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const pageSize = 10;
 
   const { data, total, loading, reload, enviarSMS, gerarOrdem } = useAlertas({
@@ -56,26 +62,54 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
 
   async function handleEnviarSMS(alertaId: string, score: number) {
     setActionLoading(alertaId);
+    setFeedback(null);
     const tipo = score >= 75 ? "vermelho" : "amarelo";
-    const res = await enviarSMS(alertaId, tipo);
-    if (res.mensagem_enviada) {
-      await reload();
-    } else {
-      alert(`Erro ao enviar SMS: ${res.erro ?? "Desconhecido"}`);
+    try {
+      const res = await enviarSMS(alertaId, tipo);
+      if (res.mensagem_enviada) {
+        await reload();
+        setFeedback({ type: "success", message: "SMS enviado com sucesso." });
+      } else {
+        setFeedback({ type: "error", message: `Erro ao enviar SMS: ${res.erro ?? "Desconhecido"}` });
+      }
+    } catch {
+      setFeedback({ type: "error", message: "Falha ao enviar SMS." });
+    } finally {
+      setActionLoading(null);
     }
-    setActionLoading(null);
   }
 
   async function handleGerarOrdem(alertaId: string) {
     setActionLoading(alertaId);
-    await gerarOrdem(alertaId);
-    setActionLoading(null);
+    setFeedback(null);
+    try {
+      await gerarOrdem(alertaId);
+      setFeedback({ type: "success", message: "Ordem de inspeção gerada." });
+    } catch {
+      setFeedback({ type: "error", message: "Falha ao gerar ordem de inspeção." });
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   const totalPages = Math.ceil(total / pageSize);
 
   return (
     <div className="bg-white rounded-xl border border-slate-200">
+      <div aria-live="polite" role="status" className="px-4 pt-4">
+        {feedback && (
+          <div
+            className={`rounded-lg border px-3 py-2 text-sm ${
+              feedback.type === "error"
+                ? "bg-red-50 text-red-700 border-red-200"
+                : "bg-green-50 text-green-700 border-green-200"
+            }`}
+          >
+            {feedback.message}
+          </div>
+        )}
+      </div>
+
       {/* Header */}
       <div className="p-4 border-b border-slate-100 flex items-center justify-between">
         <div>
@@ -105,6 +139,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
           <button
             onClick={handleExportExcel}
             disabled={data.length === 0}
+            aria-label="Exportar alertas para Excel"
             className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 disabled:opacity-40"
             title="Exportar Excel"
           >
@@ -112,6 +147,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
           </button>
           <button
             onClick={reload}
+            aria-label="Atualizar alertas"
             className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
             title="Atualizar"
           >
@@ -219,6 +255,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
                       <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => setAlertaDetalhe(alerta)}
+                          aria-label="Ver detalhes do alerta"
                           className="p-1.5 rounded-lg hover:bg-blue-100 text-slate-400 hover:text-blue-600 transition-colors"
                           title="Ver detalhes"
                         >
@@ -271,6 +308,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
+              aria-label="Página anterior"
               className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -278,6 +316,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
+              aria-label="Página seguinte"
               className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50"
             >
               <ChevronRight className="w-4 h-4" />

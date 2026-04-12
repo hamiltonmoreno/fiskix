@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Bash(npm run *)",
+      "Bash(npm test *)",
+      "Bash(npm install *)",
+      "Bash(npm ls *)",
+      "Bash(npm audit *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Bash(git fetch *)",
+      "Bash(node *)",
+      "Bash(npx tsc *)",
+      "Bash(npx vitest *)",
+      "Bash(openssl rand *)",
+      "Bash(curl *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(sudo *)",
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)",
+      "Read(./.env.local)",
+      "Read(./.env)",
+      "Read(./secrets/**)",
+      "Write(./.env.local)",
+      "Write(./.env)"
+    ]
+  },
+
+  "env": {
+    "ANTHROPIC_MODEL": "claude-sonnet-4-6",
+    "CLAUDE_CODE_MAX_TURNS": "150",
+    "NODE_ENV": "development"
+  },
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/hamiltonvicente/Documents/fiskix/.claude/hooks/block-destructive.sh",
+            "statusMessage": "Verificando segurança do comando..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/hamiltonvicente/Documents/fiskix/.claude/hooks/lint-check.sh",
+            "timeout": 120,
+            "statusMessage": "Lint + TypeCheck pre-commit..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/hamiltonvicente/Documents/fiskix/.claude/hooks/notify.sh",
+            "statusMessage": "Notificando..."
+          }
+        ]
+      }
+    ]
+  },
+
+  "autoUpdatesChannel": "stable",
+  "cleanupPeriodDays": 30
+}
