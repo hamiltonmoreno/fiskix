@@ -108,12 +108,12 @@ export function Sidebar({ profile }: SidebarProps) {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div
-        className={`flex items-center h-16 px-4 border-b border-slate-100 ${
+        className={`flex items-center h-16 px-4 border-b border-slate-700/50 ${
           collapsed ? "justify-center" : "justify-between"
         }`}
       >
         <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
             <Zap className="w-4 h-4 text-white" />
           </div>
           <div
@@ -121,7 +121,7 @@ export function Sidebar({ profile }: SidebarProps) {
               collapsed ? "w-0 opacity-0" : "w-36 opacity-100"
             }`}
           >
-            <p className="font-bold text-slate-900 leading-tight whitespace-nowrap">Fiskix</p>
+            <p className="font-bold text-white leading-tight whitespace-nowrap">Fiskix</p>
             <p className="text-[10px] text-slate-400 leading-tight whitespace-nowrap">
               Electra Cabo Verde
             </p>
@@ -131,7 +131,7 @@ export function Sidebar({ profile }: SidebarProps) {
           <button
             onClick={toggleCollapsed}
             aria-label="Recolher menu lateral"
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors hidden lg:flex"
+            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-colors hidden lg:flex"
             title="Recolher menu"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -167,7 +167,7 @@ export function Sidebar({ profile }: SidebarProps) {
                 Administração
               </p>
             </div>
-            {collapsed && <div className="my-3 border-t border-slate-100" />}
+            {collapsed && <div className="my-3 border-t border-slate-700/50" />}
             {ADMIN_ITEMS.filter((i) => !i.superAdminOnly || isSuperAdmin).map((item) => (
               <NavLink
                 key={item.href}
@@ -186,7 +186,7 @@ export function Sidebar({ profile }: SidebarProps) {
           <button
             onClick={toggleCollapsed}
             aria-label="Expandir menu lateral"
-            className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+            className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-colors"
             title="Expandir menu"
           >
             <ChevronRight className="w-4 h-4" />
@@ -195,24 +195,24 @@ export function Sidebar({ profile }: SidebarProps) {
       )}
 
       {/* User footer */}
-      <div className={`border-t border-slate-100 p-3 ${collapsed ? "flex flex-col items-center gap-2" : ""}`}>
+      <div className={`border-t border-slate-700/50 p-3 ${collapsed ? "flex flex-col items-center gap-2" : ""}`}>
         {!collapsed ? (
           <div className="flex items-center gap-2">
             <Link
               href="/perfil"
-              className="flex items-center gap-3 flex-1 min-w-0 rounded-lg p-1 hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-3 flex-1 min-w-0 rounded-lg p-1 hover:bg-slate-800 transition-colors"
               title="Meu perfil"
             >
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-semibold text-blue-700">
+              <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-semibold text-indigo-300">
                   {getInitials(profile.nome_completo)}
                 </span>
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-slate-900 truncate leading-tight">
+                <p className="text-sm font-medium text-slate-100 truncate leading-tight">
                   {profile.nome_completo}
                 </p>
-                <p className="text-xs text-slate-400 leading-tight">
+                <p className="text-xs text-slate-500 leading-tight">
                   {ROLE_LABELS[profile.role] ?? profile.role}
                 </p>
               </div>
@@ -220,7 +220,7 @@ export function Sidebar({ profile }: SidebarProps) {
             <button
               onClick={handleSignOut}
               aria-label="Terminar sessão"
-              className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
+              className="p-1.5 rounded-lg hover:bg-red-900/30 text-slate-500 hover:text-red-400 transition-colors flex-shrink-0"
               title="Terminar sessão"
             >
               <LogOut className="w-4 h-4" />
@@ -231,10 +231,10 @@ export function Sidebar({ profile }: SidebarProps) {
             <div className="relative group">
               <Link
                 href="/perfil"
-                className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center hover:ring-2 hover:ring-blue-300 transition-all"
+                className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center hover:ring-2 hover:ring-indigo-500/50 transition-all"
                 title="Meu perfil"
               >
-                <span className="text-xs font-semibold text-blue-700">
+                <span className="text-xs font-semibold text-indigo-300">
                   {getInitials(profile.nome_completo)}
                 </span>
               </Link>
@@ -256,7 +256,7 @@ export function Sidebar({ profile }: SidebarProps) {
             <button
               onClick={handleSignOut}
               aria-label="Terminar sessão"
-              className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-red-900/30 text-slate-500 hover:text-red-400 transition-colors"
               title="Terminar sessão"
             >
               <LogOut className="w-4 h-4" />
@@ -299,21 +299,21 @@ export function Sidebar({ profile }: SidebarProps) {
       {/* Mobile sidebar drawer */}
       <div
         id="mobile-sidebar-drawer"
-        className={`lg:hidden fixed top-0 left-0 bottom-0 z-50 w-64 bg-white shadow-xl transition-transform duration-300 ease-in-out no-print ${
+        className={`lg:hidden fixed top-0 left-0 bottom-0 z-50 w-64 bg-sidebar shadow-xl transition-transform duration-300 ease-in-out no-print ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between h-14 px-4 border-b border-slate-100">
+        <div className="flex items-center justify-between h-14 px-4 border-b border-slate-700/50">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-blue-700 rounded-lg flex items-center justify-center">
+            <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
               <Zap className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="font-bold text-slate-900">Fiskix</span>
+            <span className="font-bold text-white">Fiskix</span>
           </div>
           <button
             onClick={() => setMobileOpen(false)}
             aria-label="Fechar menu"
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -323,7 +323,7 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 bg-white border-r border-slate-200 transition-all duration-300 ease-in-out no-print ${
+        className={`hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 bg-sidebar border-r border-slate-700/50 transition-all duration-300 ease-in-out no-print ${
           collapsed ? "w-16" : "w-60"
         }`}
       >
@@ -359,19 +359,19 @@ function NavLink({
           collapsed ? "justify-center px-3" : "px-3"
         } ${
           active
-            ? "bg-blue-50 text-blue-700"
-            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            ? "bg-indigo-600 text-white"
+            : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
         }`}
       >
         {/* Active left bar indicator */}
         <span
           className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 rounded-full transition-all duration-200 ${
-            active ? "h-5 bg-blue-600 opacity-100" : "h-0 opacity-0"
+            active ? "h-5 bg-white opacity-100" : "h-0 opacity-0"
           }`}
         />
         <Icon
           className={`w-4 h-4 flex-shrink-0 transition-colors ${
-            active ? "text-blue-700" : "text-slate-500 group-hover:text-slate-700"
+            active ? "text-white" : "text-slate-400 group-hover:text-slate-200"
           }`}
         />
         {/* Label with smooth fade */}
