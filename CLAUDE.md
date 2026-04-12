@@ -1,9 +1,11 @@
 # Fiskix — Contexto para Claude Code
 
 ## O que é o Fiskix
+
 Plataforma SaaS de deteção de fraudes e perdas comerciais de energia elétrica. Cliente inicial: **Electra (Cabo Verde)**. **Fases 1 e 2 completas** (de 3).
 
 ## Stack
+
 - **Frontend**: Next.js 15 (App Router) + TypeScript + TailwindCSS + Recharts + React Leaflet
 - **Backend/DB**: Supabase (PostgreSQL + Auth + Storage + Edge Functions)
 - **Deploy**: Vercel (frontend) + Supabase Edge Functions
@@ -12,12 +14,14 @@ Plataforma SaaS de deteção de fraudes e perdas comerciais de energia elétrica
 - **Testes**: Vitest (300 testes automatizados em 31 ficheiros, 100% de sucesso)
 
 ## Supabase
+
 - **Project ID**: `rqplobwsdbceuqhjywgt`
 - **URL**: `https://rqplobwsdbceuqhjywgt.supabase.co`
 - **Region**: eu-west-1
 
 ## Estrutura de Módulos
-```
+
+```text
 src/modules/
   auth/          — login, sessão, perfil
   dashboard/     — Control Room (KPIs, mapa, alertas, TendenciaPerdas)
@@ -38,6 +42,7 @@ supabase/functions/
 ```
 
 ## Base de Dados (10 tabelas)
+
 - `perfis` — estende auth.users; roles: admin_fiskix, diretor, gestor_perdas, supervisor, fiscal
 - `subestacoes` — transformadores com zona_bairro, coordenadas
 - `clientes` — instalações com numero_contador, id_subestacao
@@ -50,8 +55,9 @@ supabase/functions/
 - `ml_predicoes` — predições ML por cliente/mês (heuristic_v1, Fase 2)
 
 ## Motor de Scoring (9 Regras)
+
 | Regra | O que deteta | Pontos |
-|-------|-------------|--------|
+| ----- | ------------ | ------ |
 | R1 | Queda súbita de consumo vs média 6 meses | 0–25 |
 | R2 | Consumo suspeitosamente constante (CV baixo) | 0–15 |
 | R3 | Desvio face ao cluster da mesma tarifa | 0–20 |
@@ -65,6 +71,7 @@ supabase/functions/
 Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha (perda > 15%).
 
 ## Fluxo Principal (Happy Path)
+
 1. Gestor importa CSV → `/admin/importar`
 2. Gestor executa scoring → `/admin/scoring` → alertas criados
 3. Gestor gera SMS e ordens de inspeção → `/alertas`
@@ -75,18 +82,21 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 ## Fase 2 implementada (Abril 2026)
 
 ### Feature 1 — Score ML (`ml_predicoes`)
+
 - Edge function `ml-scoring` (Deno) — regressão logística heurística com 7 features extraídas dos motivos R1-R8
 - Pesos guardados em `configuracoes` (chave `ml_pesos_v1`), actualizáveis sem deploy
 - Cron automático: dia 2 de cada mês às 03:00 UTC (`/api/cron/ml`)
 - `modelo_versao = "heuristic_v1"` — substituir por `"logistic_v1"` após 100+ inspeções confirmadas
 
 ### Feature 2 — Balanço Energético Avançado
+
 - Nova tab "Análise Avançada" em `/relatorios` (TabAnaliseAvancada)
 - Separação perdas técnicas vs comerciais (limiar configurável `perda_tecnica_estimada_pct`, default 5%)
 - Índice de Recuperabilidade por subestação: `(alertas_críticos / total) × perda_pct`
 - Evolução mensal técnica vs comercial em gráfico de área
 
 ### Feature 3 — API Pública REST
+
 - `GET /api/v1/alertas` — lista com filtros (mes_ano, status, min_score, subestacao_id)
 - `GET /api/v1/alertas/:id` — detalhe com motivo e dados do cliente
 - `GET /api/v1/balanco` — balanço com split técnico/comercial
@@ -97,6 +107,7 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 - **IMPORTANTE:** substituir valor de `api_key_electra` em configuracoes por chave real gerada com `openssl rand -hex 32`
 
 ## Status atual (Abril 2026)
+
 - ✅ Auth + RLS completo (5 roles, isolamento por zona)
 - ✅ Dashboard: KPIs, mapa React Leaflet, tabela alertas, gráficos Recharts, TendenciaPerdas 12 meses
 - ✅ Módulo `/alertas` independente: CRUD completo, filtros, paginação, SMS, ordens
@@ -121,6 +132,7 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 - ✅ Documentação completa (README, CONTRIBUTING, SECURITY)
 
 ## Bugs já corrigidos (não voltar a introduzir)
+
 - RLS: fiscal só faz UPDATE em alertas `Pendente_Inspecao` na sua zona (migration 003)
 - Scoring: INSERT só novos + UPDATE apenas status `Pendente` (não sobrescreve inspecionados)
 - R5: threshold `meses >= 3` (tanto em engine.ts como edge function)
@@ -134,14 +146,17 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 - Hardening: uso de `try/finally` em todos os hooks e componentes com `setLoading` para evitar botões travados
 
 ## Variáveis de Ambiente necessárias (.env.local)
+
 Ver `.env.local.example` — copiar para `.env.local` e preencher os valores secretos.
 Os valores públicos (`NEXT_PUBLIC_*`) já estão preenchidos no exemplo.
 Os valores secretos (service role key, Twilio, CRON_SECRET) obter de:
-- Supabase: https://supabase.com/dashboard/project/rqplobwsdbceuqhjywgt/settings/api
-- Twilio: https://console.twilio.com
+
+- Supabase: <https://supabase.com/dashboard/project/rqplobwsdbceuqhjywgt/settings/api>
+- Twilio: <https://console.twilio.com>
 - CRON_SECRET: `openssl rand -hex 32` (adicionar também no Vercel Dashboard)
 
 ## Setup num novo computador
+
 ```bash
 git clone https://github.com/hamiltonmoreno/fiskix.git
 cd fiskix
