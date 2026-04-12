@@ -1,9 +1,8 @@
+import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    // turbopack is now stable via --turbopack flag in dev
-  },
+  outputFileTracingRoot: path.join(__dirname, "../../"),
   images: {
     remotePatterns: [
       {

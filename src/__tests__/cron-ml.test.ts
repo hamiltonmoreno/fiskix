@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { runPool } from "@/lib/concurrency";
 
 // ── Mocks globais ──────────────────────────────────────────────────────────────
 

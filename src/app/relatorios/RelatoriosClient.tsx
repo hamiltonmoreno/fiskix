@@ -8,13 +8,38 @@ import { getCurrentMesAno, getLastNMonths } from "@/lib/utils";
 import { exportToExcel, type ExportRow } from "@/lib/export";
 import type { RelatoriosFiltros, Periodo, TipoTarifa } from "@/modules/relatorios/types";
 
-import { TabExecutivo } from "@/modules/relatorios/components/TabExecutivo";
-import { TabInspecoes } from "@/modules/relatorios/components/TabInspecoes";
-import { TabPerdasZona } from "@/modules/relatorios/components/TabPerdasZona";
-import { TabRecidivismo } from "@/modules/relatorios/components/TabRecidivismo";
-import { TabBalancoEnergetico } from "@/modules/relatorios/components/TabBalancoEnergetico";
-import { TabAnaliseAvancada } from "@/modules/relatorios/components/TabAnaliseAvancada";
-import { TabGerarRelatorio } from "@/modules/relatorios/components/TabGerarRelatorio";
+import dynamic from "next/dynamic";
+
+const tabSkeleton = () => <div className="h-96 bg-slate-100 rounded-xl animate-pulse mt-4" />;
+
+const TabExecutivo = dynamic(
+  () => import("@/modules/relatorios/components/TabExecutivo").then((m) => m.TabExecutivo),
+  { ssr: false, loading: tabSkeleton }
+);
+const TabInspecoes = dynamic(
+  () => import("@/modules/relatorios/components/TabInspecoes").then((m) => m.TabInspecoes),
+  { ssr: false, loading: tabSkeleton }
+);
+const TabPerdasZona = dynamic(
+  () => import("@/modules/relatorios/components/TabPerdasZona").then((m) => m.TabPerdasZona),
+  { ssr: false, loading: tabSkeleton }
+);
+const TabRecidivismo = dynamic(
+  () => import("@/modules/relatorios/components/TabRecidivismo").then((m) => m.TabRecidivismo),
+  { ssr: false, loading: tabSkeleton }
+);
+const TabBalancoEnergetico = dynamic(
+  () => import("@/modules/relatorios/components/TabBalancoEnergetico").then((m) => m.TabBalancoEnergetico),
+  { ssr: false, loading: tabSkeleton }
+);
+const TabAnaliseAvancada = dynamic(
+  () => import("@/modules/relatorios/components/TabAnaliseAvancada").then((m) => m.TabAnaliseAvancada),
+  { ssr: false, loading: tabSkeleton }
+);
+const TabGerarRelatorio = dynamic(
+  () => import("@/modules/relatorios/components/TabGerarRelatorio").then((m) => m.TabGerarRelatorio),
+  { ssr: false, loading: tabSkeleton }
+);
 
 type TabId = "executivo" | "inspecoes" | "perdas-zona" | "recidivismo" | "balanco" | "analise-avancada" | "gerar";
 

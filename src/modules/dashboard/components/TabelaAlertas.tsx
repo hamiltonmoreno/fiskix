@@ -5,7 +5,12 @@ import { useAlertas } from "../hooks/useAlertas";
 import { getScoreColor, getScoreLabel, formatMesAno } from "@/lib/utils";
 import { exportToExcel } from "@/lib/export";
 import { MessageSquare, ClipboardList, ChevronLeft, ChevronRight, RefreshCw, Eye, FileDown } from "lucide-react";
-import { AlertaDetalheModal } from "./AlertaDetalheModal";
+import dynamic from "next/dynamic";
+
+const AlertaDetalheModal = dynamic(
+  () => import("./AlertaDetalheModal").then((m) => m.AlertaDetalheModal),
+  { ssr: false }
+);
 import type { AlertaTabela } from "../types";
 
 interface TabelaAlertasProps {

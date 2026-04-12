@@ -93,11 +93,6 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
       .eq("status", "Pendente_Inspecao")
       .order("score_risco", { ascending: false });
 
-    if (zona) {
-      // Filtrar por zona através da subestação
-      // RLS já faz isso, mas filtro adicional por segurança
-    }
-
     const { data } = await query;
 
     const mapped: OrdemFiscal[] = (data ?? []).map((r) => {

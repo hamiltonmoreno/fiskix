@@ -19,7 +19,7 @@ export async function runPool<T, R>(
         results[i] = await fn(items[i]);
       } catch (error) {
         // Propaga o erro no slot do resultado para ser tratado pelo chamador
-        results[i] = error as any;
+        results[i] = error as unknown as R;
       }
     }
   }

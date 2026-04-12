@@ -94,7 +94,7 @@ describe("runPool", () => {
     // sem rejeitar a promessa global do pool.
     expect(result[0]).toBe("ok");
     expect(result[1]).toBeInstanceOf(Error);
-    expect((result[1] as Error).message).toBe("ops");
+    expect((result[1] as unknown as Error).message).toBe("ops");
     expect(result[2]).toBe("ok");
   });
 

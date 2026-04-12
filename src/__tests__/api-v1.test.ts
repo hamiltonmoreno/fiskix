@@ -151,7 +151,7 @@ describe("GET /api/v1/alertas/:id", () => {
 
   it("retorna 404 quando alerta não existe", async () => {
     const mockSingle = vi.fn().mockResolvedValue({ data: null, error: { message: "Not found" } });
-    mockEq.mockReturnValue({ single: mockSingle });
+    mockEq.mockReturnValue({ single: mockSingle, order: vi.fn(), gte: vi.fn(), in: vi.fn() });
 
     const { GET } = await import("@/app/api/v1/alertas/[id]/route");
     const res = await GET(
@@ -170,7 +170,7 @@ describe("GET /api/v1/alertas/:id", () => {
     };
 
     const mockSingle = vi.fn().mockResolvedValue({ data: alertaMock, error: null });
-    mockEq.mockReturnValue({ single: mockSingle });
+    mockEq.mockReturnValue({ single: mockSingle, order: vi.fn(), gte: vi.fn(), in: vi.fn() });
 
     const { GET } = await import("@/app/api/v1/alertas/[id]/route");
     const res = await GET(
@@ -251,6 +251,7 @@ describe("GET /api/v1/balanco", () => {
       error: null,
     });
 
+    // @ts-expect-error -- mockFrom originally takes 0 args; implementation routes by table name
     mockFrom.mockImplementation((table: string) => {
       if (table === "configuracoes") return { select: () => ({ in: mockInCfg }) };
       if (table === "subestacoes") return { select: () => ({ eq: mockEqSubs }) };

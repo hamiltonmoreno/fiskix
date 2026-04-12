@@ -1,13 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { KPICards } from "@/modules/dashboard/components/KPICards";
-import { HeatMap } from "@/modules/dashboard/components/HeatMap";
-import { Top5Transformadores } from "@/modules/dashboard/components/Top5Transformadores";
-import { TendenciaPerdas } from "@/modules/dashboard/components/TendenciaPerdas";
 import { TabelaAlertas } from "@/modules/dashboard/components/TabelaAlertas";
 import { useKPIs } from "@/modules/dashboard/hooks/useKPIs";
 import { getCurrentMesAno } from "@/lib/utils";
+
+const HeatMap = dynamic(
+  () => import("@/modules/dashboard/components/HeatMap").then((m) => m.HeatMap),
+  { ssr: false, loading: () => <div className="h-64 bg-slate-100 rounded-xl animate-pulse" /> }
+);
+const Top5Transformadores = dynamic(
+  () => import("@/modules/dashboard/components/Top5Transformadores").then((m) => m.Top5Transformadores),
+  { ssr: false, loading: () => <div className="h-64 bg-slate-100 rounded-xl animate-pulse" /> }
+);
+const TendenciaPerdas = dynamic(
+  () => import("@/modules/dashboard/components/TendenciaPerdas").then((m) => m.TendenciaPerdas),
+  { ssr: false, loading: () => <div className="h-48 bg-slate-100 rounded-xl animate-pulse" /> }
+);
 
 interface DashboardClientProps {
   profile: {
