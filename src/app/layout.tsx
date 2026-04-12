@@ -1,12 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Geist } from "next/font/google";
+import { Geist, DM_Serif_Display } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
-const inter = Inter({ subsets: ["latin"] });
+const dmSerifDisplay = DM_Serif_Display({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-heading",
+});
 
 export const metadata: Metadata = {
   title: "Fiskix - Fiscalização Inteligente de Energia",
@@ -32,10 +37,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt" className={cn("font-sans", geist.variable)}>
-      <body className={inter.className}>
-        {children}
-        <Toaster richColors position="top-right" />
+    <html
+      lang="pt"
+      suppressHydrationWarning
+      className={cn("font-sans", geist.variable, dmSerifDisplay.variable)}
+    >
+      <body className="antialiased">
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          {children}
+          <Toaster richColors position="top-right" />
+        </ThemeProvider>
       </body>
     </html>
   );

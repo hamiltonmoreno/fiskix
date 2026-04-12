@@ -19,6 +19,7 @@ import {
   FileBarChart2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface SidebarProps {
   profile: {
@@ -194,6 +195,11 @@ export function Sidebar({ profile }: SidebarProps) {
         </div>
       )}
 
+      {/* Theme toggle */}
+      <div className="px-2 pb-1">
+        <ThemeToggle collapsed={collapsed} />
+      </div>
+
       {/* User footer */}
       <div className={`border-t border-slate-700/50 p-3 ${collapsed ? "flex flex-col items-center gap-2" : ""}`}>
         {!collapsed ? (
@@ -270,21 +276,21 @@ export function Sidebar({ profile }: SidebarProps) {
   return (
     <>
       {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-white border-b border-slate-200 flex items-center px-4 gap-3 no-print">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-sidebar border-b border-slate-700/50 flex items-center px-4 gap-3 no-print">
         <button
           onClick={() => setMobileOpen(true)}
           aria-label="Abrir menu"
           aria-expanded={mobileOpen}
           aria-controls="mobile-sidebar-drawer"
-          className="p-2 rounded-lg hover:bg-slate-100 text-slate-500"
+          className="p-2 rounded-lg hover:bg-slate-800 text-slate-400"
         >
           <Menu className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-blue-700 rounded-lg flex items-center justify-center">
+          <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
             <Zap className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-bold text-slate-900">Fiskix</span>
+          <span className="font-bold text-white">Fiskix</span>
         </div>
       </div>
 

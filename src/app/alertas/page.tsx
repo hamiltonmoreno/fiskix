@@ -14,6 +14,13 @@ import {
   Wrench,
   ClipboardList,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AlertaSheet, type AlertaSheetData } from "@/modules/alertas/components/AlertaSheet";
 import { ScoreBadge } from "@/components/ui/score-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -221,62 +228,62 @@ export default function AlertasPage() {
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 py-4 no-print">
-        <h1 className="text-lg font-bold text-slate-900">Alertas de Fraude</h1>
-        <p className="text-sm text-slate-500">Gestão completa dos alertas gerados pelo motor de scoring</p>
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b border-border px-6 py-4 no-print">
+        <h1 className="text-lg font-bold text-foreground">Alertas de Fraude</h1>
+        <p className="text-sm text-muted-foreground">Gestão completa dos alertas gerados pelo motor de scoring</p>
       </header>
 
       <main className="p-6 space-y-4">
 
         {/* Filtros */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-wrap items-center gap-3 no-print">
+        <div className="bg-card rounded-xl border border-border p-4 flex flex-wrap items-center gap-3 no-print">
           <div>
-            <label htmlFor="alertas-mes" className="block text-xs text-slate-500 mb-1">Mês</label>
+            <label htmlFor="alertas-mes" className="block text-xs text-muted-foreground mb-1">Mês</label>
             <input
               id="alertas-mes"
               type="month"
               value={mesAno}
               onChange={(e) => setMesAno(e.target.value)}
-              className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-1.5 bg-background border border-input rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div>
-            <label htmlFor="alertas-estado" className="block text-xs text-slate-500 mb-1">Estado</label>
-            <select
-              id="alertas-estado"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="todos">Todos</option>
-              <option value="Pendente">Pendente</option>
-              <option value="Notificado_SMS">SMS Enviado</option>
-              <option value="Pendente_Inspecao">Em Inspeção</option>
-              <option value="Inspecionado">Inspecionado</option>
-              <option value="Fraude_Confirmada">Fraude Confirmada</option>
-              <option value="Anomalia_Tecnica">Anomalia Técnica</option>
-              <option value="Falso_Positivo">Falso Positivo</option>
-            </select>
+            <label className="block text-xs text-muted-foreground mb-1">Estado</label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-44 h-9 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="Pendente">Pendente</SelectItem>
+                <SelectItem value="Notificado_SMS">SMS Enviado</SelectItem>
+                <SelectItem value="Pendente_Inspecao">Em Inspeção</SelectItem>
+                <SelectItem value="Inspecionado">Inspecionado</SelectItem>
+                <SelectItem value="Fraude_Confirmada">Fraude Confirmada</SelectItem>
+                <SelectItem value="Anomalia_Tecnica">Anomalia Técnica</SelectItem>
+                <SelectItem value="Falso_Positivo">Falso Positivo</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
-            <label htmlFor="alertas-zona" className="block text-xs text-slate-500 mb-1">Zona</label>
-            <select
-              id="alertas-zona"
-              value={zona}
-              onChange={(e) => setZona(e.target.value)}
-              className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="todas">Todas as zonas</option>
-              {zonas.map((z) => (
-                <option key={z} value={z}>{z.replace(/_/g, " ")}</option>
-              ))}
-            </select>
+            <label className="block text-xs text-muted-foreground mb-1">Zona</label>
+            <Select value={zona} onValueChange={setZona}>
+              <SelectTrigger className="w-44 h-9 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas as zonas</SelectItem>
+                {zonas.map((z) => (
+                  <SelectItem key={z} value={z}>{z.replace(/_/g, " ")}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="ml-auto flex items-end">
             <button
               onClick={load}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-500 hover:text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-accent transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Atualizar
@@ -285,13 +292,13 @@ export default function AlertasPage() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-            <p className="text-sm text-slate-500">
-              <span className="font-semibold text-slate-800">{total}</span> alertas encontrados
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{total}</span> alertas encontrados
             </p>
             {totalPages > 1 && (
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 Página {page + 1} de {totalPages}
               </p>
             )}
@@ -300,15 +307,15 @@ export default function AlertasPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Score</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Contador</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Titular</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Zona</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Tarifa</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Regras</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Estado</th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Ações</th>
+                <tr className="border-b border-border bg-muted/40">
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Score</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Contador</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Titular</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Zona</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Tarifa</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Regras</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Estado</th>
+                  <th className="text-right px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -341,22 +348,22 @@ export default function AlertasPage() {
                     return (
                       <tr
                         key={alerta.id}
-                        className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer"
+                        className="border-b border-border hover:bg-muted/30 transition-colors cursor-pointer"
                         onClick={() => { setAlertaSheet(alerta); setSheetOpen(true); }}
                       >
                         <td className="px-4 py-3">
                           <ScoreBadge score={alerta.score_risco} showScore />
                         </td>
-                        <td className="px-4 py-3 font-mono text-slate-700 text-xs">
+                        <td className="px-4 py-3 font-mono text-foreground text-xs">
                           {alerta.cliente.numero_contador}
                         </td>
-                        <td className="px-4 py-3 text-slate-700">
+                        <td className="px-4 py-3 text-foreground">
                           {alerta.cliente.nome_titular}
                         </td>
-                        <td className="px-4 py-3 text-slate-500 text-xs">
+                        <td className="px-4 py-3 text-muted-foreground text-xs">
                           {alerta.subestacao.zona_bairro}
                         </td>
-                        <td className="px-4 py-3 text-slate-500 text-xs">
+                        <td className="px-4 py-3 text-muted-foreground text-xs">
                           {alerta.cliente.tipo_tarifa}
                         </td>
                         <td className="px-4 py-3">
@@ -464,8 +471,8 @@ export default function AlertasPage() {
 
           {/* Paginação */}
           {totalPages > 1 && (
-            <div className="p-4 border-t border-slate-100 flex items-center justify-between">
-              <p className="text-xs text-slate-400">
+            <div className="p-4 border-t border-border flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
                 {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} de {total}
               </p>
               <div className="flex items-center gap-1">
@@ -473,7 +480,7 @@ export default function AlertasPage() {
                   onClick={() => setPage((p) => Math.max(0, p - 1))}
                   disabled={page === 0}
                   aria-label="Página anterior"
-                  className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-40"
+                  className="p-1.5 rounded-lg hover:bg-accent disabled:opacity-40"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -481,7 +488,7 @@ export default function AlertasPage() {
                   onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                   disabled={page >= totalPages - 1}
                   aria-label="Página seguinte"
-                  className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-40"
+                  className="p-1.5 rounded-lg hover:bg-accent disabled:opacity-40"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -502,15 +509,15 @@ export default function AlertasPage() {
 
       {pendingStatusUpdate && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white border border-slate-200 shadow-xl p-5">
-            <h2 className="text-base font-semibold text-slate-900">Confirmar atualização de estado</h2>
-            <p className="text-sm text-slate-500 mt-2">
-              Pretende marcar este alerta como <strong>{pendingStatusUpdate.label}</strong>?
+          <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-xl p-5">
+            <h2 className="text-base font-semibold text-foreground">Confirmar atualização de estado</h2>
+            <p className="text-sm text-muted-foreground mt-2">
+              Pretende marcar este alerta como <strong className="text-foreground">{pendingStatusUpdate.label}</strong>?
             </p>
             <div className="mt-5 flex gap-2 justify-end">
               <button
                 onClick={() => setPendingStatusUpdate(null)}
-                className="px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+                className="px-3 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-accent transition-colors"
               >
                 Cancelar
               </button>
@@ -522,7 +529,7 @@ export default function AlertasPage() {
                   );
                   setPendingStatusUpdate(null);
                 }}
-                className="px-3 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-sm text-white transition-colors"
+                className="px-3 py-2 rounded-lg bg-primary hover:bg-primary/90 text-sm text-primary-foreground transition-colors"
               >
                 Confirmar
               </button>

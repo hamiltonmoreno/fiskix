@@ -117,9 +117,9 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
   const mesesDisponiveis = getLastNMonths(24);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       {/* Top bar */}
-      <header className="sticky top-0 lg:top-0 z-30 bg-white border-b border-slate-200 px-4 lg:px-6 no-print">
+      <header className="sticky top-0 lg:top-0 z-30 bg-card border-b border-border px-4 lg:px-6 no-print">
         <div className="flex flex-wrap items-center gap-3 py-3">
           <h1 className="text-base font-semibold text-slate-900 mr-2">
             Relatórios <span className="font-normal text-slate-500">· {profile.nome_completo}</span>
@@ -130,7 +130,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
             <select
               value={periodo}
               onChange={(e) => setPeriodo(e.target.value as Periodo)}
-              className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="text-sm bg-background border border-input rounded-lg px-3 py-1.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="mes">Este mês</option>
               <option value="trimestre">Trimestre</option>
@@ -141,7 +141,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
             <select
               value={mesAno}
               onChange={(e) => setMesAno(e.target.value)}
-              className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="text-sm bg-background border border-input rounded-lg px-3 py-1.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
               {mesesDisponiveis.map((m) => {
                 const [year, month] = m.split("-");
@@ -160,7 +160,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
             <select
               value={zona ?? ""}
               onChange={(e) => setZona(e.target.value || undefined)}
-              className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="text-sm bg-background border border-input rounded-lg px-3 py-1.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="">Todas as zonas</option>
               {ZONAS.map((z) => (
@@ -173,7 +173,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
             <select
               value={tipoTarifa ?? ""}
               onChange={(e) => setTipoTarifa((e.target.value || undefined) as TipoTarifa | undefined)}
-              className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="text-sm bg-background border border-input rounded-lg px-3 py-1.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="">Todas as tarifas</option>
               <option value="Residencial">Residencial</option>
@@ -189,7 +189,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
               onClick={handleExportExcel}
               disabled={!exportPayload}
               aria-label="Exportar relatório em Excel"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-border rounded-lg hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               title="Exportar dados como Excel"
             >
               <FileDown className="w-4 h-4" />
@@ -199,7 +199,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
             <button
               onClick={() => window.print()}
               aria-label="Imprimir ou exportar PDF"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-border rounded-lg hover:bg-accent transition-colors"
               title="Imprimir / Exportar PDF"
             >
               <Printer className="w-4 h-4" />
@@ -226,7 +226,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
           setExportPayload(null);
         }}
       >
-        <Tabs.List className="flex border-b border-slate-200 bg-white px-4 lg:px-6 sticky top-[57px] z-20 overflow-x-auto no-print">
+        <Tabs.List className="flex border-b border-border bg-card px-4 lg:px-6 sticky top-[57px] z-20 overflow-x-auto no-print">
           {TAB_DEFS.map((tab) => (
             <Tabs.Trigger
               key={tab.value}
@@ -276,7 +276,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
       <Dialog.Root open={agendarOpen} onOpenChange={setAgendarOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/40 z-50" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-xl w-full max-w-md p-6 z-50 focus:outline-none">
+          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card border border-border rounded-2xl shadow-xl w-full max-w-md p-6 z-50 focus:outline-none">
             <div className="flex items-center justify-between mb-5">
               <Dialog.Title className="text-base font-semibold text-slate-900">
                 Agendar Envio de Relatório

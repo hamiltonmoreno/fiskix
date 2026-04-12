@@ -8,6 +8,13 @@ import { AlertasCriticosPanel } from "@/modules/dashboard/components/AlertasCrit
 import { useKPIs } from "@/modules/dashboard/hooks/useKPIs";
 import { getCurrentMesAno } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const HeatMap = dynamic(
   () => import("@/modules/dashboard/components/HeatMap").then((m) => m.HeatMap),
@@ -50,53 +57,48 @@ export function DashboardClient({ profile }: DashboardClientProps) {
   const { data: kpis, loading: kpisLoading } = useKPIs(mesAno, zona);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Top Bar — filtros apenas */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 no-print">
+    <div className="min-h-screen bg-background">
+      {/* Top Bar */}
+      <header className="bg-card border-b border-border sticky top-0 z-30 no-print">
         <div className="px-4 lg:px-6 py-3 flex items-center justify-between gap-4">
-          <h1 className="text-base font-semibold text-slate-900 hidden sm:block">
+          <h1 className="text-base font-semibold text-foreground hidden sm:block">
             Dashboard
           </h1>
           <div className="flex items-center gap-2 ml-auto">
-            <label htmlFor="dashboard-mes" className="sr-only">
-              Filtrar por mês
-            </label>
-            <select
-              id="dashboard-mes"
-              value={mesAno}
-              onChange={(e) => setMesAno(e.target.value)}
-              className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            >
-              {MESES.map((m) => (
-                <option key={m} value={m}>
-                  {new Date(m + "-01").toLocaleDateString("pt-CV", {
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </option>
-              ))}
-            </select>
+            <Select value={mesAno} onValueChange={setMesAno}>
+              <SelectTrigger className="w-44 h-9 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MESES.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {new Date(m + "-01").toLocaleDateString("pt-CV", {
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            <label htmlFor="dashboard-zona" className="sr-only">
-              Filtrar por zona
-            </label>
-            <select
-              id="dashboard-zona"
+            <Select
               value={zona ?? "Todos"}
-              onChange={(e) =>
-                setZona(e.target.value === "Todos" ? undefined : e.target.value)
-              }
-              className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              onValueChange={(v) => setZona(v === "Todos" ? undefined : v)}
             >
-              {ZONAS.map((z) => (
-                <option key={z} value={z}>
-                  {z === "Todos" ? "Todas as zonas" : z.replace(/_/g, " ")}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-44 h-9 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ZONAS.map((z) => (
+                  <SelectItem key={z} value={z}>
+                    {z === "Todos" ? "Todas as zonas" : z.replace(/_/g, " ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <span className="text-sm text-slate-500 hidden lg:block whitespace-nowrap">
+          <span className="text-sm text-muted-foreground hidden lg:block whitespace-nowrap">
             {profile.nome_completo}
           </span>
         </div>
@@ -120,7 +122,6 @@ export function DashboardClient({ profile }: DashboardClientProps) {
           </div>
         </div>
 
-        {/* Tendência + Top5 a largura completa */}
         <TendenciaPerdas mesAno={mesAno} zona={zona} />
         <Top5Transformadores mesAno={mesAno} />
 

@@ -109,21 +109,21 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 py-4">
-        <h1 className="font-bold text-slate-900">Meu Perfil</h1>
-        <p className="text-sm text-slate-400">Gerencie as suas informações pessoais e segurança</p>
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b border-border px-6 py-4">
+        <h1 className="font-bold text-foreground">Meu Perfil</h1>
+        <p className="text-sm text-muted-foreground">Gerencie as suas informações pessoais e segurança</p>
       </header>
 
       <main className="max-w-3xl mx-auto p-6 space-y-6">
 
         {/* Card: Informação Pessoal */}
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
               <User className="w-4 h-4 text-blue-600" />
             </div>
-            <h2 className="font-semibold text-slate-900">Informação Pessoal</h2>
+            <h2 className="font-semibold text-foreground">Informação Pessoal</h2>
           </div>
 
           {/* Avatar + badges */}
@@ -167,7 +167,7 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
                 value={nome}
                 onChange={(e) => { setNome(e.target.value); setFeedbackNome(null); }}
                 required
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-background border border-input rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
 
@@ -179,7 +179,7 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
                 type="email"
                 value={email}
                 disabled
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-400 cursor-not-allowed"
+                className="w-full px-3 py-2 bg-muted border border-input rounded-lg text-sm text-muted-foreground cursor-not-allowed"
               />
             </div>
 
@@ -204,7 +204,7 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
               <button
                 type="submit"
                 disabled={savingNome || !nome.trim() || nome.trim() === profileInicial.nome_completo}
-                className="px-4 py-2 bg-blue-700 hover:bg-blue-800 disabled:bg-slate-300 text-white rounded-lg text-sm font-medium transition-colors"
+                className="px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground rounded-lg text-sm font-medium transition-colors"
               >
                 {savingNome ? "A guardar..." : "Guardar alterações"}
               </button>
@@ -213,12 +213,12 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
         </div>
 
         {/* Card: Segurança */}
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
               <KeyRound className="w-4 h-4 text-amber-600" />
             </div>
-            <h2 className="font-semibold text-slate-900">Segurança</h2>
+            <h2 className="font-semibold text-foreground">Segurança</h2>
           </div>
 
           <form onSubmit={handleMudarPassword} className="space-y-4">
@@ -232,7 +232,7 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
                 onChange={(e) => { setNovaPassword(e.target.value); setFeedbackPassword(null); }}
                 placeholder="Mínimo 8 caracteres"
                 autoComplete="new-password"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-background border border-input rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
 
@@ -246,7 +246,7 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
                 onChange={(e) => { setConfirmarPassword(e.target.value); setFeedbackPassword(null); }}
                 placeholder="Repetir password"
                 autoComplete="new-password"
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-background border border-input rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
 
@@ -271,7 +271,7 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
               <button
                 type="submit"
                 disabled={savingPassword || !novaPassword || !confirmarPassword}
-                className="px-4 py-2 bg-blue-700 hover:bg-blue-800 disabled:bg-slate-300 text-white rounded-lg text-sm font-medium transition-colors"
+                className="px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground rounded-lg text-sm font-medium transition-colors"
               >
                 {savingPassword ? "A mudar..." : "Mudar password"}
               </button>
@@ -280,22 +280,22 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
         </div>
 
         {/* Card: Informações do Sistema */}
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
               <Clock className="w-4 h-4 text-slate-500" />
             </div>
-            <h2 className="font-semibold text-slate-900">Informações do Sistema</h2>
+            <h2 className="font-semibold text-foreground">Informações do Sistema</h2>
           </div>
 
           <dl className="space-y-3 text-sm">
             <div className="flex items-center justify-between py-2 border-b border-slate-50">
-              <dt className="text-slate-500">Conta criada em</dt>
-              <dd className="text-slate-700 font-medium">{formatDate(profileInicial.criado_em)}</dd>
+              <dt className="text-muted-foreground">Conta criada em</dt>
+              <dd className="text-foreground font-medium">{formatDate(profileInicial.criado_em)}</dd>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-slate-50">
-              <dt className="text-slate-500">Última atualização</dt>
-              <dd className="text-slate-700 font-medium">{formatDate(profileInicial.atualizado_em)}</dd>
+              <dt className="text-muted-foreground">Última atualização</dt>
+              <dd className="text-foreground font-medium">{formatDate(profileInicial.atualizado_em)}</dd>
             </div>
             {profileInicial.role === "admin_fiskix" && (
               <div className="flex items-center justify-between py-2">

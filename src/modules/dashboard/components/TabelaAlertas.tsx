@@ -10,6 +10,13 @@ import { ScoreBadge } from "@/components/ui/score-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 
 interface TabelaAlertasProps {
@@ -75,33 +82,34 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
   const totalPages = Math.ceil(total / pageSize);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200">
+    <div className="bg-card rounded-xl border border-border">
       {/* Header */}
-      <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+      <div className="p-4 border-b border-border flex items-center justify-between">
         <div>
-          <h3 className="font-semibold text-slate-700">Alertas de Risco</h3>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <h3 className="font-semibold text-foreground">Alertas de Risco</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
             {total} alertas · {formatMesAno(mesAno)}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <select
+          <Select
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(0);
-            }}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onValueChange={(v) => { setStatusFilter(v); setPage(0); }}
           >
-            <option value="todos">Todos os estados</option>
-            <option value="Pendente">Pendente</option>
-            <option value="Notificado_SMS">SMS Enviado</option>
-            <option value="Pendente_Inspecao">Em Inspeção</option>
-            <option value="Inspecionado">Inspecionado</option>
-            <option value="Fraude_Confirmada">Fraude Confirmada</option>
-            <option value="Anomalia_Tecnica">Anomalia Técnica</option>
-            <option value="Falso_Positivo">Falso Positivo</option>
-          </select>
+            <SelectTrigger className="w-44 h-9 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os estados</SelectItem>
+              <SelectItem value="Pendente">Pendente</SelectItem>
+              <SelectItem value="Notificado_SMS">SMS Enviado</SelectItem>
+              <SelectItem value="Pendente_Inspecao">Em Inspeção</SelectItem>
+              <SelectItem value="Inspecionado">Inspecionado</SelectItem>
+              <SelectItem value="Fraude_Confirmada">Fraude Confirmada</SelectItem>
+              <SelectItem value="Anomalia_Tecnica">Anomalia Técnica</SelectItem>
+              <SelectItem value="Falso_Positivo">Falso Positivo</SelectItem>
+            </SelectContent>
+          </Select>
           <button
             onClick={handleExportExcel}
             disabled={data.length === 0}
