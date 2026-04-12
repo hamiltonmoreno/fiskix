@@ -9,8 +9,9 @@ import { exportToExcel, type ExportRow } from "@/lib/export";
 import type { RelatoriosFiltros, Periodo, TipoTarifa } from "@/modules/relatorios/types";
 
 import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const tabSkeleton = () => <div className="h-96 bg-slate-100 rounded-xl animate-pulse mt-4" />;
+const tabSkeleton = () => <Skeleton className="h-96 w-full rounded-xl mt-4" />;
 
 const TabExecutivo = dynamic(
   () => import("@/modules/relatorios/components/TabExecutivo").then((m) => m.TabExecutivo),

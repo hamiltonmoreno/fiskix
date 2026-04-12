@@ -9,7 +9,8 @@ import { AlertaSheet, type AlertaSheetData } from "@/modules/alertas/components/
 import { ScoreBadge } from "@/components/ui/score-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import type { AlertaTabela as _AlertaTabela } from "../types";
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 interface TabelaAlertasProps {
   mesAno: string;
@@ -142,7 +143,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
                 <tr key={i} className="border-b border-slate-50">
                   {Array.from({ length: 8 }).map((_, j) => (
                     <td key={j} className="px-4 py-3">
-                      <div className="h-4 bg-slate-100 animate-pulse rounded" />
+                      <Skeleton className="h-4 w-full" />
                     </td>
                   ))}
                 </tr>

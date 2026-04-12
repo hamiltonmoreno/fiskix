@@ -72,8 +72,8 @@ describe("HeatMap.tsx", () => {
   it("exibe o skeleton de carregamento", () => {
     const { container } = render(<HeatMap mesAno="03-2026" />);
 
-    expect(screen.getByText("A carregar mapa...")).toBeInTheDocument();
-    expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
+    expect(screen.getByText("Mapa de Calor — Subestações")).toBeInTheDocument();
+    expect(container.querySelector("[data-slot='skeleton']")).toBeInTheDocument();
   });
 
   it("renderiza o LeafletMap dinamicamente depois de carregar", async () => {

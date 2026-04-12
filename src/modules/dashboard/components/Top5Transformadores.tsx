@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { createClient } from "@/lib/supabase/client";
 import { formatCVE } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Top5Props {
   mesAno: string;
@@ -138,7 +139,7 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
         Top 5 Transformadores — Energia Injetada vs Faturada
       </h3>
       {loading ? (
-        <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+        <Skeleton className="h-64 w-full rounded-lg" />
       ) : data.length === 0 ? (
         <div className="h-64 flex items-center justify-center text-slate-400 text-sm">
           Sem dados de injeção para {mesAno}
