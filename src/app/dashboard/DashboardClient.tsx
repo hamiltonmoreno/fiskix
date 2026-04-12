@@ -4,6 +4,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { KPICards } from "@/modules/dashboard/components/KPICards";
 import { TabelaAlertas } from "@/modules/dashboard/components/TabelaAlertas";
+import { AlertasCriticosPanel } from "@/modules/dashboard/components/AlertasCriticosPanel";
 import { useKPIs } from "@/modules/dashboard/hooks/useKPIs";
 import { getCurrentMesAno } from "@/lib/utils";
 
@@ -104,12 +105,23 @@ export function DashboardClient({ profile }: DashboardClientProps) {
       <main className="px-4 lg:px-6 py-6 space-y-6" id="alertas">
         <KPICards data={kpis} loading={kpisLoading} />
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <HeatMap mesAno={mesAno} zona={zona} />
-          <Top5Transformadores mesAno={mesAno} />
+        {/* 2-column: mapa + alertas críticos */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          <div className="lg:col-span-3 h-80">
+            <HeatMap mesAno={mesAno} zona={zona} />
+          </div>
+          <div className="lg:col-span-2">
+            <AlertasCriticosPanel
+              alertas={kpis?.alertas_criticos}
+              loading={kpisLoading}
+              mesAno={mesAno}
+            />
+          </div>
         </div>
 
+        {/* Tendência + Top5 a largura completa */}
         <TendenciaPerdas mesAno={mesAno} zona={zona} />
+        <Top5Transformadores mesAno={mesAno} />
 
         <TabelaAlertas mesAno={mesAno} zona={zona} />
       </main>

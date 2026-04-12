@@ -12,6 +12,7 @@ const mockKPIData: KPIData = {
   ordens_pendentes: 7,
   receita_recuperada_ytd: 320_000,
   variacao_perda_pct: -5.2,
+  alertas_criticos: [],
 };
 
 describe("KPICards", () => {
