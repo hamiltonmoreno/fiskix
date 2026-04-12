@@ -1,0 +1,118 @@
+<h2>Secção 4 — PWA Mobile (Fiscal em Campo)</h2>
+<p class="subtitle">Redesign do roteiro e ficha de inspeção. Prioridade: clareza, velocidade, uma mão.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Cards em lista (actual)</h3>
+      <p>Lista de cards verticais. Funciona mas é densa. Fiscal faz scroll para encontrar a próxima visita.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Próxima visita em destaque + lista abaixo</h3>
+      <p>Card grande "A fazer agora" no topo. Resto em lista compacta. Zero ambiguidade sobre o que fazer.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Bottom nav + swipe entre visitas</h3>
+      <p>Navegação por gestos. Mais moderno, mas exige mais implementação e testes.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:28px">
+  <div class="split">
+
+    <!-- Option A -->
+    <div class="mockup">
+      <div class="mockup-header">Preview A — Lista de cards (actual)</div>
+      <div class="mockup-body" style="background:#f1f5f9;padding:10px;font-family:system-ui;max-width:320px;margin:0 auto">
+        <!-- Mobile top bar -->
+        <div style="background:#0f172a;color:white;padding:10px 14px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-size:13px;font-weight:700">⚡ Roteiro — Seg 12 Abr</div>
+          <div style="font-size:11px;background:#22c55e;padding:2px 8px;border-radius:20px">online</div>
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-bottom:8px;text-align:center">3 visitas · 2 pendentes</div>
+        <!-- Cards -->
+        <div style="background:white;border-radius:8px;padding:12px;margin-bottom:8px;border:1px solid #e2e8f0">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;font-weight:700;color:#0f172a">#4821 — João Silva</span>
+            <span style="background:#fee2e2;color:#ef4444;padding:1px 6px;border-radius:20px;font-size:10px;font-weight:700">91pts</span>
+          </div>
+          <div style="font-size:11px;color:#64748b;margin-bottom:8px">Rua do Porto 45 · Zona Norte</div>
+          <button style="width:100%;background:#4f46e5;color:white;border:none;border-radius:6px;padding:7px;font-size:12px;font-weight:600">Iniciar inspeção →</button>
+        </div>
+        <div style="background:white;border-radius:8px;padding:12px;margin-bottom:8px;border:1px solid #e2e8f0">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;font-weight:700;color:#0f172a">#3302 — Maria Costa</span>
+            <span style="background:#fee2e2;color:#ef4444;padding:1px 6px;border-radius:20px;font-size:10px;font-weight:700">87pts</span>
+          </div>
+          <div style="font-size:11px;color:#64748b;margin-bottom:8px">Av. da Liberdade 12 · Zona Norte</div>
+          <button style="width:100%;background:#4f46e5;color:white;border:none;border-radius:6px;padding:7px;font-size:12px;font-weight:600">Iniciar inspeção →</button>
+        </div>
+        <div style="background:white;border-radius:8px;padding:12px;border:1px solid #e2e8f0;opacity:.6">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;font-weight:600;color:#64748b">#5510 — Pedro Andrade</span>
+            <span style="background:#f0fdf4;color:#16a34a;padding:1px 6px;border-radius:20px;font-size:10px;font-weight:600">✓ Feito</span>
+          </div>
+          <div style="font-size:11px;color:#94a3b8">Rua das Flores 7 · Zona Norte</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Option B -->
+    <div class="mockup">
+      <div class="mockup-header" style="background:#4f46e5;color:white">Preview B — Próxima em destaque ★</div>
+      <div class="mockup-body" style="background:#f1f5f9;padding:10px;font-family:system-ui;max-width:320px;margin:0 auto">
+        <!-- Mobile top bar -->
+        <div style="background:#0f172a;color:white;padding:10px 14px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-size:13px;font-weight:700">⚡ Roteiro — Seg 12 Abr</div>
+          <div style="font-size:11px;background:#22c55e;padding:2px 8px;border-radius:20px">online</div>
+        </div>
+        <!-- Progress bar -->
+        <div style="background:#e2e8f0;border-radius:4px;height:4px;margin-bottom:10px;overflow:hidden">
+          <div style="background:#4f46e5;width:33%;height:100%;border-radius:4px"></div>
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-bottom:8px;text-align:center">1 de 3 concluídas</div>
+
+        <!-- Hero card -->
+        <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:12px;padding:16px;margin-bottom:10px;color:white">
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;opacity:.8;margin-bottom:6px">A FAZER AGORA</div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:2px">#4821 — João Silva</div>
+          <div style="font-size:11px;opacity:.8;margin-bottom:10px">Rua do Porto 45 · Zona Norte</div>
+          <div style="display:flex;gap:6px;margin-bottom:12px">
+            <span style="background:rgba(255,255,255,.2);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700">Score 91</span>
+            <span style="background:rgba(239,68,68,.3);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600">CRÍTICO</span>
+          </div>
+          <button style="width:100%;background:white;color:#4f46e5;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">Iniciar inspeção →</button>
+        </div>
+
+        <!-- Rest list compact -->
+        <div style="font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;padding:0 2px">A seguir</div>
+        <div style="background:white;border-radius:8px;overflow:hidden;border:1px solid #e2e8f0">
+          <div style="padding:10px 12px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:10px">
+            <span style="background:#fee2e2;color:#ef4444;padding:1px 6px;border-radius:20px;font-size:10px;font-weight:700;flex-shrink:0">87</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;font-weight:600;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">#3302 — Maria Costa</div>
+              <div style="font-size:10px;color:#94a3b8">Av. da Liberdade 12</div>
+            </div>
+            <span style="color:#94a3b8;font-size:14px">›</span>
+          </div>
+          <div style="padding:10px 12px;display:flex;align-items:center;gap:10px;opacity:.5">
+            <span style="background:#f0fdf4;color:#16a34a;padding:1px 6px;border-radius:20px;font-size:10px;font-weight:600;flex-shrink:0">✓</span>
+            <div style="flex:1">
+              <div style="font-size:12px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">#5510 — Pedro Andrade</div>
+              <div style="font-size:10px;color:#94a3b8">Rua das Flores 7</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
