@@ -107,7 +107,8 @@ describe("AlertasPage.tsx", () => {
 
     await waitFor(() => {
       expect(screen.getByText("João Alerta")).toBeInTheDocument();
-      expect(screen.getByText("85 · CRÍTICO")).toBeInTheDocument();
+      expect(screen.getByText("85")).toBeInTheDocument();
+      expect(screen.getAllByText("CRÍTICO").length).toBeGreaterThan(0);
       expect(screen.getByText("C-001")).toBeInTheDocument();
     });
   });

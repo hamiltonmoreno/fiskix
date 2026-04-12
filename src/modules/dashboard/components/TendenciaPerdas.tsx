@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { createClient } from "@/lib/supabase/client";
 import { formatCVE } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TendenciaProps {
   mesAno: string;
@@ -153,7 +154,7 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
       </div>
 
       {loading ? (
-        <div className="h-52 bg-slate-100 animate-pulse rounded-lg" />
+        <Skeleton className="h-52 w-full rounded-lg" />
       ) : data.every((d) => d.kwh_injetado === 0) ? (
         <div className="h-52 flex items-center justify-center text-slate-400 text-sm">
           Sem dados de injeção nos últimos 12 meses

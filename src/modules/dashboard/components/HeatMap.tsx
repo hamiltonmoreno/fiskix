@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import type { SubestacaoMapa } from "../types";
 import { createClient } from "@/lib/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface HeatMapProps {
   mesAno: string;
@@ -87,9 +88,7 @@ export function HeatMap({ mesAno, zona }: HeatMapProps) {
     return (
       <div className="bg-white rounded-xl border border-slate-200 p-4">
         <h3 className="font-semibold text-slate-700 mb-3">Mapa de Calor — Subestações</h3>
-        <div className="h-80 bg-slate-100 animate-pulse rounded-lg flex items-center justify-center">
-          <span className="text-slate-400 text-sm">A carregar mapa...</span>
-        </div>
+        <Skeleton className="h-80 w-full rounded-lg" />
       </div>
     );
   }
