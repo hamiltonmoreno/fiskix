@@ -422,7 +422,7 @@ O Fiskix utiliza **Vitest** (unit/integration) e **Playwright** (E2E).
 
 Atualmente:
 - **300 testes automatizados** em **31 ficheiros** Vitest — 100% de sucesso
-- **3 cenários E2E iniciais** em Playwright (auth/redirect/login)
+- **~11 cenários E2E** em **5 ficheiros** Playwright (auth, login, rotas protegidas, assets públicos)
 
 ### Comandos de Teste
 
@@ -489,12 +489,15 @@ npm run e2e:ui
 npm run e2e:debug
 ```
 
-### Cenários base atuais
-- Redirect de utilizador anónimo `/` → `/login`
-- Redirect de utilizador anónimo `/dashboard` → `/login`
-- Render da página de login com campos e ação principal
-- Rotas protegidas anónimas (`/alertas`, `/admin`, `/perfil`, `/mobile`) redirecionam para `/login`
-- Smoke tests de assets públicos (`/manifest.json`, `/sw.js`)
+### Cenários base (5 ficheiros, ~11 testes)
+
+| Ficheiro | Cenários |
+|----------|---------|
+| `auth.spec.ts` | Redirect anónimo `/` → `/login`, `/dashboard` → `/login`, render form login |
+| `login.spec.ts` | Campos email/password, rodapé de confidencialidade |
+| `routes.spec.ts` | Rotas protegidas (`/alertas`, `/admin`, `/perfil`, `/mobile`) → `/login` |
+| `public-assets.spec.ts` | Servir `manifest.json` e `sw.js` |
+| `authenticated.spec.ts` | Fluxos autenticados (admin + fiscal) — requerem variáveis de ambiente |
 
 ### Cenários autenticados (opcional)
 
