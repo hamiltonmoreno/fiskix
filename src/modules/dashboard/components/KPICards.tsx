@@ -91,7 +91,7 @@ function KPICard({
       ) : (
         <div
           className={cn(
-            "font-heading text-3xl leading-none tracking-tight",
+            "font-heading text-3xl leading-none tracking-tight tabular-nums",
             styles.valuePulse ?? "text-foreground"
           )}
         >

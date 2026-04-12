@@ -97,7 +97,7 @@ export function TabGerarRelatorio({ filtros }: Props) {
                 <button
                   key={t.value}
                   onClick={() => setTipo(t.value)}
-                  className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${
+                  className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-[border-color,background-color] touch-manipulation ${
                     tipo === t.value
                       ? "border-blue-600 bg-blue-50"
                       : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"

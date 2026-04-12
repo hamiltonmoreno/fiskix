@@ -118,7 +118,7 @@ export function Sidebar({ profile }: SidebarProps) {
             <Zap className="w-4 h-4 text-white" />
           </div>
           <div
-            className={`overflow-hidden transition-all duration-300 ${
+            className={`overflow-hidden transition-[width,opacity] duration-300 ${
               collapsed ? "w-0 opacity-0" : "w-36 opacity-100"
             }`}
           >
@@ -132,7 +132,7 @@ export function Sidebar({ profile }: SidebarProps) {
           <button
             onClick={toggleCollapsed}
             aria-label="Recolher menu lateral"
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-colors hidden lg:flex"
+            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-colors hidden lg:flex touch-manipulation"
             title="Recolher menu"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -160,7 +160,7 @@ export function Sidebar({ profile }: SidebarProps) {
         {isAdmin && (
           <>
             <div
-              className={`overflow-hidden transition-all duration-300 ${
+              className={`overflow-hidden transition-[max-height,opacity] duration-300 ${
                 collapsed ? "max-h-0 opacity-0" : "max-h-10 opacity-100"
               }`}
             >
@@ -237,7 +237,7 @@ export function Sidebar({ profile }: SidebarProps) {
             <div className="relative group">
               <Link
                 href="/perfil"
-                className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center hover:ring-2 hover:ring-indigo-500/50 transition-all"
+                className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center hover:ring-2 hover:ring-indigo-500/50 transition-[box-shadow]"
                 title="Meu perfil"
               >
                 <span className="text-xs font-semibold text-indigo-300">
@@ -252,7 +252,7 @@ export function Sidebar({ profile }: SidebarProps) {
                   whitespace-nowrap shadow-lg
                   opacity-0 -translate-x-1 scale-95
                   group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100
-                  transition-all duration-150 ease-out
+                  transition-[opacity,transform] duration-150 ease-out
                 "
               >
                 Meu perfil
@@ -282,7 +282,7 @@ export function Sidebar({ profile }: SidebarProps) {
           aria-label="Abrir menu"
           aria-expanded={mobileOpen}
           aria-controls="mobile-sidebar-drawer"
-          className="p-2 rounded-lg hover:bg-slate-800 text-slate-400"
+          className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 touch-manipulation"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -319,7 +319,7 @@ export function Sidebar({ profile }: SidebarProps) {
           <button
             onClick={() => setMobileOpen(false)}
             aria-label="Fechar menu"
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors touch-manipulation"
           >
             <X className="w-4 h-4" />
           </button>
@@ -329,7 +329,7 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 bg-sidebar border-r border-slate-700/50 transition-all duration-300 ease-in-out no-print ${
+        className={`hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 bg-sidebar border-r border-slate-700/50 transition-[width] duration-300 ease-in-out no-print ${
           collapsed ? "w-16" : "w-60"
         }`}
       >
@@ -338,7 +338,7 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Spacer to push content right on desktop */}
       <div
-        className={`hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out no-print ${
+        className={`hidden lg:block flex-shrink-0 transition-[width] duration-300 ease-in-out no-print ${
           collapsed ? "w-16" : "w-60"
         }`}
       />
@@ -361,7 +361,7 @@ function NavLink({
       <Link
         href={item.href}
         aria-current={active ? "page" : undefined}
-        className={`relative flex items-center gap-3 py-2.5 rounded-lg transition-all duration-150 text-sm font-medium overflow-hidden ${
+        className={`relative flex items-center gap-3 py-2.5 rounded-lg transition-[background-color,color] duration-150 text-sm font-medium overflow-hidden ${
           collapsed ? "justify-center px-3" : "px-3"
         } ${
           active
@@ -371,7 +371,7 @@ function NavLink({
       >
         {/* Active left bar indicator */}
         <span
-          className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 rounded-full transition-all duration-200 ${
+          className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 rounded-full transition-[height,opacity] duration-200 ${
             active ? "h-5 bg-white opacity-100" : "h-0 opacity-0"
           }`}
         />
@@ -382,7 +382,7 @@ function NavLink({
         />
         {/* Label with smooth fade */}
         <span
-          className={`overflow-hidden transition-all duration-300 whitespace-nowrap ${
+          className={`overflow-hidden transition-[width,opacity] duration-300 whitespace-nowrap ${
             collapsed ? "w-0 opacity-0" : "w-full opacity-100"
           }`}
         >
@@ -399,7 +399,7 @@ function NavLink({
             whitespace-nowrap shadow-lg
             opacity-0 -translate-x-1 scale-95
             group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100
-            transition-all duration-150 ease-out
+            transition-[opacity,transform] duration-150 ease-out
           "
         >
           {item.label}

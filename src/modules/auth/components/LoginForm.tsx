@@ -67,7 +67,7 @@ export function LoginForm() {
 
         {/* Tagline */}
         <div className="relative space-y-4">
-          <h2 className="font-heading text-4xl text-white leading-tight">
+          <h2 className="font-heading text-4xl text-white leading-tight [text-wrap:balance]">
             Fiscalização
             <br />
             <span className="text-indigo-400">Inteligente</span>
@@ -88,7 +88,7 @@ export function LoginForm() {
             { label: "Alertas gerados", value: "∞" },
           ].map((stat) => (
             <div key={stat.label} className="bg-white/5 rounded-xl p-3 border border-white/8">
-              <p className="font-heading text-2xl text-white">{stat.value}</p>
+              <p className="font-heading text-2xl text-white tabular-nums">{stat.value}</p>
               <p className="text-[11px] text-slate-500 mt-0.5 leading-tight">{stat.label}</p>
             </div>
           ))}
@@ -131,7 +131,7 @@ export function LoginForm() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="w-full px-3.5 py-2.5 bg-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
+                className="w-full px-3.5 py-2.5 bg-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-transparent transition-shadow"
                 placeholder="gestor@electra.cv"
               />
             </div>
@@ -150,7 +150,7 @@ export function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="w-full px-3.5 py-2.5 bg-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow"
+                className="w-full px-3.5 py-2.5 bg-background border border-input rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-transparent transition-shadow"
                 placeholder="••••••••"
               />
             </div>
@@ -165,7 +165,7 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-medium rounded-lg text-sm transition-all active:scale-[0.98]"
+              className="w-full py-2.5 px-4 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-medium rounded-lg text-sm transition-[background-color,transform] active:scale-[0.98] touch-manipulation"
             >
               {loading ? (
                 <span className="inline-flex items-center gap-2">

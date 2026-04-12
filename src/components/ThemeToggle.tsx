@@ -18,7 +18,7 @@ export function ThemeToggle({ collapsed }: ThemeToggleProps) {
         onClick={() => setTheme(isDark ? "light" : "dark")}
         aria-label={isDark ? "Activar modo claro" : "Activar modo escuro"}
         className={cn(
-          "flex items-center gap-3 py-2.5 rounded-lg transition-all duration-150 text-sm font-medium w-full",
+          "flex items-center gap-3 py-2.5 rounded-lg transition-[background-color,color] duration-150 text-sm font-medium w-full touch-manipulation",
           collapsed ? "justify-center px-3" : "px-3",
           "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
         )}
@@ -30,7 +30,7 @@ export function ThemeToggle({ collapsed }: ThemeToggleProps) {
         )}
         <span
           className={cn(
-            "overflow-hidden transition-all duration-300 whitespace-nowrap",
+            "overflow-hidden transition-[width,opacity] duration-300 whitespace-nowrap",
             collapsed ? "w-0 opacity-0" : "w-full opacity-100"
           )}
         >
@@ -46,7 +46,7 @@ export function ThemeToggle({ collapsed }: ThemeToggleProps) {
             whitespace-nowrap shadow-lg
             opacity-0 -translate-x-1 scale-95
             group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100
-            transition-all duration-150 ease-out
+            transition-[opacity,transform] duration-150 ease-out
           "
         >
           {isDark ? "Modo claro" : "Modo escuro"}
