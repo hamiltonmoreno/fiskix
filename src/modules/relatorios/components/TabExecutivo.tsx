@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AreaChart,
   Area,
@@ -65,7 +66,7 @@ export function TabExecutivo({ filtros, active, onExportReady }: Props) {
             </div>
           </div>
           {loading ? (
-            <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" />
+            <Skeleton className="h-8 w-3/4" />
           ) : (
             <div className="text-2xl font-bold text-slate-900">{data?.kpis.totalAlertas ?? "—"}</div>
           )}
@@ -80,7 +81,7 @@ export function TabExecutivo({ filtros, active, onExportReady }: Props) {
             </div>
           </div>
           {loading ? (
-            <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" />
+            <Skeleton className="h-8 w-3/4" />
           ) : (
             <div className="text-2xl font-bold text-slate-900">{data?.kpis.fraudesConfirmadas ?? "—"}</div>
           )}
@@ -95,7 +96,7 @@ export function TabExecutivo({ filtros, active, onExportReady }: Props) {
             </div>
           </div>
           {loading ? (
-            <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" />
+            <Skeleton className="h-8 w-3/4" />
           ) : (
             <div className="text-2xl font-bold text-slate-900">{data ? formatCVE(data.kpis.receitaRecuperada) : "—"}</div>
           )}
@@ -110,7 +111,7 @@ export function TabExecutivo({ filtros, active, onExportReady }: Props) {
             </div>
           </div>
           {loading ? (
-            <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" />
+            <Skeleton className="h-8 w-3/4" />
           ) : (
             <div className="text-2xl font-bold text-slate-900">
               {data ? `${data.kpis.taxaDetecao.toFixed(1)}%` : "—"}
@@ -126,7 +127,7 @@ export function TabExecutivo({ filtros, active, onExportReady }: Props) {
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-4">Perdas vs Receita Recuperada</h3>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={data?.serie} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
@@ -157,7 +158,7 @@ export function TabExecutivo({ filtros, active, onExportReady }: Props) {
           <h3 className="text-sm font-semibold text-slate-700 mb-4">ROI Acumulado do Sistema</h3>
           <p className="text-xs text-slate-400 mb-3">Custo plataforma: 500 000 CVE/mês. Break-even = linha vermelha.</p>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={data?.serie} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>

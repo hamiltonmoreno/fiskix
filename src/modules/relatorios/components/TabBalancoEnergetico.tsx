@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChart,
   Bar,
@@ -54,7 +55,7 @@ export function TabBalancoEnergetico({ filtros, active, onExportReady }: Props) 
               <Zap className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data ? formatKWh(data.kpis.totalInjetado) : "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">energia fornecida à rede</p>
@@ -67,7 +68,7 @@ export function TabBalancoEnergetico({ filtros, active, onExportReady }: Props) 
               <Zap className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data ? formatKWh(data.kpis.totalFaturado) : "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">cobrado aos clientes</p>
@@ -80,7 +81,7 @@ export function TabBalancoEnergetico({ filtros, active, onExportReady }: Props) 
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data ? formatKWh(data.kpis.perdaKwh) : "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">{data ? `≈ ${formatCVE(data.kpis.perdaKwh * 15)}` : ""}</p>
@@ -93,7 +94,7 @@ export function TabBalancoEnergetico({ filtros, active, onExportReady }: Props) 
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className={`text-2xl font-bold ${(data?.kpis.perdaPct ?? 0) > 15 ? "text-red-700" : "text-slate-900"}`}>
               {data ? `${data.kpis.perdaPct}%` : "—"}
             </div>
@@ -108,7 +109,7 @@ export function TabBalancoEnergetico({ filtros, active, onExportReady }: Props) 
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-4">Injetado vs Faturado por Subestação</h3>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (data?.porSubestacao ?? []).length === 0 ? (
             <div className="h-64 flex items-center justify-center text-slate-400 text-sm">
               Sem dados para o período selecionado
@@ -140,7 +141,7 @@ export function TabBalancoEnergetico({ filtros, active, onExportReady }: Props) 
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-4">Evolução da % de Perda Global</h3>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={data?.evolucaoPerda} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
@@ -175,7 +176,7 @@ export function TabBalancoEnergetico({ filtros, active, onExportReady }: Props) 
           <h3 className="text-sm font-semibold text-slate-700">Balanço por Subestação</h3>
         </div>
         {loading ? (
-          <div className="h-40 bg-slate-50 animate-pulse" />
+          <Skeleton className="h-40" />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

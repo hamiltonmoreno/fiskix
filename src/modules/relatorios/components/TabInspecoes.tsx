@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChart,
   Bar,
@@ -54,7 +55,7 @@ export function TabInspecoes({ filtros, active, onExportReady }: Props) {
               <ClipboardCheck className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data?.kpis.total ?? "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">no período</p>
@@ -67,7 +68,7 @@ export function TabInspecoes({ filtros, active, onExportReady }: Props) {
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data?.kpis.confirmadas ?? "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">resultado confirmado em campo</p>
@@ -80,7 +81,7 @@ export function TabInspecoes({ filtros, active, onExportReady }: Props) {
               <XCircle className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data?.kpis.falsosPositivos ?? "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">quanto menor, melhor</p>
@@ -93,7 +94,7 @@ export function TabInspecoes({ filtros, active, onExportReady }: Props) {
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">
               {data ? `${data.kpis.taxaSucesso}%` : "—"}
             </div>
@@ -108,7 +109,7 @@ export function TabInspecoes({ filtros, active, onExportReady }: Props) {
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-4">Resultados por Zona</h3>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={data?.porZona} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
@@ -129,7 +130,7 @@ export function TabInspecoes({ filtros, active, onExportReady }: Props) {
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-4">Distribuição de Resultados</h3>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
@@ -161,7 +162,7 @@ export function TabInspecoes({ filtros, active, onExportReady }: Props) {
           <h3 className="text-sm font-semibold text-slate-700">Detalhe por Zona</h3>
         </div>
         {loading ? (
-          <div className="h-40 bg-slate-50 animate-pulse" />
+          <Skeleton className="h-40" />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

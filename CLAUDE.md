@@ -1,7 +1,7 @@
 # Fiskix — Contexto para Claude Code
 
 ## O que é o Fiskix
-Plataforma SaaS de deteção de fraudes e perdas comerciais de energia elétrica. Cliente inicial: **Electra (Cabo Verde)**. Fase MVP/PoC (Fase 1 de 3).
+Plataforma SaaS de deteção de fraudes e perdas comerciais de energia elétrica. Cliente inicial: **Electra (Cabo Verde)**. **Fases 1 e 2 completas** (de 3).
 
 ## Stack
 - **Frontend**: Next.js 15 (App Router) + TypeScript + TailwindCSS + Recharts + React Leaflet
@@ -47,7 +47,7 @@ supabase/functions/
 - `relatorios_inspecao` — resultado de inspeção com foto GPS
 - `importacoes` — log de uploads CSV
 - `configuracoes` — limiares configuráveis do motor
-- `ml_predicoes` — reservado para Fase 2
+- `ml_predicoes` — predições ML por cliente/mês (heuristic_v1, Fase 2)
 
 ## Motor de Scoring (9 Regras)
 | Regra | O que deteta | Pontos |
@@ -113,7 +113,11 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 - ✅ Branch protection automática com check obrigatório `Quality Gate` em PR para `main`
 - ✅ Service Worker PWA corrigido (não cacheia POST/mutations)
 - ✅ Roteiro mobile inicializa estado online pelo `navigator.onLine` para preservar fallback offline
-- ✅ Testes: 300 testes integrados em 31 ficheiros (Vitest) com cobertura de core, UI, PWA, hooks, API REST e utilitários
+- ✅ Testes: 300 testes integrados em 31 ficheiros (Vitest) + ~11 cenários E2E em 5 ficheiros (Playwright)
+- ✅ Score ML heurístico (`ml_predicoes`) + cron dia 2 às 03:00 UTC (`/api/cron/ml`)
+- ✅ Balanço Energético Avançado: split técnico/comercial + Índice de Recuperabilidade (`/relatorios` tab "Análise Avançada")
+- ✅ API REST pública (`/api/v1/`) com auth por API key, rate limit 60 req/min, 4 endpoints
+- ✅ Gestão de API keys (`/admin/api-keys`)
 - ✅ Documentação completa (README, CONTRIBUTING, SECURITY)
 
 ## Bugs já corrigidos (não voltar a introduzir)

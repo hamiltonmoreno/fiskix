@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getScoreColor, getScoreLabel, getCurrentMesAno } from "@/lib/utils";
+import { getCurrentMesAno } from "@/lib/utils";
+import { toast } from "sonner";
 import {
   MessageSquare,
   RefreshCw,
@@ -13,6 +14,10 @@ import {
   Wrench,
   ClipboardList,
 } from "lucide-react";
+import { AlertaSheet, type AlertaSheetData } from "@/modules/alertas/components/AlertaSheet";
+import { ScoreBadge } from "@/components/ui/score-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { AlertaStatus, InspecaoResultado } from "@/types/database";
 
 const ESTADOS_FINAIS: InspecaoResultado[] = [
@@ -20,16 +25,6 @@ const ESTADOS_FINAIS: InspecaoResultado[] = [
   "Anomalia_Tecnica",
   "Falso_Positivo",
 ];
-
-const STATUS_LABELS: Record<string, { label: string; class: string }> = {
-  Pendente: { label: "Pendente", class: "bg-slate-100 text-slate-700" },
-  Notificado_SMS: { label: "SMS Enviado", class: "bg-blue-100 text-blue-700" },
-  Pendente_Inspecao: { label: "Em Inspeção", class: "bg-amber-100 text-amber-700" },
-  Inspecionado: { label: "Inspecionado", class: "bg-green-100 text-green-700" },
-  Fraude_Confirmada: { label: "Fraude Confirmada", class: "bg-red-100 text-red-700" },
-  Anomalia_Tecnica: { label: "Anomalia Técnica", class: "bg-orange-100 text-orange-700" },
-  Falso_Positivo: { label: "Falso Positivo", class: "bg-slate-100 text-slate-400" },
-};
 
 interface Alerta {
   id: string;
@@ -63,7 +58,8 @@ export default function AlertasPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [alertaSheet, setAlertaSheet] = useState<AlertaSheetData | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{
     alertaId: string;
     novoStatus: InspecaoResultado;
@@ -156,9 +152,10 @@ export default function AlertasPage() {
     setPage(0);
   }, [mesAno, statusFilter, zona]);
 
-  async function handleEnviarSMS(alerta: Alerta) {
-    setActionLoading(alerta.id);
-    setFeedback(null);
+  async function handleEnviarSMS(alertaId: string) {
+    const alerta = alertas.find((a) => a.id === alertaId);
+    if (!alerta) return;
+    setActionLoading(alertaId);
     try {
       const tipo = alerta.score_risco >= 75 ? "vermelho" : "amarelo";
       const session = await supabase.auth.getSession();
@@ -172,18 +169,18 @@ export default function AlertasPage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ alerta_id: alerta.id, tipo }),
+          body: JSON.stringify({ alerta_id: alertaId, tipo }),
         }
       );
       const json = await res.json();
       if (!json.mensagem_enviada) {
-        setFeedback({ type: "error", message: `Erro ao enviar SMS: ${json.erro ?? "Desconhecido"}` });
+        toast.error(`Erro ao enviar SMS: ${json.erro ?? "Desconhecido"}`);
       } else {
-        setFeedback({ type: "success", message: "SMS enviado com sucesso." });
+        toast.success("SMS enviado com sucesso.");
       }
       await load();
     } catch {
-      setFeedback({ type: "error", message: "Falha ao enviar SMS. Tente novamente." });
+      toast.error("Falha ao enviar SMS. Tente novamente.");
     } finally {
       setActionLoading(null);
     }
@@ -191,16 +188,15 @@ export default function AlertasPage() {
 
   async function handleGerarOrdem(alertaId: string) {
     setActionLoading(alertaId);
-    setFeedback(null);
     try {
       await supabase
         .from("alertas_fraude")
         .update({ status: "Pendente_Inspecao" })
         .eq("id", alertaId);
       await load();
-      setFeedback({ type: "success", message: "Ordem de inspeção gerada." });
+      toast.success("Ordem de inspeção gerada.");
     } catch {
-      setFeedback({ type: "error", message: "Falha ao gerar ordem de inspeção." });
+      toast.error("Falha ao gerar ordem de inspeção.");
     } finally {
       setActionLoading(null);
     }
@@ -208,16 +204,15 @@ export default function AlertasPage() {
 
   async function handleAtualizarStatus(alertaId: string, novoStatus: InspecaoResultado) {
     setActionLoading(alertaId);
-    setFeedback(null);
     try {
       await supabase
         .from("alertas_fraude")
         .update({ resultado: novoStatus, status: "Inspecionado" as AlertaStatus })
         .eq("id", alertaId);
       await load();
-      setFeedback({ type: "success", message: "Estado do alerta atualizado." });
+      toast.success("Estado do alerta atualizado.");
     } catch {
-      setFeedback({ type: "error", message: "Falha ao atualizar o estado do alerta." });
+      toast.error("Falha ao atualizar o estado do alerta.");
     } finally {
       setActionLoading(null);
     }
@@ -233,19 +228,6 @@ export default function AlertasPage() {
       </header>
 
       <main className="p-6 space-y-4">
-        <div aria-live="polite" role="status">
-          {feedback && (
-            <div
-              className={`rounded-xl border px-4 py-2.5 text-sm ${
-                feedback.type === "error"
-                  ? "bg-red-50 text-red-700 border-red-200"
-                  : "bg-green-50 text-green-700 border-green-200"
-              }`}
-            >
-              {feedback.message}
-            </div>
-          )}
-        </div>
 
         {/* Filtros */}
         <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-wrap items-center gap-3 no-print">
@@ -342,26 +324,28 @@ export default function AlertasPage() {
                   ))
                 ) : alertas.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-16 text-center text-slate-400">
-                      Nenhum alerta para os filtros selecionados
+                    <td colSpan={8}>
+                      <EmptyState
+                        icon={ClipboardList}
+                        title="Nenhum alerta para os filtros selecionados"
+                        description="Tente ajustar os filtros ou selecionar outro mês"
+                      />
                     </td>
                   </tr>
                 ) : (
                   alertas.map((alerta) => {
-                    const scoreClass = getScoreColor(alerta.score_risco);
-                    const scoreLabel = getScoreLabel(alerta.score_risco);
-                    const displayStatus = (alerta.status === "Inspecionado" && alerta.resultado) ? alerta.resultado : alerta.status;
-                    const statusInfo = STATUS_LABELS[displayStatus] ?? STATUS_LABELS.Pendente;
                     const regrasPontuadas = alerta.motivo.filter((r) => r.pontos > 0);
                     const isLoading = actionLoading === alerta.id;
                     const isFinal = ["Fraude_Confirmada", "Anomalia_Tecnica", "Falso_Positivo"].includes(alerta.resultado ?? "");
 
                     return (
-                      <tr key={alerta.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                      <tr
+                        key={alerta.id}
+                        className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer"
+                        onClick={() => { setAlertaSheet(alerta); setSheetOpen(true); }}
+                      >
                         <td className="px-4 py-3">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${scoreClass}`}>
-                            {alerta.score_risco} · {scoreLabel}
-                          </span>
+                          <ScoreBadge score={alerta.score_risco} showScore />
                         </td>
                         <td className="px-4 py-3 font-mono text-slate-700 text-xs">
                           {alerta.cliente.numero_contador}
@@ -394,15 +378,13 @@ export default function AlertasPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.class}`}>
-                            {statusInfo.label}
-                          </span>
+                          <StatusBadge status={(alerta.status === "Inspecionado" && alerta.resultado) ? alerta.resultado : alerta.status} />
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center justify-end gap-1.5">
+                          <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                             {!isFinal && alerta.status === "Pendente" && (
                               <button
-                                onClick={() => handleEnviarSMS(alerta)}
+                                onClick={() => handleEnviarSMS(alerta.id)}
                                 disabled={isLoading || !alerta.cliente.telemovel}
                                 title={alerta.cliente.telemovel ? "Enviar SMS" : "Sem telemóvel registado"}
                                 className="flex items-center gap-1 px-2 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-lg text-xs transition-colors"
@@ -508,6 +490,15 @@ export default function AlertasPage() {
           )}
         </div>
       </main>
+
+      <AlertaSheet
+        alerta={alertaSheet}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onEnviarSMS={handleEnviarSMS}
+        onGerarOrdem={handleGerarOrdem}
+        actionLoading={actionLoading}
+      />
 
       {pendingStatusUpdate && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">

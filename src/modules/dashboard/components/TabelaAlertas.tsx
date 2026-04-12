@@ -2,38 +2,26 @@
 
 import { useState } from "react";
 import { useAlertas } from "../hooks/useAlertas";
-import { getScoreColor, getScoreLabel, formatMesAno } from "@/lib/utils";
+import { formatMesAno } from "@/lib/utils";
 import { exportToExcel } from "@/lib/export";
 import { MessageSquare, ClipboardList, ChevronLeft, ChevronRight, RefreshCw, Eye, FileDown } from "lucide-react";
-import dynamic from "next/dynamic";
-
-const AlertaDetalheModal = dynamic(
-  () => import("./AlertaDetalheModal").then((m) => m.AlertaDetalheModal),
-  { ssr: false }
-);
-import type { AlertaTabela } from "../types";
+import { AlertaSheet, type AlertaSheetData } from "@/modules/alertas/components/AlertaSheet";
+import { ScoreBadge } from "@/components/ui/score-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import type { AlertaTabela as _AlertaTabela } from "../types";
 
 interface TabelaAlertasProps {
   mesAno: string;
   zona?: string;
 }
 
-const STATUS_LABELS: Record<string, { label: string; class: string }> = {
-  Pendente: { label: "Pendente", class: "bg-slate-100 text-slate-700" },
-  Notificado_SMS: { label: "SMS Enviado", class: "bg-blue-100 text-blue-700" },
-  Pendente_Inspecao: { label: "Em Inspeção", class: "bg-amber-100 text-amber-700" },
-  Inspecionado: { label: "Inspecionado", class: "bg-green-100 text-green-700" },
-  Fraude_Confirmada: { label: "Fraude Confirmada", class: "bg-red-100 text-red-700" },
-  Anomalia_Tecnica: { label: "Anomalia Técnica", class: "bg-orange-100 text-orange-700" },
-  Falso_Positivo: { label: "Falso Positivo", class: "bg-slate-100 text-slate-400" },
-};
-
 export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [page, setPage] = useState(0);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [alertaDetalhe, setAlertaDetalhe] = useState<AlertaTabela | null>(null);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [alertaDetalhe, setAlertaDetalhe] = useState<AlertaSheetData | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const pageSize = 10;
 
   const { data, total, loading, reload, enviarSMS, gerarOrdem } = useAlertas({
@@ -60,20 +48,14 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
     exportToExcel(`alertas_${mesAno}`, headers, rows);
   }
 
-  async function handleEnviarSMS(alertaId: string, score: number) {
+  async function handleEnviarSMS(alertaId: string) {
+    const alerta = data.find((a) => a.id === alertaId);
+    if (!alerta) return;
     setActionLoading(alertaId);
-    setFeedback(null);
-    const tipo = score >= 75 ? "vermelho" : "amarelo";
+    const tipo = alerta.score_risco >= 75 ? "vermelho" : "amarelo";
     try {
-      const res = await enviarSMS(alertaId, tipo);
-      if (res.mensagem_enviada) {
-        await reload();
-        setFeedback({ type: "success", message: "SMS enviado com sucesso." });
-      } else {
-        setFeedback({ type: "error", message: `Erro ao enviar SMS: ${res.erro ?? "Desconhecido"}` });
-      }
-    } catch {
-      setFeedback({ type: "error", message: "Falha ao enviar SMS." });
+      await enviarSMS(alertaId, tipo);
+      await reload();
     } finally {
       setActionLoading(null);
     }
@@ -81,12 +63,9 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
 
   async function handleGerarOrdem(alertaId: string) {
     setActionLoading(alertaId);
-    setFeedback(null);
     try {
       await gerarOrdem(alertaId);
-      setFeedback({ type: "success", message: "Ordem de inspeção gerada." });
-    } catch {
-      setFeedback({ type: "error", message: "Falha ao gerar ordem de inspeção." });
+      await reload();
     } finally {
       setActionLoading(null);
     }
@@ -96,20 +75,6 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
 
   return (
     <div className="bg-white rounded-xl border border-slate-200">
-      <div aria-live="polite" role="status" className="px-4 pt-4">
-        {feedback && (
-          <div
-            className={`rounded-lg border px-3 py-2 text-sm ${
-              feedback.type === "error"
-                ? "bg-red-50 text-red-700 border-red-200"
-                : "bg-green-50 text-green-700 border-green-200"
-            }`}
-          >
-            {feedback.message}
-          </div>
-        )}
-      </div>
-
       {/* Header */}
       <div className="p-4 border-b border-slate-100 flex items-center justify-between">
         <div>
@@ -184,16 +149,16 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
               ))
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
-                  Nenhum alerta encontrado para os filtros selecionados
+                <td colSpan={8}>
+                  <EmptyState
+                    icon={ClipboardList}
+                    title="Nenhum alerta encontrado"
+                    description="Tente ajustar os filtros selecionados"
+                  />
                 </td>
               </tr>
             ) : (
               data.map((alerta) => {
-                const scoreClass = getScoreColor(alerta.score_risco);
-                const scoreLabel = getScoreLabel(alerta.score_risco);
-                const displayStatus = (alerta.status === "Inspecionado" && alerta.resultado) ? alerta.resultado : alerta.status;
-                const statusInfo = STATUS_LABELS[displayStatus] ?? STATUS_LABELS.Pendente;
                 const regrasPontuadas = alerta.motivo.filter((r) => r.pontos > 0);
                 const isLoading = actionLoading === alerta.id;
                 const podeEnviarSMS = alerta.status === "Pendente";
@@ -205,14 +170,10 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
                   <tr
                     key={alerta.id}
                     className="border-b border-slate-50 hover:bg-blue-50/40 transition-colors cursor-pointer"
-                    onClick={() => setAlertaDetalhe(alerta)}
+                    onClick={() => { setAlertaDetalhe(alerta); setSheetOpen(true); }}
                   >
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${scoreClass}`}
-                      >
-                        {alerta.score_risco} · {scoreLabel}
-                      </span>
+                      <ScoreBadge score={alerta.score_risco} showScore />
                     </td>
                     <td className="px-4 py-3 font-mono text-slate-700 text-xs">
                       {alerta.cliente.numero_contador}
@@ -245,16 +206,12 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.class}`}
-                      >
-                        {statusInfo.label}
-                      </span>
+                      <StatusBadge status={(alerta.status === "Inspecionado" && alerta.resultado) ? alerta.resultado : alerta.status} />
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={() => setAlertaDetalhe(alerta)}
+                          onClick={() => { setAlertaDetalhe(alerta); setSheetOpen(true); }}
                           aria-label="Ver detalhes do alerta"
                           className="p-1.5 rounded-lg hover:bg-blue-100 text-slate-400 hover:text-blue-600 transition-colors"
                           title="Ver detalhes"
@@ -263,9 +220,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
                         </button>
                         {podeEnviarSMS && (
                           <button
-                            onClick={() =>
-                              handleEnviarSMS(alerta.id, alerta.score_risco)
-                            }
+                            onClick={() => handleEnviarSMS(alerta.id)}
                             disabled={isLoading || !alerta.cliente.telemovel}
                             title={
                               alerta.cliente.telemovel
@@ -325,12 +280,13 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
         </div>
       )}
 
-      {/* Modal de detalhe */}
-      <AlertaDetalheModal
+      <AlertaSheet
         alerta={alertaDetalhe}
-        open={alertaDetalhe !== null}
-        onClose={() => setAlertaDetalhe(null)}
-        onAction={() => { reload(); }}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onEnviarSMS={handleEnviarSMS}
+        onGerarOrdem={handleGerarOrdem}
+        actionLoading={actionLoading}
       />
     </div>
   );

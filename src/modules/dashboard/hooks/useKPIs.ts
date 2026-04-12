@@ -45,6 +45,34 @@ export function useKPIs(mesAno: string, zona?: string) {
         (a) => a.status === "Pendente_Inspecao"
       ).length;
 
+      // Query alertas críticos (top 5, score >= 75)
+      let criticosQuery = supabase
+        .from("alertas_fraude")
+        .select(`id, score_risco, status,
+          clientes!inner(nome_titular, numero_contador,
+            subestacoes!inner(zona_bairro))`)
+        .eq("mes_ano", mesAno)
+        .gte("score_risco", 75)
+        .order("score_risco", { ascending: false })
+        .limit(5);
+
+      if (zona) {
+        criticosQuery = (criticosQuery as typeof criticosQuery).eq("clientes.subestacoes.zona_bairro", zona);
+      }
+
+      const { data: criticosData } = await criticosQuery;
+
+      const alertas_criticos = (criticosData ?? []).map((r) => {
+        const c = r.clientes as { nome_titular: string; numero_contador: string; subestacoes: { zona_bairro: string } };
+        return {
+          id: r.id,
+          score_risco: r.score_risco,
+          status: r.status,
+          cliente: { nome_titular: c.nome_titular, numero_contador: c.numero_contador },
+          subestacao: { zona_bairro: c.subestacoes.zona_bairro },
+        };
+      });
+
       // Receita recuperada YTD (fraudes confirmadas no ano corrente)
       const ano = mesAno.split("-")[0];
       const { data: recuperada } = await supabase
@@ -140,6 +168,7 @@ export function useKPIs(mesAno: string, zona?: string) {
         ordens_pendentes: pendentes,
         receita_recuperada_ytd: receitaYTD,
         variacao_perda_pct: Math.round(variacaoPerda * 10) / 10,
+        alertas_criticos,
       });
       } finally {
         setLoading(false);

@@ -1,46 +1,56 @@
 "use client";
 
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatCVE } from "@/lib/utils";
-import type { KPIData } from "../types";
 import { TrendingDown, AlertTriangle, ClipboardList, TrendingUp } from "lucide-react";
+import type { KPIData } from "../types";
 
 interface KPICardsProps {
   data: KPIData | null;
   loading: boolean;
 }
 
+function DeltaBadge({ pct }: { pct: number }) {
+  if (pct === 0) return null;
+  const isWorse = pct > 0;
+  return (
+    <span className={`text-xs font-medium ${isWorse ? "text-red-600" : "text-emerald-600"}`}>
+      {isWorse ? "↑" : "↓"} {Math.abs(pct).toFixed(1)}% vs mês ant.
+    </span>
+  );
+}
+
 function KPICard({
-  title,
-  value,
-  icon: Icon,
-  color,
-  sub,
-  loading,
+  title, value, icon: Icon, iconClass, sub, delta, loading,
 }: {
   title: string;
   value: string;
   icon: React.ElementType;
-  color: string;
-  sub?: string;
+  iconClass: string;
+  sub?: React.ReactNode;
+  delta?: React.ReactNode;
   loading: boolean;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-slate-500">{title}</span>
-        <div className={`p-2 rounded-lg ${color}`}>
-          <Icon className="w-4 h-4" />
+    <Card>
+      <CardContent className="pt-5">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-medium text-muted-foreground">{title}</span>
+          <div className={`p-2 rounded-lg ${iconClass}`}>
+            <Icon className="w-4 h-4" />
+          </div>
         </div>
-      </div>
-      {loading ? (
-        <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" />
-      ) : (
-        <div className="text-2xl font-bold text-slate-900">{value}</div>
-      )}
-      {sub && (
-        <p className="text-xs text-slate-400 mt-1">{sub}</p>
-      )}
-    </div>
+        {loading ? (
+          <Skeleton className="h-8 w-3/4" />
+        ) : (
+          <div className="text-2xl font-bold text-foreground">{value}</div>
+        )}
+        {!loading && (delta || sub) && (
+          <p className="text-xs text-muted-foreground mt-1">{delta ?? sub}</p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -51,15 +61,15 @@ export function KPICards({ data, loading }: KPICardsProps) {
         title="Perda Estimada"
         value={data ? formatCVE(data.perda_cve_total) : "—"}
         icon={TrendingDown}
-        color="bg-red-100 text-red-600"
-        sub="mês atual vs energia injetada"
+        iconClass="bg-red-100 text-red-600"
+        delta={data ? <DeltaBadge pct={data.variacao_perda_pct} /> : undefined}
         loading={loading}
       />
       <KPICard
         title="Risco Crítico"
-        value={data ? `${data.clientes_risco_critico} ${data.clientes_risco_critico === 1 ? "cliente" : "clientes"}` : "—"}
+        value={data ? `${data.clientes_risco_critico} clientes` : "—"}
         icon={AlertTriangle}
-        color="bg-amber-100 text-amber-600"
+        iconClass="bg-amber-100 text-amber-600"
         sub="score ≥ 75 este mês"
         loading={loading}
       />
@@ -67,7 +77,7 @@ export function KPICards({ data, loading }: KPICardsProps) {
         title="Ordens Pendentes"
         value={data ? `${data.ordens_pendentes} ordens` : "—"}
         icon={ClipboardList}
-        color="bg-blue-100 text-blue-600"
+        iconClass="bg-indigo-100 text-indigo-600"
         sub="aguardam inspeção física"
         loading={loading}
       />
@@ -75,8 +85,8 @@ export function KPICards({ data, loading }: KPICardsProps) {
         title="Receita Recuperada"
         value={data ? formatCVE(data.receita_recuperada_ytd) : "—"}
         icon={TrendingUp}
-        color="bg-green-100 text-green-600"
-        sub="fraudes confirmadas este ano"
+        iconClass="bg-emerald-100 text-emerald-600"
+        sub="fraudes confirmadas YTD"
         loading={loading}
       />
     </div>

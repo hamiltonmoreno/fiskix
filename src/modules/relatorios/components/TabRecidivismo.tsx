@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChart,
   Bar,
@@ -50,7 +51,7 @@ export function TabRecidivismo({ filtros, active, onExportReady }: Props) {
               <RefreshCw className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data?.kpis.totalReincidentes ?? "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">clientes com 2+ fraudes</p>
@@ -63,7 +64,7 @@ export function TabRecidivismo({ filtros, active, onExportReady }: Props) {
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data?.kpis.mediaAlertas ?? "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">por reincidente</p>
@@ -76,7 +77,7 @@ export function TabRecidivismo({ filtros, active, onExportReady }: Props) {
               <Users className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">
               {data ? `${data.kpis.taxaReincidencia}%` : "—"}
             </div>
@@ -91,7 +92,7 @@ export function TabRecidivismo({ filtros, active, onExportReady }: Props) {
               <Star className="w-4 h-4" />
             </div>
           </div>
-          {loading ? <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" /> : (
+          {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-slate-900">{data?.kpis.maxAlertas ?? "—"}</div>
           )}
           <p className="text-xs text-slate-400 mt-1">pelo mesmo cliente</p>
@@ -104,7 +105,7 @@ export function TabRecidivismo({ filtros, active, onExportReady }: Props) {
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-4">Novos Reincidentes por Mês</h3>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={data?.mensalNovos} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
@@ -122,7 +123,7 @@ export function TabRecidivismo({ filtros, active, onExportReady }: Props) {
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-4">Top 10 Clientes por Ocorrências</h3>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (data?.top10 ?? []).length === 0 ? (
             <div className="h-64 flex items-center justify-center text-slate-400 text-sm">
               Sem reincidentes no período selecionado
@@ -154,7 +155,7 @@ export function TabRecidivismo({ filtros, active, onExportReady }: Props) {
           <h3 className="text-sm font-semibold text-slate-700">Clientes Reincidentes</h3>
         </div>
         {loading ? (
-          <div className="h-40 bg-slate-50 animate-pulse" />
+          <Skeleton className="h-40" />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

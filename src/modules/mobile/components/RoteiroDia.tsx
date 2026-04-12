@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { getScoreLabel, getCurrentMesAno } from "@/lib/utils";
+import { getCurrentMesAno } from "@/lib/utils";
 import type { OrdemFiscal } from "../types";
 import {
   MapPin,
@@ -12,10 +12,14 @@ import {
   LogOut,
   AlertTriangle,
   CloudUpload,
+  ChevronRight,
 } from "lucide-react";
 import { openDB } from "idb";
 import type { RelatorioOffline } from "../types";
 import { useRouter } from "next/navigation";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScoreBadge } from "@/components/ui/score-badge";
 
 interface RoteiroDiaProps {
   fiscalId: string;
@@ -62,6 +66,11 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const mesAno = getCurrentMesAno();
+
+  const ordensPendentes = ordens.filter((o) => o.status === "Pendente_Inspecao");
+  const ordensConcluidas = ordens.filter((o) => o.status !== "Pendente_Inspecao");
+  const proximaOrdem = ordensPendentes[0] ?? null;
+  const progressoPct = ordens.length > 0 ? (ordensConcluidas.length / ordens.length) * 100 : 0;
 
   useEffect(() => {
     setIsOnline(navigator.onLine);
@@ -219,28 +228,31 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
         </div>
       </header>
 
-      {/* Contador de ordens */}
-      <div className="px-4 py-3 bg-blue-700 text-white">
-        <div className="flex items-center gap-2">
-          <ClipboardList className="w-5 h-5" />
-          <span className="font-semibold">
+      {/* Barra de progresso */}
+      <div className="px-4 pt-4 pb-2">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs font-medium text-slate-500">
             {loading ? "..." : `${ordens.length} ordem(s) para hoje`}
           </span>
+          {zona && (
+            <span className="text-xs text-slate-400">Zona: {zona.replace(/_/g, " ")}</span>
+          )}
         </div>
-        {zona && (
-          <p className="text-blue-200 text-xs mt-0.5">Zona: {zona.replace(/_/g, " ")}</p>
-        )}
+        <Progress value={progressoPct} className="h-2" />
       </div>
 
-      {/* Lista de ordens */}
+      {/* Corpo */}
       <div className="p-4 space-y-3">
         {loading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
-              <div className="h-5 bg-slate-200 rounded w-3/4 mb-2" />
-              <div className="h-4 bg-slate-100 rounded w-1/2" />
-            </div>
-          ))
+          <>
+            <Skeleton className="rounded-2xl h-32" />
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl p-4">
+                <Skeleton className="h-4 w-3/4 mb-2" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            ))}
+          </>
         ) : ordens.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-center">
             <ClipboardList className="w-10 h-10 text-slate-300 mx-auto mb-3" />
@@ -250,75 +262,135 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
             </p>
           </div>
         ) : (
-          ordens.map((ordem) => {
-            const isCritico = ordem.score_risco >= 75;
-            const regrasPontuadas = ordem.motivo.filter((r) => r.pontos > 0);
-
-            return (
-              <div
-                key={ordem.id}
-                className="bg-white rounded-2xl shadow-sm"
-              >
-                <Link
-                  href={`/mobile/${ordem.id}`}
-                  className="block p-4 active:scale-98 transition-transform"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <p className="font-semibold text-slate-900 text-base">
-                        {ordem.cliente.nome_titular}
-                      </p>
-                      <p className="text-slate-500 text-sm mt-0.5">
-                        {ordem.cliente.morada}
-                      </p>
-                    </div>
-                    <span
-                      className={`ml-3 px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${
-                        isCritico
-                          ? "bg-red-100 text-red-700"
-                          : "bg-amber-100 text-amber-700"
-                      }`}
-                    >
-                      {getScoreLabel(ordem.score_risco)}
+          <>
+            {/* Hero card — próxima ordem */}
+            {proximaOrdem && (
+              <div className="rounded-2xl overflow-hidden shadow-lg">
+                <Link href={`/mobile/${proximaOrdem.id}`} className="block p-5 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white active:scale-98 transition-transform">
+                  <div className="flex items-start justify-between mb-3">
+                    <span className="text-indigo-200 text-xs font-medium uppercase tracking-wide">
+                      Próxima inspeção
                     </span>
+                    <ScoreBadge score={proximaOrdem.score_risco} showScore />
                   </div>
-
+                  <p className="font-bold text-lg leading-snug mb-1">
+                    {proximaOrdem.cliente.nome_titular}
+                  </p>
+                  <p className="text-indigo-200 text-sm mb-3">
+                    {proximaOrdem.cliente.morada}
+                  </p>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-sm text-slate-400">
-                      <span className="font-mono text-xs">{ordem.cliente.numero_contador}</span>
+                    <div className="flex items-center gap-2 text-indigo-300 text-xs">
+                      <span className="font-mono">{proximaOrdem.cliente.numero_contador}</span>
                       <span>·</span>
-                      <span>{ordem.subestacao.zona_bairro.replace(/_/g, " ")}</span>
+                      <span>{proximaOrdem.subestacao.zona_bairro.replace(/_/g, " ")}</span>
                     </div>
-
                     <div className="flex items-center gap-1.5">
-                      {regrasPontuadas.slice(0, 3).map((r) => (
+                      {proximaOrdem.motivo.filter((r) => r.pontos > 0).slice(0, 3).map((r) => (
                         <span
                           key={r.regra}
-                          className="text-xs px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded font-mono"
+                          className="text-xs px-1.5 py-0.5 bg-white/20 text-white rounded font-mono"
                         >
                           {r.regra}
                         </span>
                       ))}
+                      <ChevronRight className="w-5 h-5 text-indigo-300 ml-1" />
                     </div>
                   </div>
                 </Link>
-
-                {ordem.cliente.lat && ordem.cliente.lng && (
-                  <div className="px-4 pb-4 pt-3 border-t border-slate-100 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                {proximaOrdem.cliente.lat && proximaOrdem.cliente.lng && (
+                  <div className="px-5 py-3 bg-indigo-900/40 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
                     <a
-                      href={`https://maps.google.com/?q=${ordem.cliente.lat},${ordem.cliente.lng}`}
+                      href={`https://maps.google.com/?q=${proximaOrdem.cliente.lat},${proximaOrdem.cliente.lng}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 text-sm font-medium"
+                      className="text-indigo-300 text-sm font-medium"
                     >
                       Abrir no Mapa
                     </a>
                   </div>
                 )}
               </div>
-            );
-          })
+            )}
+
+            {/* Restantes ordens pendentes */}
+            {ordensPendentes.slice(1).map((ordem) => {
+              const regrasPontuadas = ordem.motivo.filter((r) => r.pontos > 0);
+              return (
+                <div key={ordem.id} className="bg-white rounded-2xl shadow-sm">
+                  <Link
+                    href={`/mobile/${ordem.id}`}
+                    className="block p-4 active:scale-98 transition-transform"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <p className="font-semibold text-slate-900 text-base">
+                          {ordem.cliente.nome_titular}
+                        </p>
+                        <p className="text-slate-500 text-sm mt-0.5">
+                          {ordem.cliente.morada}
+                        </p>
+                      </div>
+                      <ScoreBadge score={ordem.score_risco} showScore className="ml-3 shrink-0" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-sm text-slate-400">
+                        <span className="font-mono text-xs">{ordem.cliente.numero_contador}</span>
+                        <span>·</span>
+                        <span>{ordem.subestacao.zona_bairro.replace(/_/g, " ")}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {regrasPontuadas.slice(0, 3).map((r) => (
+                          <span
+                            key={r.regra}
+                            className="text-xs px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded font-mono"
+                          >
+                            {r.regra}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </Link>
+                  {ordem.cliente.lat && ordem.cliente.lng && (
+                    <div className="px-4 pb-4 pt-3 border-t border-slate-100 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                      <a
+                        href={`https://maps.google.com/?q=${ordem.cliente.lat},${ordem.cliente.lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 text-sm font-medium"
+                      >
+                        Abrir no Mapa
+                      </a>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Ordens concluídas */}
+            {ordensConcluidas.length > 0 && (
+              <div className="mt-2">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2 px-1">
+                  Concluídas ({ordensConcluidas.length})
+                </p>
+                {ordensConcluidas.map((ordem) => (
+                  <div key={ordem.id} className="bg-white/60 rounded-2xl p-4 opacity-60">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium text-slate-600 text-sm">
+                        {ordem.cliente.nome_titular}
+                      </p>
+                      <span className="text-xs text-green-600 font-medium">✓ Concluída</span>
+                    </div>
+                    <p className="text-slate-400 text-xs mt-0.5 font-mono">
+                      {ordem.cliente.numero_contador}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 

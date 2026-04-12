@@ -13,13 +13,23 @@ vi.mock("@/lib/supabase/client", () => ({
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /**
- * Builds a supabase mock chain for a given table that responds to
- * .select().eq() — the standard single-filter query pattern.
+ * Builds a fully chainable Supabase mock. Every query builder method
+ * (select, eq, gte, order, limit, in) returns the same builder object.
+ * The builder itself is thenable so `await builder` resolves to { data, error }.
  */
 function makeTableMock(data: unknown[]) {
-  const mockEq = vi.fn().mockResolvedValue({ data, error: null });
-  const mockSelect = vi.fn(() => ({ eq: mockEq }));
-  return { select: mockSelect };
+  const result = { data, error: null };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const builder: any = {
+    then: (resolve: (v: unknown) => void) => resolve(result),
+    select: vi.fn(() => builder),
+    eq: vi.fn(() => builder),
+    gte: vi.fn(() => builder),
+    order: vi.fn(() => builder),
+    limit: vi.fn(() => builder),
+    in: vi.fn(() => builder),
+  };
+  return builder;
 }
 
 function setupMocks({
