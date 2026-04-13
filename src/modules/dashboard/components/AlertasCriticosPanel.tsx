@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScoreBadge } from "@/components/ui/score-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { AlertTriangle, ChevronRight } from "lucide-react";
+import { Icon } from "@/components/Icon";
 import type { KPIData } from "../types";
 
 interface AlertasCriticosPanelProps {
@@ -19,7 +19,7 @@ export function AlertasCriticosPanel({ alertas, loading, mesAno }: AlertasCritic
     <Card className="flex flex-col h-full">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-red-500" />
+          <Icon name="warning" size="sm" className="text-red-500" />
           Alertas Críticos
         </CardTitle>
       </CardHeader>
@@ -53,9 +53,9 @@ export function AlertasCriticosPanel({ alertas, loading, mesAno }: AlertasCritic
         )}
         <Link
           href={`/alertas?mes=${mesAno}&min_score=75`}
-          className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 pt-1 font-medium"
+          className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 pt-1 font-medium"
         >
-          Ver todos <ChevronRight className="w-3 h-3" />
+          Ver todos <Icon name="chevron_right" size="xs" />
         </Link>
       </CardContent>
     </Card>

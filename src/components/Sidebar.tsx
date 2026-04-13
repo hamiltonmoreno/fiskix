@@ -3,23 +3,9 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Zap,
-  LayoutDashboard,
-  Upload,
-  Users,
-  Settings,
-  BarChart3,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  Menu,
-  X,
-  Bell,
-  FileBarChart2,
-} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { cn } from "@/lib/utils";
+import { Icon } from "@/components/Icon";
 
 interface SidebarProps {
   profile: {
@@ -32,21 +18,22 @@ interface SidebarProps {
 interface NavItem {
   label: string;
   href: string;
-  icon: React.ElementType;
+  icon: string;
   adminOnly?: boolean;
   superAdminOnly?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Alertas", href: "/alertas", icon: Bell },
+  { label: "Dashboard", href: "/dashboard", icon: "dashboard" },
+  { label: "Alertas", href: "/alertas", icon: "notifications_active" },
 ];
 
 const ADMIN_ITEMS: NavItem[] = [
-  { label: "Importar Dados", href: "/admin/importar", icon: Upload },
-  { label: "Motor de Scoring", href: "/admin/scoring", icon: BarChart3 },
-  { label: "Utilizadores", href: "/admin/utilizadores", icon: Users, superAdminOnly: true },
-  { label: "Configuração", href: "/admin/configuracao", icon: Settings, superAdminOnly: true },
+  { label: "Importar Dados", href: "/admin/importar", icon: "upload_file" },
+  { label: "Motor de Scoring", href: "/admin/scoring", icon: "analytics" },
+  { label: "Utilizadores", href: "/admin/utilizadores", icon: "group", superAdminOnly: true },
+  { label: "Configuração", href: "/admin/configuracao", icon: "settings", superAdminOnly: true },
+  { label: "API Keys", href: "/admin/api-keys", icon: "key", superAdminOnly: true },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
@@ -78,7 +65,6 @@ export function Sidebar({ profile }: SidebarProps) {
   const isSuperAdmin = profile.role === "admin_fiskix";
   const isRelatorios = ["admin_fiskix", "diretor", "gestor_perdas"].includes(profile.role);
 
-  // Persist collapse state
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-collapsed");
     if (saved !== null) setCollapsed(saved === "true");
@@ -90,7 +76,6 @@ export function Sidebar({ profile }: SidebarProps) {
     localStorage.setItem("sidebar-collapsed", String(next));
   }
 
-  // Close mobile sidebar on navigation
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
@@ -109,21 +94,25 @@ export function Sidebar({ profile }: SidebarProps) {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div
-        className={`flex items-center h-16 px-4 border-b border-slate-700/50 ${
+        className={cn(
+          "flex items-center h-16 px-4",
           collapsed ? "justify-center" : "justify-between"
-        }`}
+        )}
       >
         <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Zap className="w-4 h-4 text-white" />
+          <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Icon name="bolt" className="text-white" size="md" />
           </div>
           <div
-            className={`overflow-hidden transition-[width,opacity] duration-300 ${
+            className={cn(
+              "overflow-hidden transition-[width,opacity] duration-300",
               collapsed ? "w-0 opacity-0" : "w-36 opacity-100"
-            }`}
+            )}
           >
-            <p className="font-bold text-white leading-tight whitespace-nowrap">Fiskix</p>
-            <p className="text-[10px] text-slate-400 leading-tight whitespace-nowrap">
+            <p className="font-bold text-foreground leading-tight whitespace-nowrap text-[15px]">
+              Fiskix
+            </p>
+            <p className="text-[10px] text-muted-foreground leading-tight whitespace-nowrap">
               Electra Cabo Verde
             </p>
           </div>
@@ -132,25 +121,29 @@ export function Sidebar({ profile }: SidebarProps) {
           <button
             onClick={toggleCollapsed}
             aria-label="Recolher menu lateral"
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-colors hidden lg:flex touch-manipulation"
             title="Recolher menu"
+            className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors hidden lg:flex cursor-pointer touch-manipulation"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <Icon name="chevron_left" size="sm" />
           </button>
         )}
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
-        {/* Main nav */}
+      <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
+        {/* Main */}
+        <div className={cn("mb-1", collapsed ? "hidden" : "block")}>
+          <p className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest px-3 py-1.5">
+            Principal
+          </p>
+        </div>
         {NAV_ITEMS.map((item) => (
           <NavLink key={item.href} item={item} collapsed={collapsed} active={isActive(item.href)} />
         ))}
 
-        {/* Relatórios — visível para diretor, gestor_perdas, admin_fiskix */}
         {isRelatorios && (
           <NavLink
-            item={{ label: "Relatórios", href: "/relatorios", icon: FileBarChart2 }}
+            item={{ label: "Relatórios", href: "/relatorios", icon: "insert_chart" }}
             collapsed={collapsed}
             active={isActive("/relatorios")}
           />
@@ -160,15 +153,16 @@ export function Sidebar({ profile }: SidebarProps) {
         {isAdmin && (
           <>
             <div
-              className={`overflow-hidden transition-[max-height,opacity] duration-300 ${
+              className={cn(
+                "overflow-hidden transition-[max-height,opacity] duration-300",
                 collapsed ? "max-h-0 opacity-0" : "max-h-10 opacity-100"
-              }`}
+              )}
             >
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 pt-5 pb-1">
+              <p className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest px-3 pt-4 pb-1.5">
                 Administração
               </p>
             </div>
-            {collapsed && <div className="my-3 border-t border-slate-700/50" />}
+            {collapsed && <div className="my-3 border-t border-border" />}
             {ADMIN_ITEMS.filter((i) => !i.superAdminOnly || isSuperAdmin).map((item) => (
               <NavLink
                 key={item.href}
@@ -187,38 +181,35 @@ export function Sidebar({ profile }: SidebarProps) {
           <button
             onClick={toggleCollapsed}
             aria-label="Expandir menu lateral"
-            className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-colors"
-            title="Expandir menu"
+            className="w-full flex items-center justify-center p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer touch-manipulation"
           >
-            <ChevronRight className="w-4 h-4" />
+            <Icon name="chevron_right" size="sm" />
           </button>
         </div>
       )}
 
-      {/* Theme toggle */}
-      <div className="px-2 pb-1">
-        <ThemeToggle collapsed={collapsed} />
-      </div>
-
       {/* User footer */}
-      <div className={`border-t border-slate-700/50 p-3 ${collapsed ? "flex flex-col items-center gap-2" : ""}`}>
+      <div className={cn(
+        "border-t border-border p-3",
+        collapsed ? "flex flex-col items-center gap-2" : ""
+      )}>
         {!collapsed ? (
           <div className="flex items-center gap-2">
             <Link
               href="/perfil"
-              className="flex items-center gap-3 flex-1 min-w-0 rounded-lg p-1 hover:bg-slate-800 transition-colors"
+              className="flex items-center gap-3 flex-1 min-w-0 rounded-xl p-1.5 hover:bg-muted transition-colors cursor-pointer"
               title="Meu perfil"
             >
-              <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-semibold text-indigo-300">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 ring-2 ring-primary/20">
+                <span className="text-xs font-bold text-primary">
                   {getInitials(profile.nome_completo)}
                 </span>
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-slate-100 truncate leading-tight">
+                <p className="text-sm font-semibold text-foreground truncate leading-tight">
                   {profile.nome_completo}
                 </p>
-                <p className="text-xs text-slate-500 leading-tight">
+                <p className="text-xs text-muted-foreground leading-tight">
                   {ROLE_LABELS[profile.role] ?? profile.role}
                 </p>
               </div>
@@ -226,10 +217,10 @@ export function Sidebar({ profile }: SidebarProps) {
             <button
               onClick={handleSignOut}
               aria-label="Terminar sessão"
-              className="p-1.5 rounded-lg hover:bg-red-900/30 text-slate-500 hover:text-red-400 transition-colors flex-shrink-0"
+              className="p-1.5 rounded-xl hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors flex-shrink-0 cursor-pointer touch-manipulation"
               title="Terminar sessão"
             >
-              <LogOut className="w-4 h-4" />
+              <Icon name="logout" size="sm" />
             </button>
           </div>
         ) : (
@@ -237,35 +228,25 @@ export function Sidebar({ profile }: SidebarProps) {
             <div className="relative group">
               <Link
                 href="/perfil"
-                className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center hover:ring-2 hover:ring-indigo-500/50 transition-[box-shadow]"
+                className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center hover:ring-2 hover:ring-primary/40 transition-[box-shadow] cursor-pointer"
                 title="Meu perfil"
               >
-                <span className="text-xs font-semibold text-indigo-300">
+                <span className="text-xs font-bold text-primary">
                   {getInitials(profile.nome_completo)}
                 </span>
               </Link>
-              {/* Tooltip */}
-              <div
-                className="
-                  pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50
-                  bg-slate-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-md
-                  whitespace-nowrap shadow-lg
-                  opacity-0 -translate-x-1 scale-95
-                  group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100
-                  transition-[opacity,transform] duration-150 ease-out
-                "
-              >
+              <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 bg-foreground text-background text-xs font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-lg opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform] duration-150">
                 Meu perfil
-                <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900" />
+                <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-foreground" />
               </div>
             </div>
             <button
               onClick={handleSignOut}
               aria-label="Terminar sessão"
-              className="p-1.5 rounded-lg hover:bg-red-900/30 text-slate-500 hover:text-red-400 transition-colors"
+              className="p-1.5 rounded-xl hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors cursor-pointer touch-manipulation"
               title="Terminar sessão"
             >
-              <LogOut className="w-4 h-4" />
+              <Icon name="logout" size="sm" />
             </button>
           </>
         )}
@@ -276,28 +257,28 @@ export function Sidebar({ profile }: SidebarProps) {
   return (
     <>
       {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-sidebar border-b border-slate-700/50 flex items-center px-4 gap-3 no-print">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-background/80 backdrop-blur-xl border-b border-border flex items-center px-4 gap-3 no-print">
         <button
           onClick={() => setMobileOpen(true)}
           aria-label="Abrir menu"
           aria-expanded={mobileOpen}
           aria-controls="mobile-sidebar-drawer"
-          className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 touch-manipulation"
+          className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer touch-manipulation"
         >
-          <Menu className="w-5 h-5" />
+          <Icon name="menu" size="md" />
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
-            <Zap className="w-3.5 h-3.5 text-white" />
+          <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
+            <Icon name="bolt" className="text-white" size="sm" />
           </div>
-          <span className="font-bold text-white">Fiskix</span>
+          <span className="font-bold text-foreground">Fiskix</span>
         </div>
       </div>
 
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-opacity"
+          className="lg:hidden fixed inset-0 z-50 bg-black/30 backdrop-blur-sm"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -305,23 +286,24 @@ export function Sidebar({ profile }: SidebarProps) {
       {/* Mobile sidebar drawer */}
       <div
         id="mobile-sidebar-drawer"
-        className={`lg:hidden fixed top-0 left-0 bottom-0 z-50 w-64 bg-sidebar shadow-xl transition-transform duration-300 ease-in-out no-print ${
+        className={cn(
+          "lg:hidden fixed top-0 left-0 bottom-0 z-50 w-64 bg-background/95 backdrop-blur-xl border-r border-border shadow-2xl transition-transform duration-300 ease-in-out no-print",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        )}
       >
-        <div className="flex items-center justify-between h-14 px-4 border-b border-slate-700/50">
+        <div className="flex items-center justify-between h-14 px-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-white" />
+            <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
+              <Icon name="bolt" className="text-white" size="sm" />
             </div>
-            <span className="font-bold text-white">Fiskix</span>
+            <span className="font-bold text-foreground">Fiskix</span>
           </div>
           <button
             onClick={() => setMobileOpen(false)}
             aria-label="Fechar menu"
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors touch-manipulation"
+            className="p-1.5 rounded-xl hover:bg-muted text-muted-foreground transition-colors cursor-pointer touch-manipulation"
           >
-            <X className="w-4 h-4" />
+            <Icon name="close" size="sm" />
           </button>
         </div>
         <div className="h-[calc(100%-3.5rem)]">{sidebarContent}</div>
@@ -329,18 +311,23 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 bg-sidebar border-r border-slate-700/50 transition-[width] duration-300 ease-in-out no-print ${
+        className={cn(
+          "hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40",
+          "bg-card/80 backdrop-blur-xl border-r border-border",
+          "shadow-[4px_0_24px_rgba(0,0,0,0.04)]",
+          "transition-[width] duration-300 ease-in-out no-print",
           collapsed ? "w-16" : "w-60"
-        }`}
+        )}
       >
         {sidebarContent}
       </aside>
 
-      {/* Spacer to push content right on desktop */}
+      {/* Spacer */}
       <div
-        className={`hidden lg:block flex-shrink-0 transition-[width] duration-300 ease-in-out no-print ${
+        className={cn(
+          "hidden lg:block flex-shrink-0 transition-[width] duration-300 ease-in-out no-print",
           collapsed ? "w-16" : "w-60"
-        }`}
+        )}
       />
     </>
   );
@@ -355,56 +342,49 @@ function NavLink({
   collapsed: boolean;
   active: boolean;
 }) {
-  const Icon = item.icon;
   return (
     <div className="relative group">
       <Link
         href={item.href}
         aria-current={active ? "page" : undefined}
-        className={`relative flex items-center gap-3 py-2.5 rounded-lg transition-[background-color,color] duration-150 text-sm font-medium overflow-hidden ${
-          collapsed ? "justify-center px-3" : "px-3"
-        } ${
+        className={cn(
+          "relative flex items-center gap-3 py-2.5 rounded-xl transition-[background-color,color,box-shadow] duration-150 text-sm font-medium overflow-hidden cursor-pointer",
+          collapsed ? "justify-center px-3" : "px-3",
           active
-            ? "bg-indigo-600 text-white"
-            : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
-        }`}
+            ? "bg-primary/10 text-primary shadow-none"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        )}
       >
-        {/* Active left bar indicator */}
+        {/* Active indicator bar */}
         <span
-          className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 rounded-full transition-[height,opacity] duration-200 ${
-            active ? "h-5 bg-white opacity-100" : "h-0 opacity-0"
-          }`}
+          className={cn(
+            "absolute left-0 top-1/2 -translate-y-1/2 w-0.5 rounded-full bg-primary transition-[height,opacity] duration-200",
+            active ? "h-5 opacity-100" : "h-0 opacity-0"
+          )}
         />
         <Icon
-          className={`w-4 h-4 flex-shrink-0 transition-colors ${
-            active ? "text-white" : "text-slate-400 group-hover:text-slate-200"
-          }`}
+          name={item.icon}
+          size="sm"
+          filled={active}
+          className={cn(
+            "flex-shrink-0 transition-colors",
+            active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+          )}
         />
-        {/* Label with smooth fade */}
         <span
-          className={`overflow-hidden transition-[width,opacity] duration-300 whitespace-nowrap ${
+          className={cn(
+            "overflow-hidden transition-[width,opacity] duration-300 whitespace-nowrap",
             collapsed ? "w-0 opacity-0" : "w-full opacity-100"
-          }`}
+          )}
         >
           {item.label}
         </span>
       </Link>
 
-      {/* Tooltip when collapsed */}
       {collapsed && (
-        <div
-          className="
-            pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50
-            bg-slate-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-md
-            whitespace-nowrap shadow-lg
-            opacity-0 -translate-x-1 scale-95
-            group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100
-            transition-[opacity,transform] duration-150 ease-out
-          "
-        >
+        <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 bg-foreground text-background text-xs font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-lg opacity-0 -translate-x-1 scale-95 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-[opacity,transform] duration-150 ease-out">
           {item.label}
-          {/* Arrow */}
-          <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900" />
+          <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-foreground" />
         </div>
       )}
     </div>

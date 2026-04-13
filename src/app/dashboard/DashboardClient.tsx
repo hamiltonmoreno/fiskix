@@ -8,6 +8,7 @@ import { AlertasCriticosPanel } from "@/modules/dashboard/components/AlertasCrit
 import { useKPIs } from "@/modules/dashboard/hooks/useKPIs";
 import { getCurrentMesAno } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Icon } from "@/components/Icon";
 import {
   Select,
   SelectContent,
@@ -18,15 +19,15 @@ import {
 
 const HeatMap = dynamic(
   () => import("@/modules/dashboard/components/HeatMap").then((m) => m.HeatMap),
-  { ssr: false, loading: () => <Skeleton className="h-64 rounded-xl" /> }
+  { ssr: false, loading: () => <Skeleton className="h-80 rounded-2xl" /> }
 );
 const Top5Transformadores = dynamic(
   () => import("@/modules/dashboard/components/Top5Transformadores").then((m) => m.Top5Transformadores),
-  { ssr: false, loading: () => <Skeleton className="h-64 rounded-xl" /> }
+  { ssr: false, loading: () => <Skeleton className="h-64 rounded-2xl" /> }
 );
 const TendenciaPerdas = dynamic(
   () => import("@/modules/dashboard/components/TendenciaPerdas").then((m) => m.TendenciaPerdas),
-  { ssr: false, loading: () => <Skeleton className="h-48 rounded-xl" /> }
+  { ssr: false, loading: () => <Skeleton className="h-56 rounded-2xl" /> }
 );
 
 interface DashboardClientProps {
@@ -56,17 +57,36 @@ export function DashboardClient({ profile }: DashboardClientProps) {
   const [zona, setZona] = useState<string | undefined>(undefined);
   const { data: kpis, loading: kpisLoading } = useKPIs(mesAno, zona);
 
+  const greeting = (() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Bom dia";
+    if (hour < 18) return "Boa tarde";
+    return "Boa noite";
+  })();
+
+  const firstName = profile.nome_completo.split(" ")[0];
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Bar */}
-      <header className="bg-card border-b border-border sticky top-0 z-30 no-print">
-        <div className="px-4 lg:px-6 py-3 flex items-center justify-between gap-4">
-          <h1 className="text-base font-semibold text-foreground hidden sm:block">
-            Dashboard
-          </h1>
-          <div className="flex items-center gap-2 ml-auto">
+      {/* Page header */}
+      <div className="px-6 pt-6 pb-4 no-print">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">
+              {greeting}, {firstName}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Visão geral do sistema de fiscalização
+            </p>
+          </div>
+
+          {/* Filters */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Icon name="calendar_today" size="xs" />
+            </div>
             <Select value={mesAno} onValueChange={setMesAno}>
-              <SelectTrigger className="w-44 h-9 text-sm">
+              <SelectTrigger className="w-44 h-9 text-sm rounded-xl">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -85,7 +105,7 @@ export function DashboardClient({ profile }: DashboardClientProps) {
               value={zona ?? "Todos"}
               onValueChange={(v) => setZona(v === "Todos" ? undefined : v)}
             >
-              <SelectTrigger className="w-44 h-9 text-sm">
+              <SelectTrigger className="w-44 h-9 text-sm rounded-xl">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -97,20 +117,17 @@ export function DashboardClient({ profile }: DashboardClientProps) {
               </SelectContent>
             </Select>
           </div>
-
-          <span className="text-sm text-muted-foreground hidden lg:block whitespace-nowrap">
-            {profile.nome_completo}
-          </span>
         </div>
-      </header>
+      </div>
 
-      {/* Main content */}
-      <main className="px-4 lg:px-6 py-6 space-y-6" id="alertas">
+      {/* Main content — bento grid */}
+      <main className="px-6 pb-8 space-y-4" id="alertas">
+        {/* KPIs row */}
         <KPICards data={kpis} loading={kpisLoading} />
 
-        {/* 2-column: mapa + alertas críticos */}
+        {/* Row 2: mapa + alertas críticos */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          <div className="lg:col-span-3 h-80">
+          <div className="lg:col-span-3">
             <HeatMap mesAno={mesAno} zona={zona} />
           </div>
           <div className="lg:col-span-2">
@@ -122,9 +139,13 @@ export function DashboardClient({ profile }: DashboardClientProps) {
           </div>
         </div>
 
-        <TendenciaPerdas mesAno={mesAno} zona={zona} />
-        <Top5Transformadores mesAno={mesAno} />
+        {/* Row 3: tendência + top5 */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <TendenciaPerdas mesAno={mesAno} zona={zona} />
+          <Top5Transformadores mesAno={mesAno} />
+        </div>
 
+        {/* Row 4: tabela completa */}
         <TabelaAlertas mesAno={mesAno} zona={zona} />
       </main>
     </div>
