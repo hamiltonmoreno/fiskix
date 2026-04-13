@@ -66,6 +66,17 @@
     to   { stroke-dashoffset: var(--target-offset); }
   }
   .score-circle { animation: score-fill 1s ease-out forwards; }
+
+  /* Login — energy grid animations */
+  @keyframes energy-pulse {
+    0%, 100% { opacity: 0; }
+    20%, 80%  { opacity: 0.85; }
+  }
+
+  @keyframes node-ring {
+    0%, 100% { r: 7; opacity: 0.15; }
+    50%       { r: 12; opacity: 0; }
+  }
 }
 
 @theme inline {

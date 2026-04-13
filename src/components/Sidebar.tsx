@@ -366,7 +366,7 @@ function NavLink({
           "flex items-center gap-3 px-4 py-2.5 rounded-lg mx-2 transition-all duration-150 text-sm font-medium cursor-pointer",
           collapsed && "justify-center px-3 mx-1",
           active
-            ? "bg-white dark:bg-slate-900 text-[#007AFF] shadow-sm"
+            ? "bg-surface-container-lowest dark:bg-slate-900 text-primary shadow-sm"
             : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50"
         )}
       >
@@ -376,7 +376,7 @@ function NavLink({
           filled={active}
           className={cn(
             "flex-shrink-0",
-            active ? "text-[#007AFF]" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200"
+            active ? "text-primary" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200"
           )}
         />
         {sub ? (
