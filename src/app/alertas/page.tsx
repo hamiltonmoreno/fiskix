@@ -283,7 +283,7 @@ export default function AlertasPage() {
           <div className="ml-auto flex items-end">
             <button
               onClick={load}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-accent transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-accent transition-colors cursor-pointer touch-manipulation"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Atualizar
@@ -480,7 +480,7 @@ export default function AlertasPage() {
                   onClick={() => setPage((p) => Math.max(0, p - 1))}
                   disabled={page === 0}
                   aria-label="Página anterior"
-                  className="p-1.5 rounded-lg hover:bg-accent disabled:opacity-40"
+                  className="p-1.5 rounded-lg hover:bg-accent disabled:opacity-40 cursor-pointer touch-manipulation"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -488,7 +488,7 @@ export default function AlertasPage() {
                   onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                   disabled={page >= totalPages - 1}
                   aria-label="Página seguinte"
-                  className="p-1.5 rounded-lg hover:bg-accent disabled:opacity-40"
+                  className="p-1.5 rounded-lg hover:bg-accent disabled:opacity-40 cursor-pointer touch-manipulation"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -517,7 +517,7 @@ export default function AlertasPage() {
             <div className="mt-5 flex gap-2 justify-end">
               <button
                 onClick={() => setPendingStatusUpdate(null)}
-                className="px-3 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-accent transition-colors"
+                className="px-3 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-accent transition-colors cursor-pointer touch-manipulation"
               >
                 Cancelar
               </button>
@@ -529,7 +529,7 @@ export default function AlertasPage() {
                   );
                   setPendingStatusUpdate(null);
                 }}
-                className="px-3 py-2 rounded-lg bg-primary hover:bg-primary/90 text-sm text-primary-foreground transition-colors"
+                className="px-3 py-2 rounded-lg bg-primary hover:bg-primary/90 text-sm text-primary-foreground transition-colors cursor-pointer touch-manipulation"
               >
                 Confirmar
               </button>

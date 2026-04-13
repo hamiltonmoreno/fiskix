@@ -42,8 +42,8 @@ const CustomTooltip = ({ active, payload, label }: {
   const perdaCVE = perdaKwh * tarifaMedia;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm text-sm">
-      <p className="font-semibold text-slate-900 mb-2">{label}</p>
+    <div className="bg-card border border-border rounded-lg p-3 shadow-sm text-sm">
+      <p className="font-semibold text-foreground mb-2">{label}</p>
       <p className="text-blue-600">Injetado: {inj.toLocaleString("pt-CV")} kWh</p>
       <p className="text-green-600">Faturado: {fat.toLocaleString("pt-CV")} kWh</p>
       <p className="text-red-600 font-medium">
@@ -134,27 +134,27 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
   }, [mesAno, supabase]);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4">
-      <h3 className="font-semibold text-slate-700 mb-4">
+    <div className="bg-card rounded-xl border border-border p-4">
+      <h3 className="font-semibold text-foreground mb-4">
         Top 5 Transformadores — Energia Injetada vs Faturada
       </h3>
       {loading ? (
         <Skeleton className="h-64 w-full rounded-lg" />
       ) : data.length === 0 ? (
-        <div className="h-64 flex items-center justify-center text-slate-400 text-sm">
+        <div className="h-64 flex items-center justify-center text-muted-foreground text-sm">
           Sem dados de injeção para {mesAno}
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis
               dataKey="nome"
-              tick={{ fontSize: 11, fill: "#64748b" }}
+              tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: "#64748b" }}
+              tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(v) => `${(v / 1000).toFixed(0)}k kWh`}

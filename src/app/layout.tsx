@@ -1,11 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, DM_Serif_Display } from "next/font/google";
+import { Plus_Jakarta_Sans, DM_Serif_Display } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 const dmSerifDisplay = DM_Serif_Display({
   subsets: ["latin"],
@@ -40,7 +44,7 @@ export default function RootLayout({
     <html
       lang="pt"
       suppressHydrationWarning
-      className={cn("font-sans", geist.variable, dmSerifDisplay.variable)}
+      className={cn("font-sans", plusJakartaSans.variable, dmSerifDisplay.variable)}
     >
       <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>

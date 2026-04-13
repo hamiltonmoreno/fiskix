@@ -86,18 +86,18 @@ export function HeatMap({ mesAno, zona }: HeatMapProps) {
 
   if (!Map) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 p-4">
-        <h3 className="font-semibold text-slate-700 mb-3">Mapa de Calor — Subestações</h3>
+      <div className="bg-card rounded-xl border border-border p-4">
+        <h3 className="font-semibold text-foreground mb-3">Mapa de Calor — Subestações</h3>
         <Skeleton className="h-80 w-full rounded-lg" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4">
+    <div className="bg-card rounded-xl border border-border p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-slate-700">Mapa de Calor — Subestações</h3>
-        <div className="flex items-center gap-4 text-xs text-slate-500">
+        <h3 className="font-semibold text-foreground">Mapa de Calor — Subestações</h3>
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded-full bg-green-600 inline-block" /> &lt;10% perda
           </span>

@@ -114,7 +114,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
             onClick={handleExportExcel}
             disabled={data.length === 0}
             aria-label="Exportar alertas para Excel"
-            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 disabled:opacity-40"
+            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 disabled:opacity-40 cursor-pointer touch-manipulation"
             title="Exportar Excel"
           >
             <FileDown className="w-4 h-4" />
@@ -122,7 +122,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
           <button
             onClick={reload}
             aria-label="Atualizar alertas"
-            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer touch-manipulation"
             title="Atualizar"
           >
             <RefreshCw className="w-4 h-4" />
@@ -273,7 +273,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
               aria-label="Página anterior"
-              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50"
+              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50 cursor-pointer touch-manipulation"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -281,7 +281,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
               aria-label="Página seguinte"
-              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50"
+              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50 cursor-pointer touch-manipulation"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

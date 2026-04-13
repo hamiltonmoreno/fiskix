@@ -44,74 +44,74 @@ export function TabRecidivismo({ filtros, active, onExportReady }: Props) {
     <div className="space-y-6">
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Total Reincidentes</span>
+            <span className="text-sm font-medium text-muted-foreground">Total Reincidentes</span>
             <div className="p-2 rounded-lg bg-red-100 text-red-600">
               <RefreshCw className="w-4 h-4" />
             </div>
           </div>
           {loading ? <Skeleton className="h-8 w-3/4" /> : (
-            <div className="text-2xl font-bold text-slate-900">{data?.kpis.totalReincidentes ?? "—"}</div>
+            <div className="text-2xl font-bold text-foreground">{data?.kpis.totalReincidentes ?? "—"}</div>
           )}
-          <p className="text-xs text-slate-400 mt-1">clientes com 2+ fraudes</p>
+          <p className="text-xs text-muted-foreground mt-1">clientes com 2+ fraudes</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Média de Alertas</span>
+            <span className="text-sm font-medium text-muted-foreground">Média de Alertas</span>
             <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           {loading ? <Skeleton className="h-8 w-3/4" /> : (
-            <div className="text-2xl font-bold text-slate-900">{data?.kpis.mediaAlertas ?? "—"}</div>
+            <div className="text-2xl font-bold text-foreground">{data?.kpis.mediaAlertas ?? "—"}</div>
           )}
-          <p className="text-xs text-slate-400 mt-1">por reincidente</p>
+          <p className="text-xs text-muted-foreground mt-1">por reincidente</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Taxa de Reincidência</span>
+            <span className="text-sm font-medium text-muted-foreground">Taxa de Reincidência</span>
             <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
               <Users className="w-4 h-4" />
             </div>
           </div>
           {loading ? <Skeleton className="h-8 w-3/4" /> : (
-            <div className="text-2xl font-bold text-slate-900">
+            <div className="text-2xl font-bold text-foreground">
               {data ? `${data.kpis.taxaReincidencia}%` : "—"}
             </div>
           )}
-          <p className="text-xs text-slate-400 mt-1">do total de clientes alertados</p>
+          <p className="text-xs text-muted-foreground mt-1">do total de clientes alertados</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Máx. Deteções</span>
+            <span className="text-sm font-medium text-muted-foreground">Máx. Deteções</span>
             <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
               <Star className="w-4 h-4" />
             </div>
           </div>
           {loading ? <Skeleton className="h-8 w-3/4" /> : (
-            <div className="text-2xl font-bold text-slate-900">{data?.kpis.maxAlertas ?? "—"}</div>
+            <div className="text-2xl font-bold text-foreground">{data?.kpis.maxAlertas ?? "—"}</div>
           )}
-          <p className="text-xs text-slate-400 mt-1">pelo mesmo cliente</p>
+          <p className="text-xs text-muted-foreground mt-1">pelo mesmo cliente</p>
         </div>
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Monthly new reincidentes */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-700 mb-4">Novos Reincidentes por Mês</h3>
+        <div className="bg-card rounded-xl border border-border p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Novos Reincidentes por Mês</h3>
           {loading ? (
             <Skeleton className="h-64 rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={data?.mensalNovos} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} axisLine={false} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip />
                 <Bar dataKey="novos" name="Novos Reincidentes" fill="#F59E0B" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -120,12 +120,12 @@ export function TabRecidivismo({ filtros, active, onExportReady }: Props) {
         </div>
 
         {/* Top 10 horizontal */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-700 mb-4">Top 10 Clientes por Ocorrências</h3>
+        <div className="bg-card rounded-xl border border-border p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Top 10 Clientes por Ocorrências</h3>
           {loading ? (
             <Skeleton className="h-64 rounded-lg" />
           ) : (data?.top10 ?? []).length === 0 ? (
-            <div className="h-64 flex items-center justify-center text-slate-400 text-sm">
+            <div className="h-64 flex items-center justify-center text-muted-foreground text-sm">
               Sem reincidentes no período selecionado
             </div>
           ) : (
@@ -138,9 +138,9 @@ export function TabRecidivismo({ filtros, active, onExportReady }: Props) {
                 layout="vertical"
                 margin={{ top: 5, right: 20, left: 5, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                <XAxis type="number" tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={false} allowDecimals={false} />
-                <YAxis type="category" dataKey="nome" width={100} tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--color-border)" />
+                <XAxis type="number" tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }} tickLine={false} axisLine={false} allowDecimals={false} />
+                <YAxis type="category" dataKey="nome" width={100} tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }} tickLine={false} />
                 <Tooltip />
                 <Bar dataKey="confirmados" name="Confirmações" fill="#EF4444" radius={[0, 4, 4, 0]} />
               </BarChart>
@@ -150,9 +150,9 @@ export function TabRecidivismo({ filtros, active, onExportReady }: Props) {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200">
-        <div className="px-5 py-4 border-b border-slate-100">
-          <h3 className="text-sm font-semibold text-slate-700">Clientes Reincidentes</h3>
+      <div className="bg-card rounded-xl border border-border">
+        <div className="px-5 py-4 border-b border-border">
+          <h3 className="text-sm font-semibold text-foreground">Clientes Reincidentes</h3>
         </div>
         {loading ? (
           <Skeleton className="h-40" />
@@ -160,7 +160,7 @@ export function TabRecidivismo({ filtros, active, onExportReady }: Props) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100 text-xs text-slate-500 uppercase tracking-wide">
+                <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
                   <th className="px-5 py-3 text-left font-medium">Nome Titular</th>
                   <th className="px-5 py-3 text-left font-medium">N.º Contador</th>
                   <th className="px-5 py-3 text-left font-medium">Zona</th>
@@ -171,28 +171,28 @@ export function TabRecidivismo({ filtros, active, onExportReady }: Props) {
               <tbody className="divide-y divide-slate-50">
                 {(data?.tabela ?? []).length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-8 text-center text-slate-400 text-sm">
+                    <td colSpan={5} className="px-5 py-8 text-center text-muted-foreground text-sm">
                       Nenhum reincidente encontrado no período selecionado
                     </td>
                   </tr>
                 ) : (
                   data?.tabela.map((r) => (
-                    <tr key={r.id_cliente} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-5 py-3 font-medium text-slate-700">{r.nome_titular}</td>
-                      <td className="px-5 py-3 font-mono text-xs text-slate-500">{r.numero_contador}</td>
-                      <td className="px-5 py-3 text-slate-500">{r.zona}</td>
+                    <tr key={r.id_cliente} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-5 py-3 font-medium text-foreground">{r.nome_titular}</td>
+                      <td className="px-5 py-3 font-mono text-xs text-muted-foreground">{r.numero_contador}</td>
+                      <td className="px-5 py-3 text-muted-foreground">{r.zona}</td>
                       <td className="px-5 py-3 text-right">
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                           r.total_alertas >= 5
                             ? "bg-red-100 text-red-700"
                             : r.total_alertas >= 3
                             ? "bg-amber-100 text-amber-700"
-                            : "bg-slate-100 text-slate-600"
+                            : "bg-slate-100 text-foreground"
                         }`}>
                           {r.total_alertas}×
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-slate-500 text-xs">{r.ultimo_mes}</td>
+                      <td className="px-5 py-3 text-muted-foreground text-xs">{r.ultimo_mes}</td>
                     </tr>
                   ))
                 )}

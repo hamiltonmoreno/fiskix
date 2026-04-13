@@ -187,32 +187,32 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 py-4">
-        <h1 className="font-bold text-slate-900">Importar Dados</h1>
-        <p className="text-sm text-slate-400">CSV e Excel de faturação ou injeção</p>
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b border-border px-6 py-4">
+        <h1 className="font-bold text-foreground">Importar Dados</h1>
+        <p className="text-sm text-muted-foreground">CSV e Excel de faturação ou injeção</p>
       </header>
 
       <main className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Seletor de tipo */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <p className="font-semibold text-slate-700 mb-3">Tipo de dados</p>
+        <div className="bg-card rounded-xl border border-border p-5">
+          <p className="font-semibold text-foreground mb-3">Tipo de dados</p>
           <div className="flex gap-3">
             {(["faturacao", "injecao"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTipo(t)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors cursor-pointer touch-manipulation ${
                   tipo === t
                     ? "bg-blue-700 text-white border-blue-700"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                    : "bg-card text-muted-foreground border-border hover:border-border/80"
                 }`}
               >
                 {t === "faturacao" ? "Faturação de Clientes" : "Injeção de Energia"}
               </button>
             ))}
           </div>
-          <p className="text-xs text-slate-400 mt-3">
+          <p className="text-xs text-muted-foreground mt-3">
             {tipo === "faturacao"
               ? "Colunas: numero_contador, mes_ano (YYYY-MM), kwh_faturado, valor_cve"
               : "Colunas: subestacao_nome, mes_ano (YYYY-MM), total_kwh_injetado"}
@@ -222,7 +222,7 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
         {/* Upload */}
         {!preview && !resultado && (
           <div
-            className="bg-white rounded-xl border-2 border-dashed border-slate-300 p-10 text-center cursor-pointer hover:border-blue-400 transition-colors"
+            className="bg-card rounded-xl border-2 border-dashed border-border p-10 text-center cursor-pointer hover:border-primary/60 transition-colors"
             onClick={() => fileRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
@@ -231,9 +231,9 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
               if (f) handleFile(f);
             }}
           >
-            <Upload className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="font-medium text-slate-600">Arrastar ficheiro ou clicar para selecionar</p>
-            <p className="text-sm text-slate-400 mt-1">CSV, XLS, XLSX até 10MB</p>
+            <Upload className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="font-medium text-foreground">Arrastar ficheiro ou clicar para selecionar</p>
+            <p className="text-sm text-muted-foreground mt-1">CSV, XLS, XLSX até 10MB</p>
             <input
               ref={fileRef}
               type="file"
@@ -248,21 +248,21 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
         )}
 
         {loading && (
-          <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
+          <div className="bg-card rounded-xl border border-border p-8 text-center">
             <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-slate-500">A processar ficheiro...</p>
+            <p className="text-muted-foreground">A processar ficheiro...</p>
           </div>
         )}
 
         {/* Preview */}
         {preview && !loading && (
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="bg-card rounded-xl border border-border overflow-hidden">
+            <div className="p-4 border-b border-border flex items-center justify-between">
               <div>
-                <p className="font-semibold text-slate-700">
+                <p className="font-semibold text-foreground">
                   Preview: {ficheiro?.name}
                 </p>
-                <p className="text-sm text-slate-400 mt-0.5">
+                <p className="text-sm text-muted-foreground mt-0.5">
                   {preview.total} registos · {preview.validos} válidos ·{" "}
                   {preview.erros_count > 0 && (
                     <span className="text-red-500">{preview.erros_count} erros</span>
@@ -274,7 +274,7 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
                   setPreview(null);
                   setFicheiro(null);
                 }}
-                className="text-sm text-slate-400 hover:text-slate-600"
+                className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 Cancelar
               </button>
@@ -289,12 +289,12 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
                       key={i}
                       className={
                         i === 0
-                          ? "bg-slate-50 font-semibold"
-                          : "border-t border-slate-50"
+                          ? "bg-muted/40 font-semibold"
+                          : "border-t border-border/50"
                       }
                     >
                       {row.map((cell, j) => (
-                        <td key={j} className="px-4 py-2 text-slate-600">
+                        <td key={j} className="px-4 py-2 text-foreground">
                           {cell}
                         </td>
                       ))}
@@ -306,7 +306,7 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
 
             {/* Erros */}
             {(preview.erros ?? []).length > 0 && (
-              <div className="p-4 border-t border-slate-100 bg-red-50">
+              <div className="p-4 border-t border-border bg-red-50/80 dark:bg-red-950/20">
                 <p className="text-sm font-medium text-red-700 mb-2">
                   Erros de validação:
                 </p>
@@ -318,7 +318,7 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
               </div>
             )}
 
-            <div className="p-4 border-t border-slate-100 flex justify-end">
+            <div className="p-4 border-t border-border flex justify-end">
               <button
                 onClick={handleImportar}
                 disabled={preview.validos === 0}
@@ -333,10 +333,10 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
         {/* Resultado */}
         {resultado && (
           <div
-            className={`bg-white rounded-xl border p-6 ${
+            className={`bg-card rounded-xl border p-6 ${
               resultado.erros === 0
-                ? "border-green-200"
-                : "border-amber-200"
+                ? "border-green-500/30"
+                : "border-amber-500/30"
             }`}
           >
             <div className="flex items-center gap-3 mb-4">
@@ -346,8 +346,8 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
                 <AlertCircle className="w-6 h-6 text-amber-500" />
               )}
               <div>
-                <p className="font-semibold text-slate-900">Importação concluída</p>
-                <p className="text-sm text-slate-400">
+                <p className="font-semibold text-foreground">Importação concluída</p>
+                <p className="text-sm text-muted-foreground">
                   {resultado.sucesso} inseridos · {resultado.erros} erros
                 </p>
               </div>
@@ -362,40 +362,40 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
         )}
 
         {/* Histórico */}
-        <div className="bg-white rounded-xl border border-slate-200">
-          <div className="p-4 border-b border-slate-100">
-            <h3 className="font-semibold text-slate-700">Histórico de Importações</h3>
+        <div className="bg-card rounded-xl border border-border">
+          <div className="p-4 border-b border-border">
+            <h3 className="font-semibold text-foreground">Histórico de Importações</h3>
           </div>
           {historico.length === 0 ? (
-            <div className="p-8 text-center text-slate-400">
+            <div className="p-8 text-center text-muted-foreground">
               <FileText className="w-8 h-8 mx-auto mb-2" />
               <p className="text-sm">Nenhuma importação ainda</p>
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Ficheiro</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Tipo</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Total</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Sucesso</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Erros</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Data</th>
+                <tr className="border-b border-border bg-muted/40">
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Ficheiro</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipo</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Total</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Sucesso</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Erros</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">Data</th>
                 </tr>
               </thead>
               <tbody>
                 {historico.map((h) => (
-                  <tr key={h.id} className="border-b border-slate-50 hover:bg-slate-50">
-                    <td className="px-4 py-3 text-slate-700">{h.nome_ficheiro}</td>
+                  <tr key={h.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3 text-foreground">{h.nome_ficheiro}</td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
                         {h.tipo}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{h.total_registos}</td>
+                    <td className="px-4 py-3 text-foreground tabular-nums">{h.total_registos}</td>
                     <td className="px-4 py-3 text-green-600 font-medium">{h.registos_sucesso}</td>
                     <td className="px-4 py-3 text-red-500">{h.registos_erro || "—"}</td>
-                    <td className="px-4 py-3 text-slate-400 text-xs">
+                    <td className="px-4 py-3 text-muted-foreground text-xs tabular-nums">
                       {new Date(h.criado_em).toLocaleString("pt-CV")}
                     </td>
                   </tr>

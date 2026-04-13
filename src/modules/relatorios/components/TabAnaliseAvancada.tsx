@@ -62,76 +62,76 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Perda Comercial</span>
+            <span className="text-sm font-medium text-muted-foreground">Perda Comercial</span>
             <div className="p-2 rounded-lg bg-red-100 text-red-600"><ShieldAlert className="w-4 h-4" /></div>
           </div>
           {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-red-700">{data ? formatKWh(data.kpis.perda_comercial_kwh) : "—"}</div>
           )}
-          <p className="text-xs text-slate-400 mt-1">fraude + erros de medição</p>
+          <p className="text-xs text-muted-foreground mt-1">fraude + erros de medição</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Perda Técnica</span>
+            <span className="text-sm font-medium text-muted-foreground">Perda Técnica</span>
             <div className="p-2 rounded-lg bg-amber-100 text-amber-600"><Wrench className="w-4 h-4" /></div>
           </div>
           {loading ? <Skeleton className="h-8 w-3/4" /> : (
-            <div className="text-2xl font-bold text-slate-900">{data ? formatKWh(data.kpis.perda_tecnica_kwh) : "—"}</div>
+            <div className="text-2xl font-bold text-foreground">{data ? formatKWh(data.kpis.perda_tecnica_kwh) : "—"}</div>
           )}
-          <p className="text-xs text-slate-400 mt-1">resistência de cabos e transformadores</p>
+          <p className="text-xs text-muted-foreground mt-1">resistência de cabos e transformadores</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">% Comercial/Total</span>
+            <span className="text-sm font-medium text-muted-foreground">% Comercial/Total</span>
             <div className="p-2 rounded-lg bg-rose-100 text-rose-600"><TrendingDown className="w-4 h-4" /></div>
           </div>
           {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-rose-700">{data ? `${data.kpis.perda_comercial_pct}%` : "—"}</div>
           )}
-          <p className="text-xs text-slate-400 mt-1">das perdas são de origem comercial</p>
+          <p className="text-xs text-muted-foreground mt-1">das perdas são de origem comercial</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">CVE Comercial</span>
+            <span className="text-sm font-medium text-muted-foreground">CVE Comercial</span>
             <div className="p-2 rounded-lg bg-green-100 text-green-600"><DollarSign className="w-4 h-4" /></div>
           </div>
           {loading ? <Skeleton className="h-8 w-3/4" /> : (
-            <div className="text-2xl font-bold text-slate-900">{data ? formatCVE(data.kpis.cve_comercial_estimado) : "—"}</div>
+            <div className="text-2xl font-bold text-foreground">{data ? formatCVE(data.kpis.cve_comercial_estimado) : "—"}</div>
           )}
-          <p className="text-xs text-slate-400 mt-1">potencial de recuperação</p>
+          <p className="text-xs text-muted-foreground mt-1">potencial de recuperação</p>
         </div>
       </div>
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Técnica vs Comercial por subestação */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-700 mb-4">Perdas Técnicas vs Comerciais por Subestação</h3>
+        <div className="bg-card rounded-xl border border-border p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Perdas Técnicas vs Comerciais por Subestação</h3>
           {loading ? (
             <Skeleton className="h-64 rounded-lg" />
           ) : (data?.porSubestacao ?? []).length === 0 ? (
-            <div className="h-64 flex items-center justify-center text-slate-400 text-sm">
+            <div className="h-64 flex items-center justify-center text-muted-foreground text-sm">
               Sem dados para o período selecionado
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={data?.porSubestacao.slice(0, 10)} margin={{ top: 5, right: 10, left: -10, bottom: 35 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis
                   dataKey="nome"
-                  tick={{ fontSize: 9, fill: "#64748b" }}
+                  tick={{ fontSize: 9, fill: "var(--color-muted-foreground)" }}
                   tickLine={false}
                   angle={-30}
                   textAnchor="end"
                   interval={0}
                   height={55}
                 />
-                <YAxis tick={{ fontSize: 10, fill: "#64748b" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                <YAxis tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(v: number) => formatKWh(v)} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Bar dataKey="perda_tecnica_kwh" name="Técnica" fill="#F59E0B" stackId="a" radius={[0, 0, 0, 0]} />
@@ -142,17 +142,17 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
         </div>
 
         {/* Evolução mensal técnica vs comercial */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-700 mb-4">Evolução Mensal — % Perda por Tipo</h3>
+        <div className="bg-card rounded-xl border border-border p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Evolução Mensal — % Perda por Tipo</h3>
           {loading ? (
             <Skeleton className="h-64 rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={data?.evolucaoComercial} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} tickLine={false} />
                 <YAxis
-                  tick={{ fontSize: 11, fill: "#64748b" }}
+                  tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(v) => `${v.toFixed(0)}%`}
@@ -169,10 +169,10 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
       </div>
 
       {/* Tabela com índice de recuperabilidade */}
-      <div className="bg-white rounded-xl border border-slate-200">
-        <div className="px-5 py-4 border-b border-slate-100">
-          <h3 className="text-sm font-semibold text-slate-700">Eficiência Comercial por Subestação</h3>
-          <p className="text-xs text-slate-400 mt-0.5">Índice Recup. = (alertas críticos / total) × % perda — quanto maior, maior o potencial de recuperação</p>
+      <div className="bg-card rounded-xl border border-border">
+        <div className="px-5 py-4 border-b border-border">
+          <h3 className="text-sm font-semibold text-foreground">Eficiência Comercial por Subestação</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Índice Recup. = (alertas críticos / total) × % perda — quanto maior, maior o potencial de recuperação</p>
         </div>
         {loading ? (
           <Skeleton className="h-40" />
@@ -180,7 +180,7 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100 text-xs text-slate-500 uppercase tracking-wide">
+                <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
                   <th className="px-5 py-3 text-left font-medium">Subestação</th>
                   <th className="px-5 py-3 text-left font-medium">Zona</th>
                   <th className="px-5 py-3 text-right font-medium">Perda Técnica</th>
@@ -193,21 +193,21 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
               <tbody className="divide-y divide-slate-50">
                 {(data?.porSubestacao ?? []).length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-8 text-center text-slate-400 text-sm">
+                    <td colSpan={7} className="px-5 py-8 text-center text-muted-foreground text-sm">
                       Sem dados para o período selecionado
                     </td>
                   </tr>
                 ) : (
                   data?.porSubestacao.map((r) => (
-                    <tr key={r.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-5 py-3 font-medium text-slate-700">{r.nome}</td>
-                      <td className="px-5 py-3 text-slate-500 text-xs">{r.zona_bairro}</td>
+                    <tr key={r.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-5 py-3 font-medium text-foreground">{r.nome}</td>
+                      <td className="px-5 py-3 text-muted-foreground text-xs">{r.zona_bairro}</td>
                       <td className="px-5 py-3 text-right tabular-nums text-amber-600">{formatKWh(r.perda_tecnica_kwh)}</td>
                       <td className="px-5 py-3 text-right tabular-nums text-red-600 font-medium">{formatKWh(r.perda_comercial_kwh)}</td>
-                      <td className="px-5 py-3 text-right tabular-nums text-slate-600">{formatCVE(r.cve_comercial_estimado)}</td>
+                      <td className="px-5 py-3 text-right tabular-nums text-foreground">{formatCVE(r.cve_comercial_estimado)}</td>
                       <td className="px-5 py-3 text-right">
                         {r.total_alertas > 0 ? (
-                          <span className="text-slate-600">
+                          <span className="text-foreground">
                             {r.alertas_alto_score}/{r.total_alertas}
                           </span>
                         ) : (
@@ -218,7 +218,7 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                           r.irec > 10 ? "bg-red-100 text-red-700"
                           : r.irec > 5 ? "bg-amber-100 text-amber-700"
-                          : "bg-slate-100 text-slate-600"
+                          : "bg-slate-100 text-foreground"
                         }`}>
                           {r.irec}
                         </span>
