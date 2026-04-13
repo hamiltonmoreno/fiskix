@@ -82,39 +82,38 @@ describe("Sidebar — Itens de navegação base", () => {
     expect(within(aside).getByText("Gestor de Perdas")).toBeInTheDocument();
   });
 
-  it("exibe as iniciais 'HT' do nome no avatar", () => {
-    renderSidebar("diretor");
-    // Existem 2 avatares (mobile + desktop)
-    expect(screen.getAllByText("HT").length).toBeGreaterThan(0);
+  it("exibe o label de role 'Diretor' no footer para role diretor", () => {
+    const { aside } = renderSidebar("diretor");
+    expect(within(aside).getByText("Diretor")).toBeInTheDocument();
   });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
 describe("Sidebar — Controlo de acesso por Role", () => {
-  it("admin_fiskix vê a secção Administração", () => {
+  it("admin_fiskix vê a secção Configurações", () => {
     renderSidebar("admin_fiskix");
     // Aparece mobile + desktop → getAllBy
-    expect(screen.getAllByText("Administração").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Configurações").length).toBeGreaterThan(0);
   });
 
-  it("gestor_perdas vê a secção Administração", () => {
+  it("gestor_perdas vê a secção Configurações", () => {
     renderSidebar("gestor_perdas");
-    expect(screen.getAllByText("Administração").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Configurações").length).toBeGreaterThan(0);
   });
 
-  it("diretor NÃO vê a secção Administração", () => {
+  it("diretor NÃO vê a secção Configurações", () => {
     renderSidebar("diretor");
-    expect(screen.queryByText("Administração")).not.toBeInTheDocument();
+    expect(screen.queryByText("Configurações")).not.toBeInTheDocument();
   });
 
-  it("fiscal NÃO vê a secção Administração", () => {
+  it("fiscal NÃO vê a secção Configurações", () => {
     renderSidebar("fiscal");
-    expect(screen.queryByText("Administração")).not.toBeInTheDocument();
+    expect(screen.queryByText("Configurações")).not.toBeInTheDocument();
   });
 
-  it("supervisor NÃO vê a secção Administração", () => {
+  it("supervisor NÃO vê a secção Configurações", () => {
     renderSidebar("supervisor");
-    expect(screen.queryByText("Administração")).not.toBeInTheDocument();
+    expect(screen.queryByText("Configurações")).not.toBeInTheDocument();
   });
 
   it("admin_fiskix vê Utilizadores e Configuração (superAdminOnly)", () => {
@@ -162,7 +161,7 @@ describe("Sidebar — Relatórios (visibilidade por role)", () => {
 describe("Sidebar — Collapse com localStorage", () => {
   it("inicia expandida por omissão (sem localStorage)", () => {
     const { aside } = renderSidebar("gestor_perdas");
-    expect(aside.className).toContain("w-60");
+    expect(aside.className).toContain("w-64");
   });
 
   it("lê o estado collapsed do localStorage na montagem", () => {

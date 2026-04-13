@@ -16,8 +16,10 @@ function DeltaBadge({ pct }: { pct: number }) {
   const isWorse = pct > 0;
   return (
     <span className={cn(
-      "inline-flex items-center gap-0.5 text-xs font-medium",
-      isWorse ? "text-red-600" : "text-emerald-600"
+      "inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold",
+      isWorse
+        ? "text-[#ba1a1a] bg-[#ffdad6]"
+        : "text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-950/40"
     )}>
       <Icon name={isWorse ? "trending_up" : "trending_down"} size="xs" />
       {Math.abs(pct).toFixed(1)}% vs mês ant.
@@ -78,7 +80,7 @@ function KPICard({
 }) {
   const styles = SEVERITY_STYLES[severity];
   return (
-    <div className="kpi-card bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm px-5 py-4 flex flex-col gap-3 hover:shadow-md transition-shadow duration-200">
+    <div className="kpi-card bg-surface-container-lowest rounded-[1.5rem] border border-outline-variant/10 shadow-sm px-6 py-5 flex flex-col gap-3 hover:shadow-md transition-shadow duration-200">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
           <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", styles.dot)} />
@@ -92,7 +94,7 @@ function KPICard({
       {loading ? (
         <Skeleton className="h-9 w-3/4 rounded-xl" />
       ) : (
-        <div className={cn("text-3xl font-bold leading-none tracking-tight tabular-nums", styles.valueColor)}>
+        <div className={cn("text-[2rem] font-bold leading-none tracking-tighter tabular-nums text-on-surface", styles.valueColor)}>
           {value}
         </div>
       )}
