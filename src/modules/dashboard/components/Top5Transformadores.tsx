@@ -134,10 +134,11 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
   }, [mesAno, supabase]);
 
   return (
-    <div className="bg-card rounded-xl border border-border p-4">
-      <h3 className="font-semibold text-foreground mb-4">
-        Top 5 Transformadores — Energia Injetada vs Faturada
-      </h3>
+    <div className="bg-surface-container-lowest rounded-[1.5rem] p-8 shadow-sm border border-outline-variant/10">
+      <div className="mb-6">
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Análise</p>
+        <p className="font-bold text-on-surface text-lg">Top 5 Transformadores</p>
+      </div>
       {loading ? (
         <Skeleton className="h-64 w-full rounded-lg" />
       ) : data.length === 0 ? (

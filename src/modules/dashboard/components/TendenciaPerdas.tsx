@@ -144,12 +144,15 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
   const maxPerda = Math.max(...data.map((d) => d.perda_pct), 20);
 
   return (
-    <div className="bg-card rounded-xl border border-border p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-foreground">Tendência de Perdas — 12 Meses</h3>
-        <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+    <div className="bg-surface-container-lowest rounded-[1.5rem] p-8 shadow-sm border border-outline-variant/10">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Histórico</p>
+          <p className="font-bold text-on-surface text-lg">Tendência de Perdas — 12 Meses</p>
+        </div>
+        <span className="text-[11px] text-on-surface-variant flex items-center gap-1.5">
           <span className="w-3 h-0.5 bg-red-400 inline-block rounded" />
-          Limiar zona vermelha (15%)
+          Limiar 15%
         </span>
       </div>
 

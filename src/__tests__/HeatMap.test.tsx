@@ -72,7 +72,7 @@ describe("HeatMap.tsx", () => {
   it("exibe o skeleton de carregamento", () => {
     const { container } = render(<HeatMap mesAno="03-2026" />);
 
-    expect(screen.getByText("Mapa de Calor — Subestações")).toBeInTheDocument();
+    expect(screen.getByText("Mapa de Calor — Perdas por Zona")).toBeInTheDocument();
     expect(container.querySelector("[data-slot='skeleton']")).toBeInTheDocument();
   });
 
@@ -87,8 +87,8 @@ describe("HeatMap.tsx", () => {
     expect(screen.getByText("Mock Map Container, subestacoes count: 1")).toBeInTheDocument();
 
     // Legendas (verde, ambar, vermelho)
-    expect(screen.getByText("<10% perda")).toBeInTheDocument();
-    expect(screen.getByText("10-15%")).toBeInTheDocument();
-    expect(screen.getByText(">15%")).toBeInTheDocument();
+    expect(screen.getByText(/<10%/)).toBeInTheDocument();
+    expect(screen.getByText(/10–15%/)).toBeInTheDocument();
+    expect(screen.getByText(/>15%/)).toBeInTheDocument();
   });
 });

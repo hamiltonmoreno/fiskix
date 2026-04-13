@@ -23,51 +23,58 @@ export default async function ApiKeysPage() {
     .order("atualizado_em", { ascending: false });
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 py-4">
-        <h1 className="text-lg font-bold text-slate-900">API Keys</h1>
-        <p className="text-sm text-slate-400">Acesso externo à API REST pública do Fiskix</p>
-      </header>
+    <div className="min-h-screen bg-background px-8 pt-8 pb-12">
 
-      <main className="max-w-3xl mx-auto p-6 space-y-6">
-        {/* Endpoints disponíveis */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h2 className="text-sm font-semibold text-slate-700 mb-3">Endpoints disponíveis</h2>
-          <div className="space-y-2 font-mono text-xs text-slate-600">
-            <div className="flex gap-3">
-              <span className="text-emerald-600 font-semibold w-12">GET</span>
-              <span>/api/v1/alertas</span>
-              <span className="text-slate-400">?mes_ano= &status= &min_score= &subestacao_id=</span>
-            </div>
-            <div className="flex gap-3">
-              <span className="text-emerald-600 font-semibold w-12">GET</span>
-              <span>/api/v1/alertas/:id</span>
-              <span className="text-slate-400">detalhe com motivo e dados do cliente</span>
-            </div>
-            <div className="flex gap-3">
-              <span className="text-emerald-600 font-semibold w-12">GET</span>
-              <span>/api/v1/balanco</span>
-              <span className="text-slate-400">?mes_ano= &subestacao_id=</span>
-            </div>
-            <div className="flex gap-3">
-              <span className="text-emerald-600 font-semibold w-12">GET</span>
-              <span>/api/v1/predicoes</span>
-              <span className="text-slate-400">?mes_ano= &min_score_ml=</span>
-            </div>
+      {/* Page hero */}
+      <div className="mb-8">
+        <p className="text-xs font-bold text-primary uppercase tracking-[0.15em] mb-2">
+          Administração · Integração
+        </p>
+        <h1 className="text-[2.5rem] font-bold tracking-tighter text-on-surface leading-none">
+          API Keys
+        </h1>
+        <p className="text-sm text-on-surface-variant mt-2">
+          Acesso externo à API REST pública do Fiskix
+        </p>
+      </div>
+
+      <div className="max-w-3xl space-y-4">
+
+        {/* Endpoints */}
+        <div className="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-outline-variant/10">
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">
+            Endpoints Disponíveis
+          </p>
+          <div className="space-y-2">
+            {[
+              { path: "/api/v1/alertas", params: "?mes_ano= &status= &min_score= &subestacao_id=" },
+              { path: "/api/v1/alertas/:id", params: "detalhe com motivo e dados do cliente" },
+              { path: "/api/v1/balanco", params: "?mes_ano= &subestacao_id=" },
+              { path: "/api/v1/predicoes", params: "?mes_ano= &min_score_ml=" },
+            ].map((ep) => (
+              <div key={ep.path} className="flex items-center gap-3 font-mono text-xs">
+                <span className="text-emerald-600 font-bold w-10 flex-shrink-0">GET</span>
+                <span className="text-on-surface font-bold">{ep.path}</span>
+                <span className="text-on-surface-variant">{ep.params}</span>
+              </div>
+            ))}
           </div>
-          <p className="text-xs text-slate-400 mt-3">
-            Autenticação: <code className="bg-slate-100 px-1.5 py-0.5 rounded">Authorization: Bearer &lt;api_key&gt;</code> · Limite: 60 req/min
+          <p className="text-[11px] text-on-surface-variant mt-4 bg-surface-container-low rounded-lg px-3 py-2 font-mono">
+            Authorization: Bearer &lt;api_key&gt; · Limite: 60 req/min
           </p>
         </div>
 
-        {/* Lista de chaves */}
-        <div className="bg-white rounded-xl border border-slate-200">
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-700">Chaves Ativas</h2>
+        {/* Keys list */}
+        <div className="bg-surface-container-lowest rounded-[1.5rem] shadow-sm overflow-hidden border border-outline-variant/10">
+          <div className="px-6 py-5 border-b border-surface-container-low">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Chaves</p>
+            <p className="font-bold text-on-surface">Chaves Ativas</p>
           </div>
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y divide-surface-container-low">
             {(keys ?? []).length === 0 ? (
-              <p className="px-5 py-8 text-center text-slate-400 text-sm">Nenhuma chave configurada.</p>
+              <p className="px-6 py-10 text-center text-on-surface-variant text-sm">
+                Nenhuma chave configurada.
+              </p>
             ) : (
               (keys ?? []).map((k) => {
                 const clienteNome = k.chave.replace("api_key_", "");
@@ -75,20 +82,24 @@ export default async function ApiKeysPage() {
                   day: "2-digit", month: "short", year: "numeric",
                 });
                 return (
-                  <div key={k.chave} className="px-5 py-4 flex items-start gap-4">
-                    <div className="p-2 bg-slate-100 rounded-lg mt-0.5">
-                      <Key className="w-4 h-4 text-slate-500" />
+                  <div key={k.chave} className="px-6 py-5 flex items-start gap-4 hover:bg-surface-container-low/30 transition-colors">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Key className="w-4 h-4 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-800 capitalize">{clienteNome}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{k.descricao}</p>
-                      <p className="text-xs text-slate-300 mt-1">Actualizada em {dataActualizada}</p>
+                      <p className="text-xs font-bold text-on-surface capitalize">{clienteNome}</p>
+                      <p className="text-[11px] text-on-surface-variant mt-0.5">{k.descricao}</p>
+                      <p className="text-[11px] text-on-surface-variant/50 mt-1 font-mono">
+                        Actualizada em {dataActualizada}
+                      </p>
                     </div>
-                    <div className="text-right">
-                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">Ativa</span>
-                      <p className="text-xs text-slate-400 mt-2">
-                        Para revogar: substituir o valor em<br />
-                        <code className="text-xs bg-slate-100 px-1 rounded">{k.chave}</code>
+                    <div className="text-right flex-shrink-0">
+                      <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-[9px] font-bold uppercase rounded-full">
+                        Ativa
+                      </span>
+                      <p className="text-[10px] text-on-surface-variant mt-2 font-mono">
+                        Revogar: substituir<br />
+                        <code className="bg-surface-container-low px-1 rounded">{k.chave}</code>
                       </p>
                     </div>
                   </div>
@@ -98,16 +109,24 @@ export default async function ApiKeysPage() {
           </div>
         </div>
 
-        {/* Instruções */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 text-sm text-amber-700">
-          <p className="font-semibold mb-1">Como gerar uma nova chave segura</p>
-          <p>Execute no terminal e guarde o resultado no Supabase SQL Editor:</p>
-          <code className="block mt-2 bg-amber-100 rounded p-2 text-xs font-mono">
-            openssl rand -hex 32<br /><br />
-            UPDATE configuracoes SET valor = &apos;&lt;nova_chave&gt;&apos; WHERE chave = &apos;api_key_electra&apos;;
-          </code>
+        {/* Instructions */}
+        <div className="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-amber-200/40">
+          <p className="text-[11px] font-bold text-amber-600 uppercase tracking-widest mb-3">
+            Como gerar uma nova chave
+          </p>
+          <p className="text-xs text-on-surface-variant mb-3">
+            Execute no terminal e guarde o resultado no Supabase SQL Editor:
+          </p>
+          <pre className="bg-surface-container-low rounded-xl p-4 text-[11px] font-mono text-on-surface overflow-x-auto">
+{`openssl rand -hex 32
+
+UPDATE configuracoes
+SET valor = '<nova_chave>'
+WHERE chave = 'api_key_electra';`}
+          </pre>
         </div>
-      </main>
+
+      </div>
     </div>
   );
 }

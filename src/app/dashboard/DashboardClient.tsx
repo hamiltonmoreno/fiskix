@@ -68,69 +68,73 @@ export function DashboardClient({ profile }: DashboardClientProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Page header */}
-      <div className="px-6 pt-6 pb-4 no-print">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
+      {/* ── Page Hero ── */}
+      <div className="px-8 pt-8 pb-6 no-print">
+        <div className="grid grid-cols-12 gap-6 items-end mb-8">
+          <div className="col-span-12 lg:col-span-8">
+            <p className="text-xs font-bold text-primary uppercase tracking-[0.15em] mb-2">
+              Electra · Cabo Verde
+            </p>
+            <h1 className="text-[2.5rem] font-bold text-on-surface tracking-tighter leading-tight">
               {greeting}, {firstName}
             </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Visão geral do sistema de fiscalização
+            <p className="mt-2 text-on-surface-variant text-base leading-relaxed">
+              Visão geral do sistema de fiscalização de perdas e alertas de fraude.
             </p>
           </div>
 
-          {/* Filters */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Icon name="calendar_today" size="xs" />
-            </div>
-            <Select value={mesAno} onValueChange={setMesAno}>
-              <SelectTrigger className="w-44 h-9 text-sm rounded-xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {MESES.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {new Date(m + "-01").toLocaleDateString("pt-CV", {
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* ── Filter pill bar ── */}
+          <div className="col-span-12 lg:col-span-4 flex items-center justify-end">
+            <div className="flex items-center gap-2 bg-surface-container-low p-1.5 rounded-2xl">
+              <Select value={mesAno} onValueChange={setMesAno}>
+                <SelectTrigger className="flex items-center gap-1.5 px-3 py-2 bg-white rounded-xl shadow-sm border-none h-auto text-xs font-medium text-on-surface ring-0 focus:ring-0 [&>svg]:hidden">
+                  <Icon name="calendar_today" size="xs" className="text-primary" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MESES.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {new Date(m + "-01").toLocaleDateString("pt-CV", {
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <Select
-              value={zona ?? "Todos"}
-              onValueChange={(v) => setZona(v === "Todos" ? undefined : v)}
-            >
-              <SelectTrigger className="w-44 h-9 text-sm rounded-xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ZONAS.map((z) => (
-                  <SelectItem key={z} value={z}>
-                    {z === "Todos" ? "Todas as zonas" : z.replace(/_/g, " ")}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select
+                value={zona ?? "Todos"}
+                onValueChange={(v) => setZona(v === "Todos" ? undefined : v)}
+              >
+                <SelectTrigger className="flex items-center gap-1.5 px-3 py-2 text-on-surface-variant hover:text-on-surface border-none h-auto text-xs font-medium ring-0 focus:ring-0 bg-transparent [&>svg]:hidden">
+                  <Icon name="filter_list" size="xs" />
+                  <SelectValue placeholder="Zona" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ZONAS.map((z) => (
+                    <SelectItem key={z} value={z}>
+                      {z === "Todos" ? "Todas as zonas" : z.replace(/_/g, " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main content — bento grid */}
-      <main className="px-6 pb-8 space-y-4" id="alertas">
-        {/* KPIs row */}
+      {/* ── Bento grid ── */}
+      <main className="px-8 pb-12" id="alertas">
+        {/* KPIs */}
         <KPICards data={kpis} loading={kpisLoading} />
 
         {/* Row 2: mapa + alertas críticos */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          <div className="lg:col-span-3">
+        <div className="grid grid-cols-12 gap-6 mt-6">
+          <div className="col-span-12 lg:col-span-8">
             <HeatMap mesAno={mesAno} zona={zona} />
           </div>
-          <div className="lg:col-span-2">
+          <div className="col-span-12 lg:col-span-4">
             <AlertasCriticosPanel
               alertas={kpis?.alertas_criticos}
               loading={kpisLoading}
@@ -140,13 +144,19 @@ export function DashboardClient({ profile }: DashboardClientProps) {
         </div>
 
         {/* Row 3: tendência + top5 */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <TendenciaPerdas mesAno={mesAno} zona={zona} />
-          <Top5Transformadores mesAno={mesAno} />
+        <div className="grid grid-cols-12 gap-6 mt-6">
+          <div className="col-span-12 xl:col-span-7">
+            <TendenciaPerdas mesAno={mesAno} zona={zona} />
+          </div>
+          <div className="col-span-12 xl:col-span-5">
+            <Top5Transformadores mesAno={mesAno} />
+          </div>
         </div>
 
         {/* Row 4: tabela completa */}
-        <TabelaAlertas mesAno={mesAno} zona={zona} />
+        <div className="mt-6">
+          <TabelaAlertas mesAno={mesAno} zona={zona} />
+        </div>
       </main>
     </div>
   );

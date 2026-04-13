@@ -57,7 +57,7 @@ describe("ImportarDados.tsx", () => {
     render(<ImportarDados historico={[]} />);
 
     expect(screen.getByText("Importar Dados")).toBeInTheDocument();
-    expect(screen.getByText("CSV e Excel de faturação ou injeção")).toBeInTheDocument();
+    expect(screen.getByText(/CSV e Excel de faturação ou injeção/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Faturação de Clientes" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Injeção de Energia" })).toBeInTheDocument();
   });
@@ -65,7 +65,7 @@ describe("ImportarDados.tsx", () => {
   it("exibe a zona de upload por defeito", () => {
     render(<ImportarDados historico={[]} />);
     expect(screen.getByText("Arrastar ficheiro ou clicar para selecionar")).toBeInTheDocument();
-    expect(screen.getByText("CSV, XLS, XLSX até 10MB")).toBeInTheDocument();
+    expect(screen.getByText(/CSV, XLS, XLSX/)).toBeInTheDocument();
   });
 
   it("mostra mensagem quando histórico está vazio", () => {
@@ -78,9 +78,9 @@ describe("ImportarDados.tsx", () => {
 
     expect(screen.getByText("faturacao_marco.csv")).toBeInTheDocument();
     expect(screen.getByText("injecao_fevereiro.csv")).toBeInTheDocument();
-    expect(screen.getByText("500")).toBeInTheDocument(); // total_registos
-    expect(screen.getByText("498")).toBeInTheDocument(); // sucesso
-    expect(screen.getByText("2")).toBeInTheDocument(); // erros
+    expect(screen.getByText("500 total")).toBeInTheDocument(); // total_registos
+    expect(screen.getByText("498 ok")).toBeInTheDocument(); // sucesso
+    expect(screen.getByText("2 erros")).toBeInTheDocument(); // erros
   });
 
   // ── 2. Seletor de Tipo ───────────────────────────────────────────────────────
@@ -89,14 +89,14 @@ describe("ImportarDados.tsx", () => {
 
     // Por defeito: faturação
     expect(
-      screen.getByText(/Colunas: numero_contador, mes_ano/)
+      screen.getByText(/numero_contador.*mes_ano/)
     ).toBeInTheDocument();
 
     // Clicar em Injeção de Energia
     fireEvent.click(screen.getByRole("button", { name: "Injeção de Energia" }));
 
     expect(
-      screen.getByText(/Colunas: subestacao_nome, mes_ano/)
+      screen.getByText(/subestacao_nome.*mes_ano/)
     ).toBeInTheDocument();
   });
 
@@ -122,7 +122,7 @@ describe("ImportarDados.tsx", () => {
 
     // Preview aparece após resolução do fetch mockado
     await waitFor(() => {
-      expect(screen.getByText(/Preview: teste.csv/)).toBeInTheDocument();
+      expect(screen.getByText("teste.csv")).toBeInTheDocument();
     });
 
     expect(screen.getAllByText(/1 registos/).length).toBeGreaterThan(0);
@@ -152,7 +152,7 @@ describe("ImportarDados.tsx", () => {
     fireEvent.change(input, { target: { files: [fakeFile] } });
 
     await waitFor(() => {
-      expect(screen.getByText("Erros de validação:")).toBeInTheDocument();
+      expect(screen.getByText(/Erros de validação/)).toBeInTheDocument();
       expect(screen.getByText(/Linha 2 · kwh_faturado: Valor não numérico/)).toBeInTheDocument();
     });
   });
@@ -227,7 +227,7 @@ describe("ImportarDados.tsx", () => {
     // Resultado
     await waitFor(() => {
       expect(screen.getByText("Importação concluída")).toBeInTheDocument();
-      expect(screen.getByText("1 inseridos · 0 erros")).toBeInTheDocument();
+      expect(screen.getByText("1 inseridos")).toBeInTheDocument();
     });
 
     // fetch deve ter sido chamado 2x (preview + importação)

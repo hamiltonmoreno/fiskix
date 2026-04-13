@@ -93,7 +93,7 @@ describe("AlertasPage.tsx", () => {
     render(<AlertasPage />);
 
     expect(screen.getByText("Alertas de Fraude")).toBeInTheDocument();
-    expect(screen.getByText("Gestão completa dos alertas gerados pelo motor de scoring")).toBeInTheDocument();
+    expect(screen.getByText(/Motor de scoring activo/)).toBeInTheDocument();
     
     // O filtro de zona usa shadcn Select — opções não estão no DOM até o dropdown abrir
     // Verificamos apenas que o componente renderizou sem erros após carregar zonas
