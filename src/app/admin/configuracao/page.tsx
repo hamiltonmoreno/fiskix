@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Save, RotateCcw, AlertCircle, CheckCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,16 +56,20 @@ export default function ConfiguracaoPage() {
   const [saving, setSaving] = useState(false);
   const [sucesso, setSucesso] = useState(false);
   const [erroGlobal, setErroGlobal] = useState<string | null>(null);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
-    supabase
-      .from("configuracoes")
-      .select("chave, valor, descricao")
-      .then(({ data }) => {
+    async function fetchConfigs() {
+      try {
+        const { data } = await supabase
+          .from("configuracoes")
+          .select("chave, valor, descricao");
         setConfigs(data ?? []);
+      } finally {
         setLoading(false);
-      });
+      }
+    }
+    fetchConfigs();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const erros: Record<string, string | null> = {};

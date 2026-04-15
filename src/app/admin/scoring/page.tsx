@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Play, CheckCircle, Loader2, History, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentMesAno } from "@/lib/utils";
@@ -57,7 +57,7 @@ export default function ScoringPage() {
   const [historico, setHistorico] = useState<HistoricoRun[]>([]);
   const [expandedRun, setExpandedRun] = useState<string | null>(null);
   const [showHistorico, setShowHistorico] = useState(false);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     supabase

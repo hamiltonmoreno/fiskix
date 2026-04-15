@@ -54,11 +54,11 @@ describe("useExecutivoData", () => {
     });
   });
 
-  it("começa com loading=true e data=null", () => {
-    // useExecutivoData imported at top
+  it("começa com loading=true e data=null", async () => {
     const { result } = renderHook(() => useExecutivoData(mockFilters, true));
     expect(result.current.loading).toBe(true);
     expect(result.current.data).toBeNull();
+    await waitFor(() => expect(result.current.loading).toBe(false));
   });
 
   it("não carrega dados quando active=false", () => {

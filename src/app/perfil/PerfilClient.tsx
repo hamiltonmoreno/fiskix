@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Shield, KeyRound, CheckCircle, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { UserRole } from "@/types/database";
@@ -43,7 +43,7 @@ type FeedbackState = { type: "success" | "error"; message: string } | null;
 const inputClass = "w-full px-4 py-2.5 bg-surface-container-low text-on-surface rounded-xl text-sm border-none focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-on-surface-variant/50";
 
 export function PerfilClient({ profile: profileInicial, email }: Props) {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const [nome, setNome] = useState(profileInicial.nome_completo);
   const [savingNome, setSavingNome] = useState(false);

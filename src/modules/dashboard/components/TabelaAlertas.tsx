@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAlertas } from "../hooks/useAlertas";
 import { formatMesAno } from "@/lib/utils";
 import { exportToExcel } from "@/lib/export";
-import { MessageSquare, ClipboardList, ChevronLeft, ChevronRight, RefreshCw, Eye, FileDown } from "lucide-react";
+import { MessageSquare, ClipboardList, ChevronLeft, ChevronRight, RefreshCw, FileDown } from "lucide-react";
 import { AlertaSheet, type AlertaSheetData } from "@/modules/alertas/components/AlertaSheet";
 import { ScoreBadge } from "@/components/ui/score-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
