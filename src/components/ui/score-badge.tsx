@@ -8,19 +8,19 @@ interface ScoreBadgeProps {
 
 export function ScoreBadge({ score, showScore = false, className }: ScoreBadgeProps) {
   const isCritico = score >= 75;
-  const isMedio = score >= 50 && score < 75;
+  const isMedio   = score >= 50 && score < 75;
 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold",
-        isCritico && "bg-red-100 text-red-700",
-        isMedio && "bg-amber-100 text-amber-700",
-        !isCritico && !isMedio && "bg-green-100 text-green-700",
+        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase",
+        isCritico && "bg-[#ffdad6] text-[#ba1a1a]",
+        isMedio   && "bg-amber-100 text-amber-700",
+        !isCritico && !isMedio && "bg-emerald-100 text-emerald-700",
         className
       )}
     >
-      {showScore && <span className="font-bold">{score}</span>}
+      {showScore && <span className="tabular-nums">{score}</span>}
       {isCritico ? "CRÍTICO" : isMedio ? "MÉDIO" : "BAIXO"}
     </span>
   );

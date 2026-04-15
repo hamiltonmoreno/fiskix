@@ -54,8 +54,8 @@ const CustomTooltip = ({
   const perdaCVE = d.perda_kwh * d.tarifa_media;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm text-sm space-y-1">
-      <p className="font-semibold text-slate-900">{label}</p>
+    <div className="bg-card border border-border rounded-lg p-3 shadow-sm text-sm space-y-1">
+      <p className="font-semibold text-foreground">{label}</p>
       <p className="text-blue-600">Injetado: {d.kwh_injetado.toLocaleString("pt-CV")} kWh</p>
       <p className="text-green-600">Faturado: {d.kwh_faturado.toLocaleString("pt-CV")} kWh</p>
       <p className="text-red-600 font-medium">
@@ -144,19 +144,22 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
   const maxPerda = Math.max(...data.map((d) => d.perda_pct), 20);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-slate-700">Tendência de Perdas — 12 Meses</h3>
-        <span className="text-xs text-slate-400 flex items-center gap-1.5">
+    <div className="bg-surface-container-lowest rounded-[1.5rem] p-8 shadow-sm border border-outline-variant/10">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Histórico</p>
+          <p className="font-bold text-on-surface text-lg">Tendência de Perdas — 12 Meses</p>
+        </div>
+        <span className="text-[11px] text-on-surface-variant flex items-center gap-1.5">
           <span className="w-3 h-0.5 bg-red-400 inline-block rounded" />
-          Limiar zona vermelha (15%)
+          Limiar 15%
         </span>
       </div>
 
       {loading ? (
         <Skeleton className="h-52 w-full rounded-lg" />
       ) : data.every((d) => d.kwh_injetado === 0) ? (
-        <div className="h-52 flex items-center justify-center text-slate-400 text-sm">
+        <div className="h-52 flex items-center justify-center text-muted-foreground text-sm">
           Sem dados de injeção nos últimos 12 meses
         </div>
       ) : (
@@ -168,16 +171,16 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
                 <stop offset="95%" stopColor="#EF4444" stopOpacity={0.02} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis
               dataKey="mes"
-              tick={{ fontSize: 11, fill: "#94a3b8" }}
+              tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
               domain={[0, Math.ceil(maxPerda / 5) * 5]}
-              tick={{ fontSize: 11, fill: "#94a3b8" }}
+              tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(v) => `${v}%`}

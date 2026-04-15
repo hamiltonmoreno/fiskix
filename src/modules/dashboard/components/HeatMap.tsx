@@ -86,30 +86,34 @@ export function HeatMap({ mesAno, zona }: HeatMapProps) {
 
   if (!Map) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 p-4">
-        <h3 className="font-semibold text-slate-700 mb-3">Mapa de Calor — Subestações</h3>
-        <Skeleton className="h-80 w-full rounded-lg" />
+      <div className="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-outline-variant/10">
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Subestações</p>
+        <p className="font-bold text-on-surface mb-4">Mapa de Calor — Perdas por Zona</p>
+        <Skeleton className="h-80 w-full rounded-xl" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-slate-700">Mapa de Calor — Subestações</h3>
-        <div className="flex items-center gap-4 text-xs text-slate-500">
-          <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-green-600 inline-block" /> &lt;10% perda
+    <div className="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-outline-variant/10">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Subestações</p>
+          <p className="font-bold text-on-surface">Mapa de Calor — Perdas por Zona</p>
+        </div>
+        <div className="flex items-center gap-3 text-[11px] text-on-surface-variant">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> &lt;10%
           </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" /> 10-15%
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> 10–15%
           </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-600 inline-block" /> &gt;15%
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-red-600 inline-block" /> &gt;15%
           </span>
         </div>
       </div>
-      <div className="h-80 rounded-lg overflow-hidden">
+      <div className="h-[22rem] rounded-xl overflow-hidden">
         <Map subestacoes={subestacoes} mesAno={mesAno} />
       </div>
     </div>

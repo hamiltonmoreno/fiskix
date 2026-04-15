@@ -48,3 +48,9 @@ supabase/.temp
 CLAUDE.local.md
 .claude/CLAUDE.local.md
 .claude/settings.local.json
+
+# Python cache (gerado pelos scripts do ui-ux-pro-max)
+__pycache__/
+*.pyc
+*.pyo
+design-system/

@@ -8,6 +8,7 @@ import { AlertasCriticosPanel } from "@/modules/dashboard/components/AlertasCrit
 import { useKPIs } from "@/modules/dashboard/hooks/useKPIs";
 import { getCurrentMesAno } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Icon } from "@/components/Icon";
 import {
   Select,
   SelectContent,
@@ -18,15 +19,15 @@ import {
 
 const HeatMap = dynamic(
   () => import("@/modules/dashboard/components/HeatMap").then((m) => m.HeatMap),
-  { ssr: false, loading: () => <Skeleton className="h-64 rounded-xl" /> }
+  { ssr: false, loading: () => <Skeleton className="h-80 rounded-2xl" /> }
 );
 const Top5Transformadores = dynamic(
   () => import("@/modules/dashboard/components/Top5Transformadores").then((m) => m.Top5Transformadores),
-  { ssr: false, loading: () => <Skeleton className="h-64 rounded-xl" /> }
+  { ssr: false, loading: () => <Skeleton className="h-64 rounded-2xl" /> }
 );
 const TendenciaPerdas = dynamic(
   () => import("@/modules/dashboard/components/TendenciaPerdas").then((m) => m.TendenciaPerdas),
-  { ssr: false, loading: () => <Skeleton className="h-48 rounded-xl" /> }
+  { ssr: false, loading: () => <Skeleton className="h-56 rounded-2xl" /> }
 );
 
 interface DashboardClientProps {
@@ -56,64 +57,84 @@ export function DashboardClient({ profile }: DashboardClientProps) {
   const [zona, setZona] = useState<string | undefined>(undefined);
   const { data: kpis, loading: kpisLoading } = useKPIs(mesAno, zona);
 
+  const greeting = (() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Bom dia";
+    if (hour < 18) return "Boa tarde";
+    return "Boa noite";
+  })();
+
+  const firstName = profile.nome_completo.split(" ")[0];
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Bar */}
-      <header className="bg-card border-b border-border sticky top-0 z-30 no-print">
-        <div className="px-4 lg:px-6 py-3 flex items-center justify-between gap-4">
-          <h1 className="text-base font-semibold text-foreground hidden sm:block">
-            Dashboard
-          </h1>
-          <div className="flex items-center gap-2 ml-auto">
-            <Select value={mesAno} onValueChange={setMesAno}>
-              <SelectTrigger className="w-44 h-9 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {MESES.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {new Date(m + "-01").toLocaleDateString("pt-CV", {
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={zona ?? "Todos"}
-              onValueChange={(v) => setZona(v === "Todos" ? undefined : v)}
-            >
-              <SelectTrigger className="w-44 h-9 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ZONAS.map((z) => (
-                  <SelectItem key={z} value={z}>
-                    {z === "Todos" ? "Todas as zonas" : z.replace(/_/g, " ")}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {/* ── Page Hero ── */}
+      <div className="px-8 pt-8 pb-6 no-print">
+        <div className="grid grid-cols-12 gap-6 items-end mb-8">
+          <div className="col-span-12 lg:col-span-8">
+            <p className="text-xs font-bold text-primary uppercase tracking-[0.15em] mb-2">
+              Electra · Cabo Verde
+            </p>
+            <h1 className="text-[2.5rem] font-bold text-on-surface tracking-tighter leading-tight">
+              {greeting}, {firstName}
+            </h1>
+            <p className="mt-2 text-on-surface-variant text-base leading-relaxed">
+              Visão geral do sistema de fiscalização de perdas e alertas de fraude.
+            </p>
           </div>
 
-          <span className="text-sm text-muted-foreground hidden lg:block whitespace-nowrap">
-            {profile.nome_completo}
-          </span>
-        </div>
-      </header>
+          {/* ── Filter pill bar ── */}
+          <div className="col-span-12 lg:col-span-4 flex items-center justify-end">
+            <div className="flex items-center gap-2 bg-surface-container-low p-1.5 rounded-2xl">
+              <Select value={mesAno} onValueChange={setMesAno}>
+                <SelectTrigger className="flex items-center gap-1.5 px-3 py-2 bg-white rounded-xl shadow-sm border-none h-auto text-xs font-medium text-on-surface ring-0 focus:ring-0 [&>svg]:hidden">
+                  <Icon name="calendar_today" size="xs" className="text-primary" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MESES.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {new Date(m + "-01").toLocaleDateString("pt-CV", {
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-      {/* Main content */}
-      <main className="px-4 lg:px-6 py-6 space-y-6" id="alertas">
+              <Select
+                value={zona ?? "Todos"}
+                onValueChange={(v) => setZona(v === "Todos" ? undefined : v)}
+              >
+                <SelectTrigger className="flex items-center gap-1.5 px-3 py-2 text-on-surface-variant hover:text-on-surface border-none h-auto text-xs font-medium ring-0 focus:ring-0 bg-transparent [&>svg]:hidden">
+                  <Icon name="filter_list" size="xs" />
+                  <SelectValue placeholder="Zona" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ZONAS.map((z) => (
+                    <SelectItem key={z} value={z}>
+                      {z === "Todos" ? "Todas as zonas" : z.replace(/_/g, " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Bento grid ── */}
+      <main className="px-8 pb-12" id="alertas">
+        {/* KPIs */}
         <KPICards data={kpis} loading={kpisLoading} />
 
-        {/* 2-column: mapa + alertas críticos */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          <div className="lg:col-span-3 h-80">
+        {/* Row 2: mapa + alertas críticos */}
+        <div className="grid grid-cols-12 gap-6 mt-6">
+          <div className="col-span-12 lg:col-span-8">
             <HeatMap mesAno={mesAno} zona={zona} />
           </div>
-          <div className="lg:col-span-2">
+          <div className="col-span-12 lg:col-span-4">
             <AlertasCriticosPanel
               alertas={kpis?.alertas_criticos}
               loading={kpisLoading}
@@ -122,10 +143,20 @@ export function DashboardClient({ profile }: DashboardClientProps) {
           </div>
         </div>
 
-        <TendenciaPerdas mesAno={mesAno} zona={zona} />
-        <Top5Transformadores mesAno={mesAno} />
+        {/* Row 3: tendência + top5 */}
+        <div className="grid grid-cols-12 gap-6 mt-6">
+          <div className="col-span-12 xl:col-span-7">
+            <TendenciaPerdas mesAno={mesAno} zona={zona} />
+          </div>
+          <div className="col-span-12 xl:col-span-5">
+            <Top5Transformadores mesAno={mesAno} />
+          </div>
+        </div>
 
-        <TabelaAlertas mesAno={mesAno} zona={zona} />
+        {/* Row 4: tabela completa */}
+        <div className="mt-6">
+          <TabelaAlertas mesAno={mesAno} zona={zona} />
+        </div>
       </main>
     </div>
   );

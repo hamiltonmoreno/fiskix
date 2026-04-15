@@ -87,7 +87,7 @@ describe("Top5Transformadores.tsx", () => {
     expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
     
     // Confirma título
-    expect(screen.getByText("Top 5 Transformadores — Energia Injetada vs Faturada")).toBeInTheDocument();
+    expect(screen.getByText("Top 5 Transformadores")).toBeInTheDocument();
 
     await waitFor(() => {
       // Skeleton sumiu!

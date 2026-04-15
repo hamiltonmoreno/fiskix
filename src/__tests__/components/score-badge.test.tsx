@@ -7,7 +7,7 @@ describe("ScoreBadge", () => {
     render(<ScoreBadge score={91} />);
     expect(screen.getByText("CRÍTICO")).toBeInTheDocument();
     const badge = screen.getByText("CRÍTICO").closest("span")!;
-    expect(badge.className).toContain("red");
+    expect(badge.className).toMatch(/ffdad6|ba1a1a|red/);
   });
 
   it("mostra MÉDIO e classe amarela para score entre 50 e 74", () => {
