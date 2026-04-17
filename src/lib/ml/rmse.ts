@@ -4,6 +4,7 @@ export interface ParRMSE {
 }
 
 export interface ResultadoRMSE {
+  /** RMSE rounded to 4 decimal places, or null when samples are insufficient. */
   rmse: number | null;
   n_amostras: number;
   nota?: string;
@@ -16,6 +17,11 @@ export function calcularRMSE(pares: ParRMSE[]): ResultadoRMSE {
 
   if (pares.length < 5) {
     return { rmse: null, n_amostras: pares.length, nota: "amostras_insuficientes" };
+  }
+
+  const invalid = pares.find(({ score_ml }) => score_ml < 0 || score_ml > 1);
+  if (invalid) {
+    throw new RangeError(`score_ml must be in [0,1], received ${invalid.score_ml}`);
   }
 
   const sumSquaredErrors = pares.reduce(

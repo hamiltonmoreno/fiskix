@@ -70,4 +70,15 @@ describe("calcularRMSE", () => {
     expect(result.n_amostras).toBe(5);
     expect(result.rmse).toBe(0.5);
   });
+
+  it("retorna rmse válido exatamente com 5 amostras (limiar mínimo)", () => {
+    const pares: ParRMSE[] = Array(5).fill({ score_ml: 0.5, y_true: 1 as const });
+    expect(calcularRMSE(pares).rmse).not.toBeNull();
+  });
+
+  it("lança RangeError quando score_ml está fora de [0,1]", () => {
+    const pares: ParRMSE[] = Array(5).fill({ score_ml: 72, y_true: 1 as const });
+    expect(() => calcularRMSE(pares)).toThrow(RangeError);
+    expect(() => calcularRMSE(pares)).toThrow("score_ml must be in [0,1]");
+  });
 });
