@@ -4,5 +4,6 @@
     "scss.validate": false,
     "[css]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+    },
+    "markdown.validate.enabled": true
 }
