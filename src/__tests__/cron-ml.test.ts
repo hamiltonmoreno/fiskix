@@ -4,7 +4,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const mockSelect = vi.fn();
 const mockEq = vi.fn();
-const mockFrom = vi.fn(() => ({ select: mockSelect }));
+const mockNot = vi.fn();
+const mockSingle = vi.fn();
+const mockUpsert = vi.fn();
+const mockFrom = vi.fn(() => ({ select: mockSelect, upsert: mockUpsert }));
 
 vi.mock("@supabase/supabase-js", () => ({
   createClient: () => ({ from: mockFrom }),
@@ -38,8 +41,20 @@ function setupEnv() {
 }
 
 function setupSupabaseMock(data = subestacoes, error: null | object = null) {
-  mockSelect.mockReturnValue({ eq: mockEq });
-  mockEq.mockResolvedValue({ data, error });
+  const chainable = {
+    eq: mockEq,
+    not: mockNot,
+    single: mockSingle,
+  };
+  mockSelect.mockReturnValue(chainable);
+  mockNot.mockResolvedValue({ data: null });
+  mockSingle.mockResolvedValue({ data: null });
+  mockUpsert.mockResolvedValue({ data: null, error: null });
+  mockEq.mockImplementation(() => ({
+    ...chainable,
+    then: (resolve: (value: { data: unknown; error: null | object }) => void) =>
+      resolve({ data, error }),
+  }));
 }
 
 function setupMLScoringMock(result: object = { scored: 5 }) {
@@ -187,5 +202,26 @@ describe("GET /api/cron/ml", () => {
     const expected = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const expectedStr = `${expected.getFullYear()}-${String(expected.getMonth() + 1).padStart(2, "0")}`;
     expect(body.mes_ano).toBe(expectedStr);
+  });
+
+  it("inclui campo rmse na resposta", async () => {
+    setupSupabaseMock();
+    setupMLScoringMock({ scored: 4 });
+    const { GET } = await import("@/app/api/cron/ml/route");
+    const res = await GET(buildRequest());
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toHaveProperty("rmse");
+  });
+
+  it("scoring não é afectado quando o cálculo RMSE falha", async () => {
+    setupSupabaseMock();
+    setupMLScoringMock({ scored: 3 });
+    const { GET } = await import("@/app/api/cron/ml/route");
+    const res = await GET(buildRequest());
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.total_scored).toBeGreaterThanOrEqual(0);
+    expect(body.subestacoes_processadas).toBeGreaterThanOrEqual(0);
   });
 });
