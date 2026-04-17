@@ -29,20 +29,15 @@ const SEGMENT_LABELS: Record<string, string> = {
 };
 
 const ROLE_LABELS: Record<string, string> = {
-  admin_fiskix:  "Admin",
-  gestor_perdas: "Gestor",
+  admin_fiskix:  "Admin Fiskix",
+  gestor_perdas: "Gestor de Perdas",
   supervisor:    "Supervisor",
   fiscal:        "Fiscal",
   diretor:       "Diretor",
 };
 
 function getInitials(name: string) {
-  return name
-    .split(" ")
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
+  return name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
 }
 
 export function TopBar({ profile }: TopBarProps) {
@@ -65,78 +60,94 @@ export function TopBar({ profile }: TopBarProps) {
         "shadow-sm shadow-blue-900/4 no-print"
       )}
     >
-      {/* ── Left: Breadcrumb ── */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm min-w-0">
-        <Link
-          href="/dashboard"
-          className="text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded flex-shrink-0"
-          aria-label="Início"
-        >
-          <Icon name="home" size="xs" />
-        </Link>
-        {crumbs.map((crumb) => (
-          <span key={crumb.href} className="flex items-center gap-1 min-w-0">
-            <Icon name="chevron_right" size="xs" className="text-border flex-shrink-0" />
-            {crumb.isLast ? (
-              <span
-                className="text-foreground font-semibold truncate"
-                aria-current="page"
-              >
-                {crumb.label}
-              </span>
-            ) : (
-              <Link
-                href={crumb.href}
-                className="text-muted-foreground hover:text-foreground transition-colors truncate"
-              >
-                {crumb.label}
-              </Link>
-            )}
-          </span>
-        ))}
-      </nav>
+      {/* ── Left ── */}
+      {isDashboard ? (
+        /* Dashboard: search bar */
+        <div className="relative group flex-1 max-w-sm">
+          <Icon
+            name="search"
+            size="sm"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors pointer-events-none"
+          />
+          <input
+            type="search"
+            placeholder="Pesquisar medidores, bairros ou O.S..."
+            className="w-full pl-9 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+          />
+        </div>
+      ) : (
+        /* Other pages: breadcrumb */
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm min-w-0">
+          <Link
+            href="/dashboard"
+            className="text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded flex-shrink-0"
+            aria-label="Início"
+          >
+            <Icon name="home" size="xs" />
+          </Link>
+          {crumbs.map((crumb) => (
+            <span key={crumb.href} className="flex items-center gap-1 min-w-0">
+              <Icon name="chevron_right" size="xs" className="text-border flex-shrink-0" />
+              {crumb.isLast ? (
+                <span className="text-foreground font-semibold truncate" aria-current="page">
+                  {crumb.label}
+                </span>
+              ) : (
+                <Link href={crumb.href} className="text-muted-foreground hover:text-foreground transition-colors truncate">
+                  {crumb.label}
+                </Link>
+              )}
+            </span>
+          ))}
+        </nav>
+      )}
 
-      {/* ── Right: Actions + User ── */}
-      <div className="flex items-center gap-2 flex-shrink-0">
+      {/* ── Right ── */}
+      <div className="flex items-center gap-3 flex-shrink-0">
 
         {/* "Monitoramento Ao Vivo" pill — dashboard only */}
         {isDashboard && (
-          <span className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-[#007AFF] bg-[#d8e2ff]/40 rounded-full text-xs font-semibold select-none">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#007AFF] animate-pulse" />
-            Ao Vivo
-          </span>
+          <button className="hidden sm:flex items-center gap-2 px-4 py-1.5 text-primary bg-primary/8 hover:bg-primary/12 rounded-full text-xs font-bold transition-colors cursor-pointer">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
+            Monitoramento Ao Vivo
+          </button>
         )}
 
-        {/* Notification bell */}
+        {/* Bell */}
         <button
-          className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
+          className="relative p-2 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
           aria-label="Notificações"
         >
           <Icon name="notifications" size="sm" />
-          <span
-            className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#ba1a1a] rounded-full border-2 border-white dark:border-slate-950"
-            aria-hidden="true"
-          />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#ba1a1a] rounded-full border-2 border-white dark:border-slate-950" aria-hidden="true" />
+        </button>
+
+        {/* Help */}
+        <button
+          className="p-2 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
+          aria-label="Ajuda"
+        >
+          <Icon name="help_outline" size="sm" />
         </button>
 
         {/* Divider */}
-        <div className="w-px h-5 bg-border mx-1" />
+        <div className="w-px h-5 bg-border" />
 
-        {/* User info */}
+        {/* User profile */}
         <Link
           href="/perfil"
-          className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
+          className="flex items-center gap-2.5 pl-1 rounded-lg hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
         >
-          <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0">
-            {getInitials(profile.nome_completo)}
-          </div>
-          <div className="hidden md:flex flex-col items-start leading-none">
-            <span className="text-[12px] font-semibold text-foreground truncate max-w-[120px]">
-              {profile.nome_completo.split(" ")[0]}
+          <div className="hidden md:flex flex-col items-end leading-none">
+            <span className="text-[12px] font-bold text-slate-900 dark:text-white truncate max-w-[120px]">
+              {profile.nome_completo.split(" ").slice(0, 2).join(" ")}
             </span>
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-[10px] text-slate-500 mt-0.5">
               {ROLE_LABELS[profile.role] ?? profile.role}
             </span>
+          </div>
+          <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 border-2 border-white shadow-sm">
+            {getInitials(profile.nome_completo)}
           </div>
         </Link>
       </div>
