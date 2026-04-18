@@ -16,7 +16,8 @@ test.describe("Login Page", () => {
   });
 
   test("shows brand and confidentiality footer", async ({ page }) => {
-    await expect(page.getByText("Fiskix", { exact: true }).first()).toBeVisible();
+    // Checking for 'Fiskix' using a regex to accommodate 'Fiskix' or 'Fiskix Energy'
+    await expect(page.getByText(/Fiskix/i).first()).toBeVisible();
     await expect(page.getByText(/CONFIDENCIAL/i)).toBeVisible();
   });
 });

@@ -3,15 +3,16 @@
 import { useState, useMemo, useCallback } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Dialog from "@radix-ui/react-dialog";
-import { FileDown, Printer, Calendar, X } from "lucide-react";
+import { Icon } from "@/components/Icon";
 import { getCurrentMesAno, getLastNMonths } from "@/lib/utils";
 import { exportToExcel, type ExportRow } from "@/lib/export";
 import type { RelatoriosFiltros, Periodo, TipoTarifa } from "@/modules/relatorios/types";
+import { haptics } from "@/lib/haptics";
 
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const tabSkeleton = () => <Skeleton className="h-96 w-full rounded-[1.5rem] mt-4" />;
+const tabSkeleton = () => <Skeleton className="h-96 w-full rounded-2xl mt-4" />;
 
 const TabExecutivo = dynamic(
   () => import("@/modules/relatorios/components/TabExecutivo").then((m) => m.TabExecutivo),
@@ -114,37 +115,46 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
   const mesesDisponiveis = getLastNMonths(24);
 
   return (
-    <div className="min-h-screen bg-background">
-
+  return (
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
       <Tabs.Root
         value={activeTab}
         onValueChange={(v) => {
+          haptics.light();
           setActiveTab(v as TabId);
           setExportPayload(null);
         }}
       >
         {/* Page hero + filter bar */}
-        <div className="px-8 pt-8 pb-0 no-print">
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <p className="text-xs font-bold text-primary uppercase tracking-[0.15em] mb-2">
-                Análise · {profile.nome_completo}
-              </p>
-              <h1 className="text-[2.5rem] font-bold tracking-tighter text-on-surface leading-none">
+        <div className="pb-0 no-print">
+          <div className="sm:flex sm:justify-between sm:items-center mb-8">
+            <div className="mb-4 sm:mb-0">
+              <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
                 Relatórios
               </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Análise · {profile.nome_completo}
+              </p>
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-2">
               <button
-                onClick={handleExportExcel}
+                onClick={() => { haptics.light(); handleExportExcel(); }}
                 disabled={!exportPayload}
                 aria-label="Exportar relatório em Excel"
-                className="p-2 text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-container-low disabled:opacity-40 cursor-pointer touch-manipulation transition-colors"
+                className="p-2 border border-gray-200 dark:border-gray-700/60 rounded-lg bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 transition-colors disabled:opacity-40 shadow-sm"
                 title="Exportar Excel"
               >
-                <FileDown className="w-4 h-4" />
+                <Icon name="download" size="xs" />
+              </button>
+              <button
+                onClick={() => { haptics.light(); window.print(); }}
+                aria-label="Imprimir ou exportar PDF"
+                className="p-2 border border-gray-200 dark:border-gray-700/60 rounded-lg bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 transition-colors shadow-sm"
+                title="Imprimir / PDF"
+              >
+                <Icon name="print" size="xs" />
               </button>
               <button
                 onClick={() => window.print()}
@@ -155,11 +165,11 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
                 <Printer className="w-4 h-4" />
               </button>
               <button
-                onClick={() => { setAgendarOpen(true); setAgendarSuccess(false); }}
+                onClick={() => { haptics.medium(); setAgendarOpen(true); setAgendarSuccess(false); }}
                 aria-label="Agendar envio de relatório"
-                className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-full text-xs font-bold hover:bg-primary/90 transition-colors cursor-pointer touch-manipulation"
+                className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
               >
-                <Calendar className="w-3.5 h-3.5" />
+                <Icon name="event" size="xs" />
                 Agendar
               </button>
             </div>
@@ -169,8 +179,8 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
           <div className="flex flex-wrap items-center gap-2 mb-6">
             <select
               value={periodo}
-              onChange={(e) => setPeriodo(e.target.value as Periodo)}
-              className="px-4 py-2 bg-surface-container-low text-on-surface-variant rounded-full text-xs font-bold border-none focus:outline-none focus:ring-2 focus:ring-primary/30 h-9 cursor-pointer"
+              onChange={(e) => { haptics.light(); setPeriodo(e.target.value as Periodo); }}
+              className="appearance-none pl-3 pr-8 py-2 border border-gray-200 dark:border-gray-700/60 rounded-lg text-sm font-medium bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-0 transition-colors cursor-pointer"
             >
               <option value="mes">Este mês</option>
               <option value="trimestre">Trimestre</option>
@@ -180,8 +190,8 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
 
             <select
               value={mesAno}
-              onChange={(e) => setMesAno(e.target.value)}
-              className="px-4 py-2 bg-surface-container-low text-on-surface-variant rounded-full text-xs font-bold border-none focus:outline-none focus:ring-2 focus:ring-primary/30 h-9 cursor-pointer"
+              onChange={(e) => { haptics.light(); setMesAno(e.target.value); }}
+              className="appearance-none pl-3 pr-8 py-2 border border-gray-200 dark:border-gray-700/60 rounded-lg text-sm font-medium bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-0 transition-colors cursor-pointer"
             >
               {mesesDisponiveis.map((m) => {
                 const [year, month] = m.split("-");
@@ -197,8 +207,8 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
 
             <select
               value={zona ?? ""}
-              onChange={(e) => setZona(e.target.value || undefined)}
-              className="px-4 py-2 bg-surface-container-low text-on-surface-variant rounded-full text-xs font-bold border-none focus:outline-none focus:ring-2 focus:ring-primary/30 h-9 cursor-pointer"
+              onChange={(e) => { haptics.light(); setZona(e.target.value || undefined); }}
+              className="appearance-none pl-3 pr-8 py-2 border border-gray-200 dark:border-gray-700/60 rounded-lg text-sm font-medium bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-0 transition-colors cursor-pointer"
             >
               <option value="">Todas as zonas</option>
               {ZONAS.map((z) => (
@@ -208,8 +218,8 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
 
             <select
               value={tipoTarifa ?? ""}
-              onChange={(e) => setTipoTarifa((e.target.value || undefined) as TipoTarifa | undefined)}
-              className="px-4 py-2 bg-surface-container-low text-on-surface-variant rounded-full text-xs font-bold border-none focus:outline-none focus:ring-2 focus:ring-primary/30 h-9 cursor-pointer"
+              onChange={(e) => { haptics.light(); setTipoTarifa((e.target.value || undefined) as TipoTarifa | undefined); }}
+              className="appearance-none pl-3 pr-8 py-2 border border-gray-200 dark:border-gray-700/60 rounded-lg text-sm font-medium bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-0 transition-colors cursor-pointer"
             >
               <option value="">Todas as tarifas</option>
               <option value="Residencial">Residencial</option>
@@ -220,14 +230,14 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
           </div>
 
           {/* Tab list */}
-          <Tabs.List className="flex gap-1 overflow-x-auto pb-px scrollbar-hide">
+          <Tabs.List className="flex gap-1 overflow-x-auto pb-px scrollbar-hide border-b border-gray-200 dark:border-gray-700/60 mb-6">
             {TAB_DEFS.map((tab) => (
               <Tabs.Trigger
                 key={tab.value}
                 value={tab.value}
-                className="px-4 py-2 text-xs font-bold whitespace-nowrap rounded-t-xl transition-colors focus:outline-none
-                  data-[state=active]:bg-surface-container-lowest data-[state=active]:text-on-surface data-[state=active]:shadow-sm
-                  data-[state=inactive]:text-on-surface-variant data-[state=inactive]:hover:text-on-surface data-[state=inactive]:hover:bg-surface-container-lowest/50"
+                className="px-4 py-2 text-sm font-semibold whitespace-nowrap transition-colors focus:outline-none
+                  data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 dark:data-[state=active]:border-blue-400
+                  data-[state=inactive]:text-gray-500 dark:data-[state=inactive]:text-gray-400 data-[state=inactive]:hover:text-gray-900 dark:data-[state=inactive]:hover:text-gray-100"
               >
                 {tab.label}
               </Tabs.Trigger>
@@ -236,8 +246,8 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
         </div>
 
         {/* Tab content */}
-        <div className="px-8 pb-12 pt-0">
-          <div className="bg-surface-container-lowest rounded-b-[1.5rem] rounded-tr-[1.5rem] shadow-sm">
+        <div className="pb-12 pt-0 w-full mb-8">
+          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 mosaic-card-hover w-full min-h-[400px]">
             <div className="p-6">
               <Tabs.Content value="executivo" className="focus:outline-none">
                 <TabExecutivo filtros={filtros} active={activeTab === "executivo"} onExportReady={handleExportReady} />
@@ -271,29 +281,28 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
         </div>
       </Tabs.Root>
 
-      {/* Agendar Envio modal */}
       <Dialog.Root open={agendarOpen} onOpenChange={setAgendarOpen}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface-container-lowest rounded-[1.5rem] shadow-xl w-full max-w-md p-6 z-50 focus:outline-none">
+          <Dialog.Overlay className="fixed inset-0 bg-gray-900/40 dark:bg-gray-900/60 backdrop-blur-sm z-50 transition-all duration-300" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700/60 w-full max-w-md p-6 z-50 focus:outline-none">
             <div className="flex items-center justify-between mb-5">
-              <Dialog.Title className="text-base font-bold text-on-surface">
+              <Dialog.Title className="text-lg font-bold text-gray-900 dark:text-gray-100">
                 Agendar Envio de Relatório
               </Dialog.Title>
-              <Dialog.Close className="p-1.5 rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors cursor-pointer">
-                <X className="w-4 h-4" />
+              <Dialog.Close className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors cursor-pointer">
+                <Icon name="close" size="xs" />
               </Dialog.Close>
             </div>
 
             {agendarSuccess ? (
-              <div className="p-4 bg-emerald-50 rounded-xl text-sm text-emerald-700">
+              <div className="p-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg text-sm text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20">
                 Envio agendado para{" "}
-                <strong>{agendarEmail}</strong> com frequência <strong>{agendarFreq}</strong>.
+                <strong className="font-semibold">{agendarEmail}</strong> com frequência <strong className="font-semibold">{agendarFreq}</strong>.
               </div>
             ) : (
               <form onSubmit={handleAgendarSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
                     Email
                   </label>
                   <input
@@ -302,18 +311,18 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
                     value={agendarEmail}
                     onChange={(e) => setAgendarEmail(e.target.value)}
                     placeholder="diretor@electra.cv"
-                    className="w-full text-sm bg-surface-container-low rounded-xl px-4 py-2.5 text-on-surface placeholder:text-on-surface-variant/50 border-none focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full text-sm bg-gray-50 dark:bg-gray-900/50 rounded-lg px-4 py-2 border border-gray-200 dark:border-gray-700/60 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-shadow"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
                     Frequência
                   </label>
                   <select
                     value={agendarFreq}
                     onChange={(e) => setAgendarFreq(e.target.value)}
-                    className="w-full text-sm bg-surface-container-low rounded-xl px-4 py-2.5 text-on-surface border-none focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+                    className="w-full text-sm bg-gray-50 dark:bg-gray-900/50 rounded-lg px-4 py-2 border border-gray-200 dark:border-gray-700/60 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer transition-shadow"
                   >
                     <option value="semanal">Semanal (toda segunda-feira)</option>
                     <option value="mensal">Mensal (dia 1 de cada mês)</option>
@@ -322,21 +331,22 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
                     Relatório
                   </label>
-                  <div className="text-sm text-on-surface bg-surface-container-low rounded-xl px-4 py-2.5">
+                  <div className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50 rounded-lg px-4 py-2 border border-gray-200 dark:border-gray-700/60">
                     {TAB_DEFS.find((t) => t.value === activeTab)?.label ?? "Executivo"}
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-2">
-                  <Dialog.Close className="flex-1 px-4 py-2 text-sm font-bold bg-surface-container-low text-on-surface-variant rounded-full hover:bg-surface-container transition-colors cursor-pointer">
+                <div className="flex gap-3 pt-4">
+                  <Dialog.Close className="flex-1 px-4 py-2 text-sm font-semibold border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
                     Cancelar
                   </Dialog.Close>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 text-sm font-bold bg-primary hover:bg-primary/90 text-white rounded-full transition-colors cursor-pointer"
+                    onClick={() => haptics.medium()}
+                    className="flex-1 px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm cursor-pointer"
                   >
                     Confirmar
                   </button>

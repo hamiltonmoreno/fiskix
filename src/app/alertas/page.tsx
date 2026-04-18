@@ -198,7 +198,7 @@ export default function AlertasPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-8 pt-8 pb-12">
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
       <AlertasFilters
         mesAno={mesAno}
         statusFilter={statusFilter}
@@ -212,11 +212,13 @@ export default function AlertasPage() {
         onRefresh={load}
       />
 
-      <p className="text-sm text-on-surface-variant -mt-4 mb-8">
-        {total} alertas · Motor de scoring activo
-      </p>
+      <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-6 flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+        {total} alertas · Monitorização Ativa
+      </div>
 
-      <AlertasTable
+      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 mosaic-card-hover">
+        <AlertasTable
         alertas={alertas}
         loading={loading}
         total={total}
@@ -229,6 +231,7 @@ export default function AlertasPage() {
         onSetPendingStatus={setPendingStatusUpdate}
         onPageChange={setPage}
       />
+      </div>
 
       <AlertaSheet
         alerta={alertaSheet}

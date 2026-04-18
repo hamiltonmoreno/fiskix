@@ -2,32 +2,31 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { KPICards } from "@/modules/dashboard/components/KPICards";
-import { TabelaAlertas } from "@/modules/dashboard/components/TabelaAlertas";
-import { AlertasCriticosPanel } from "@/modules/dashboard/components/AlertasCriticosPanel";
 import { useKPIs } from "@/modules/dashboard/hooks/useKPIs";
 import { getCurrentMesAno } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Icon } from "@/components/Icon";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { DashboardCard12 } from "@/components/mosaic/cards/DashboardCard12";
+import { DashboardCard06 } from "@/components/mosaic/cards/DashboardCard06";
+import { DatepickerMosaic } from "@/components/mosaic/DatepickerMosaic";
+import { DropdownFilter } from "@/components/mosaic/DropdownFilter";
 
-const HeatMap = dynamic(
-  () => import("@/modules/dashboard/components/HeatMap").then((m) => m.HeatMap),
-  { ssr: false, loading: () => <Skeleton className="h-80 rounded-2xl" /> }
+// Import charts dynamically to avoid SSR issues with Recharts
+const DashboardCardHeatMap = dynamic(
+  () => import("@/components/mosaic/cards/DashboardCardHeatMap").then((m) => m.DashboardCardHeatMap),
+  { ssr: false, loading: () => <Skeleton className="h-[268px] rounded-xl" /> }
 );
-const Top5Transformadores = dynamic(
-  () => import("@/modules/dashboard/components/Top5Transformadores").then((m) => m.Top5Transformadores),
-  { ssr: false, loading: () => <Skeleton className="h-64 rounded-2xl" /> }
+const DashboardCard01 = dynamic(
+  () => import("@/components/mosaic/cards/DashboardCard01").then((m) => m.DashboardCard01),
+  { ssr: false, loading: () => <Skeleton className="h-[268px] rounded-xl" /> }
 );
-const TendenciaPerdas = dynamic(
-  () => import("@/modules/dashboard/components/TendenciaPerdas").then((m) => m.TendenciaPerdas),
-  { ssr: false, loading: () => <Skeleton className="h-56 rounded-2xl" /> }
+const DashboardCard04 = dynamic(
+  () => import("@/components/mosaic/cards/DashboardCard04").then((m) => m.DashboardCard04),
+  { ssr: false, loading: () => <Skeleton className="h-[268px] rounded-xl" /> }
+);
+const DashboardCard07 = dynamic(
+  () => import("@/components/mosaic/cards/DashboardCard07").then((m) => m.DashboardCard07),
+  { ssr: false, loading: () => <Skeleton className="h-[268px] rounded-xl" /> }
 );
 
 interface DashboardClientProps {
@@ -54,7 +53,11 @@ const MESES = Array.from({ length: 12 }, (_, i) => {
 
 export function DashboardClient({ profile }: DashboardClientProps) {
   const [mesAno, setMesAno] = useState(getCurrentMesAno());
-  const [zona, setZona] = useState<string | undefined>(undefined);
+  
+  // Mosaic dropdown filter usage pattern
+  const [zonasSelecionadas, setZonasSelecionadas] = useState<string[]>([]);
+  const zona = zonasSelecionadas.length === 1 ? zonasSelecionadas[0] : undefined;
+
   const { data: kpis, loading: kpisLoading } = useKPIs(mesAno, zona);
 
   const greeting = (() => {
@@ -64,100 +67,86 @@ export function DashboardClient({ profile }: DashboardClientProps) {
     return "Boa noite";
   })();
 
-  const firstName = profile.nome_completo.split(" ")[0];
+  const filterOptions = ZONAS.filter(z => z !== "Todos").map(z => ({
+    label: z.replace(/_/g, " "),
+    value: z
+  }));
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* ── Page Hero ── */}
-      <div className="px-8 pt-8 pb-6 no-print">
-        <div className="grid grid-cols-12 gap-6 items-end mb-8">
-          <div className="col-span-12 lg:col-span-8">
-            <p className="text-xs font-bold text-primary uppercase tracking-[0.15em] mb-2">
-              Electra · Cabo Verde
-            </p>
-            <h1 className="text-[2.5rem] font-bold text-on-surface tracking-tighter leading-tight">
-              {greeting}, {firstName}
-            </h1>
-            <p className="mt-2 text-on-surface-variant text-base leading-relaxed">
-              Visão geral do sistema de fiscalização de perdas e alertas de fraude.
-            </p>
-          </div>
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+      {/* ── Page Header ── */}
+      <div className="sm:flex sm:justify-between sm:items-center mb-8">
+        
+        {/* Left: Title */}
+        <div className="mb-4 sm:mb-0">
+          <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
+            {greeting}, {profile.nome_completo.split(" ")[0]} 👋
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Visão geral de perdas e alertas do sistema Electra.
+          </p>
+        </div>
 
-          {/* ── Filter pill bar ── */}
-          <div className="col-span-12 lg:col-span-4 flex items-center justify-end">
-            <div className="flex items-center gap-2 bg-surface-container-low p-1.5 rounded-2xl">
-              <Select value={mesAno} onValueChange={setMesAno}>
-                <SelectTrigger className="flex items-center gap-1.5 px-3 py-2 bg-white rounded-xl shadow-sm border-none h-auto text-xs font-medium text-on-surface ring-0 focus:ring-0 [&>svg]:hidden">
-                  <Icon name="calendar_today" size="xs" className="text-primary" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {MESES.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {new Date(m + "-01").toLocaleDateString("pt-CV", {
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={zona ?? "Todos"}
-                onValueChange={(v) => setZona(v === "Todos" ? undefined : v)}
-              >
-                <SelectTrigger className="flex items-center gap-1.5 px-3 py-2 text-on-surface-variant hover:text-on-surface border-none h-auto text-xs font-medium ring-0 focus:ring-0 bg-transparent [&>svg]:hidden">
-                  <Icon name="filter_list" size="xs" />
-                  <SelectValue placeholder="Zona" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ZONAS.map((z) => (
-                    <SelectItem key={z} value={z}>
-                      {z === "Todos" ? "Todas as zonas" : z.replace(/_/g, " ")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        {/* Right: Actions */}
+        <div className="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
+          
+          {/* Mês dropdown (simplified to use native select for Mosaic look) */}
+          <div className="relative">
+            <select
+              value={mesAno}
+              onChange={(e) => setMesAno(e.target.value)}
+              className="appearance-none pl-9 pr-8 py-2 border border-gray-200 dark:border-gray-700/60 rounded-lg text-sm font-medium bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-0 transition-colors cursor-pointer w-full"
+            >
+              {MESES.map((m) => (
+                <option key={m} value={m}>
+                  {new Date(m + "-01").toLocaleDateString("pt-CV", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Icon name="calendar_today" size="xs" className="text-gray-400" />
+            </div>
+            <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+              <Icon name="arrow_drop_down" size="xs" className="text-gray-400" />
             </div>
           </div>
+
+          <DropdownFilter 
+            label="Zona" 
+            options={filterOptions} 
+            selected={zonasSelecionadas} 
+            onChange={setZonasSelecionadas} 
+          />
+
+          <button className="bg-primary hover:bg-primary/90 text-white font-medium text-sm px-3 py-2 rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-2 touch-manipulation">
+            {/* Added touch-manipulation per Mosaic mobile guidelines */}
+            <Icon name="add" size="xs" className="text-white" />
+            <span>Gerar Relatório</span>
+          </button>
         </div>
       </div>
 
-      {/* ── Bento grid ── */}
-      <main className="px-8 pb-12" id="alertas">
-        {/* KPIs */}
-        <KPICards data={kpis} loading={kpisLoading} />
-
-        {/* Row 2: mapa + alertas críticos */}
-        <div className="grid grid-cols-12 gap-6 mt-6">
-          <div className="col-span-12 lg:col-span-8">
-            <HeatMap mesAno={mesAno} zona={zona} />
-          </div>
-          <div className="col-span-12 lg:col-span-4">
-            <AlertasCriticosPanel
-              alertas={kpis?.alertas_criticos}
-              loading={kpisLoading}
-              mesAno={mesAno}
-            />
-          </div>
+      {/* ── Dashboard Cards ── */}
+      <div className="grid grid-cols-12 gap-6">
+        {/* Row 1: KPIs Mini stats */}
+        <div className="col-span-full">
+          <DashboardCard12 data={kpis} loading={kpisLoading} />
         </div>
 
-        {/* Row 3: tendência + top5 */}
-        <div className="grid grid-cols-12 gap-6 mt-6">
-          <div className="col-span-12 xl:col-span-7">
-            <TendenciaPerdas mesAno={mesAno} zona={zona} />
-          </div>
-          <div className="col-span-12 xl:col-span-5">
-            <Top5Transformadores mesAno={mesAno} />
-          </div>
-        </div>
+        {/* Row 2: Tendência (Line) and Top 5 (Bar) */}
+        <DashboardCard01 mesAno={mesAno} zona={zona} />
+        <DashboardCard04 mesAno={mesAno} />
+        
+        {/* Row 3: Heatmap and Alerts Breakdown (Doughnut) */}
+        <DashboardCardHeatMap mesAno={mesAno} zona={zona} />
+        <DashboardCard06 mesAno={mesAno} zona={zona} />
 
-        {/* Row 4: tabela completa */}
-        <div className="mt-6">
-          <TabelaAlertas mesAno={mesAno} zona={zona} />
-        </div>
-      </main>
+        {/* Row 4: Tabela de Alertas */}
+        <DashboardCard07 mesAno={mesAno} zona={zona} />
+      </div>
     </div>
   );
 }

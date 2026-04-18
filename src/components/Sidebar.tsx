@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { haptics } from "@/lib/haptics";
 import { Icon } from "@/components/Icon";
 import { SidebarNav } from "@/components/sidebar/SidebarNav";
 
@@ -28,9 +29,12 @@ export function Sidebar({ profile }: SidebarProps) {
     if (saved !== null) setCollapsed(saved === "true");
   }, []);
 
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (mobileOpen) setMobileOpen(false);
+  }, [pathname]);
 
   const toggleCollapsed = useCallback(() => {
+    haptics.light();
     const next = !collapsed;
     setCollapsed(next);
     localStorage.setItem("sidebar-collapsed", String(next));
@@ -53,75 +57,85 @@ export function Sidebar({ profile }: SidebarProps) {
 
   return (
     <>
-      {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100/60 flex items-center px-4 gap-3 no-print">
+      {/* ── Mobile top bar ── */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700/60 flex items-center px-4 gap-3 no-print">
         <button
-          onClick={() => setMobileOpen(true)}
+          onClick={() => {
+            haptics.drawerOpen();
+            setMobileOpen(true);
+          }}
           aria-label="Abrir menu"
           aria-expanded={mobileOpen}
           aria-controls="mobile-sidebar-drawer"
-          className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 touch-manipulation cursor-pointer"
+          className="p-2 rounded-lg text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 touch-manipulation cursor-pointer"
         >
           <Icon name="menu" size="md" />
         </button>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center shadow-sm">
             <Icon name="bolt" size="xs" filled className="text-white" />
           </div>
-          <span className="font-bold text-[#1a1c1f] dark:text-white">Fiskix</span>
+          <span className="font-bold text-gray-800 dark:text-gray-100">Fiskix</span>
         </div>
       </div>
 
-      {/* Mobile overlay */}
+      {/* ── Mobile overlay ── */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-gray-900/30 backdrop-blur-sm transition-opacity"
+          onClick={() => setMobileOpen(false)}
+        />
       )}
 
-      {/* Mobile drawer */}
+      {/* ── Mobile drawer ── */}
       <div
         id="mobile-sidebar-drawer"
         className={cn(
-          "lg:hidden fixed top-0 left-0 bottom-0 z-50 w-72 bg-[#f9f9fe] dark:bg-[#1a1c22]",
-          "border-r border-slate-200/60 dark:border-white/8 shadow-2xl",
+          "lg:hidden fixed top-0 left-0 bottom-0 z-50 w-64",
+          "bg-white dark:bg-gray-800",
+          "shadow-2xl",
           "transition-transform duration-300 ease-in-out no-print",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between h-14 px-6 border-b border-slate-200/60">
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-between h-16 px-5 border-b border-gray-200 dark:border-gray-700/60">
+          <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
               <Icon name="bolt" size="xs" filled className="text-white" />
             </div>
-            <span className="font-bold text-[#1a1c1f] dark:text-white">Fiskix</span>
+            <span className="font-bold text-gray-800 dark:text-gray-100">Fiskix</span>
           </div>
           <button
-            onClick={() => setMobileOpen(false)}
+            onClick={() => {
+              haptics.light();
+              setMobileOpen(false);
+            }}
             aria-label="Fechar menu"
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 touch-manipulation cursor-pointer"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 touch-manipulation cursor-pointer"
           >
             <Icon name="close" size="sm" />
           </button>
         </div>
-        <div className="h-[calc(100%-3.5rem)]">
+        <div className="h-[calc(100%-4rem)]">
           <SidebarNav {...navProps} />
         </div>
       </div>
 
-      {/* Desktop sidebar */}
+      {/* ── Desktop sidebar ── */}
       <aside className={cn(
         "hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 no-print",
-        "bg-[#f9f9fe] dark:bg-[#1a1c22]",
-        "border-r border-slate-200/60 dark:border-white/8",
+        "bg-white dark:bg-gray-800",
+        "border-r border-gray-200 dark:border-gray-700/60",
         "transition-[width] duration-300 ease-in-out",
-        collapsed ? "w-16" : "w-64"
+        collapsed ? "w-[4.5rem]" : "w-64"
       )}>
         <SidebarNav {...navProps} />
       </aside>
 
-      {/* Spacer */}
+      {/* ── Spacer (prevents content from going under fixed sidebar) ── */}
       <div className={cn(
         "hidden lg:block flex-shrink-0 transition-[width] duration-300 ease-in-out no-print",
-        collapsed ? "w-16" : "w-64"
+        collapsed ? "w-[4.5rem]" : "w-64"
       )} />
     </>
   );

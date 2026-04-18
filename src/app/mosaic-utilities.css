@@ -1,0 +1,131 @@
+/* ──────────────────────────────────────────
+   Mosaic-inspired utilities for Fiskix
+   ────────────────────────────────────────── */
+
+/* Sidebar expand transition utilities */
+.sidebar-expanded .sidebar-expand-hide {
+  display: none;
+}
+
+.sidebar-expanded .sidebar-expand-show {
+  display: block;
+}
+
+/* Custom scrollbar — thin & subtle */
+.mosaic-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--outline-variant) transparent;
+}
+
+.mosaic-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mosaic-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mosaic-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--outline-variant);
+  border-radius: 9999px;
+}
+
+.mosaic-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--outline);
+}
+
+/* Card hover lift effect (Mosaic style) */
+@media (prefers-reduced-motion: no-preference) {
+  .mosaic-card-hover {
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+  }
+
+  .mosaic-card-hover:hover {
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.08),
+      0 2px 4px -2px rgb(0 0 0 / 0.05);
+    transform: translateY(-1px);
+  }
+}
+
+/* Sidebar link group collapse/expand animation */
+@media (prefers-reduced-motion: no-preference) {
+  .sidebar-group-content {
+    overflow: hidden;
+    transition: max-height 0.2s ease-in-out;
+  }
+
+  .sidebar-group-content[data-collapsed="true"] {
+    max-height: 0;
+  }
+
+  .sidebar-group-arrow {
+    transition: transform 0.2s ease;
+  }
+
+  .sidebar-group-arrow[data-open="true"] {
+    transform: rotate(180deg);
+  }
+}
+
+/* Mosaic Badge Pulse */
+@keyframes mosaic-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.mosaic-badge-pulse {
+  animation: mosaic-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Dropdown fade-in (Mosaic pattern) */
+@media (prefers-reduced-motion: no-preference) {
+  .mosaic-dropdown-enter {
+    animation: mosaic-dropdown-in 0.15s ease-out;
+  }
+
+  @keyframes mosaic-dropdown-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Welcome banner gradient (Mosaic style) */
+.mosaic-welcome-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    color-mix(in srgb, var(--primary) 70%, #000) 100%
+  );
+}
+
+.dark .mosaic-welcome-gradient {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary) 40%, #000) 0%,
+    color-mix(in srgb, var(--primary) 20%, #000) 100%
+  );
+}
+
+/* Chart tooltip (Mosaic visual style) */
+.mosaic-chart-tooltip {
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.dark .mosaic-chart-tooltip {
+  background-color: var(--surface-container-high);
+}

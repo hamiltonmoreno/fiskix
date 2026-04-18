@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant sidebar-expanded (&:is(.sidebar-expanded *));
 
 @layer base {
   * {
@@ -87,6 +88,9 @@
 }
 
 @theme inline {
+  /* Mosaic-refined shadow */
+  --shadow-sm: 0 1px 1px 0 rgb(0 0 0 / 0.05), 0 1px 2px 0 rgb(0 0 0 / 0.02);
+
   --font-sans: "Inter", "Inter Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-heading: "Inter", "Inter Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -100,6 +104,9 @@
   --radius-3xl: 1.25rem;   /* 20px */
   --radius-xxl: 1.5rem;    /* 24px — main cards (ref: rounded-xxl) */
   --radius-4xl: 2rem;      /* 32px */
+
+  /* Mosaic extra breakpoint */
+  --breakpoint-xs: 480px;
 
   /* MD3 surface token aliases */
   --color-surface-container-lowest:  var(--surface-container-lowest);

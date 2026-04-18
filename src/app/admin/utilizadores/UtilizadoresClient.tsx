@@ -25,7 +25,7 @@ const ROLES: { value: UserRole; label: string }[] = [
 const ZONAS = ["Palmarejo", "Achada_Santo_Antonio", "Achada_Grande", "Plateau", "Sao_Vicente"];
 const ROLES_COM_ZONA: UserRole[] = ["fiscal", "supervisor"];
 
-const inputClass = "w-full px-4 py-2.5 bg-surface-container-low text-on-surface rounded-xl text-sm border-none focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-on-surface-variant/50";
+const inputClass = "w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 rounded-lg text-sm border border-gray-200 dark:border-gray-700/60 focus:outline-none focus:ring-2 focus:ring-blue-500/30 placeholder:text-gray-400";
 
 export function UtilizadoresClient({
   utilizadores: utilizadoresInicial,
@@ -126,66 +126,64 @@ export function UtilizadoresClient({
   }
 
   return (
-    <div className="min-h-screen bg-background px-8 pt-8 pb-12">
-
+  return (
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
       {/* Page hero */}
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <p className="text-xs font-bold text-primary uppercase tracking-[0.15em] mb-2">
-            Administração · Equipa
-          </p>
-          <h1 className="text-[2.5rem] font-bold tracking-tighter text-on-surface leading-none">
+      <div className="sm:flex sm:justify-between sm:items-center mb-8">
+        <div className="mb-4 sm:mb-0">
+          <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
             Utilizadores
           </h1>
-          <p className="text-sm text-on-surface-variant mt-2">
+          <p className="text-sm text-gray-500 mt-1 uppercase tracking-wider font-semibold">
             {utilizadores.length} registados
           </p>
         </div>
         <button
           onClick={() => { setShowModal(true); setEditUser(null); setConfirmDelete(null); }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-full text-xs font-bold hover:bg-primary/90 transition-colors cursor-pointer touch-manipulation"
+          className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-4 h-4" />
           Novo Utilizador
         </button>
       </div>
 
       {/* Table */}
-      <div className="bg-surface-container-lowest rounded-[1.5rem] shadow-sm overflow-hidden">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-surface-container-low/50 border-b border-surface-container-low">
-              <th className="px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left">Nome</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left">Role</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left">Zona</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left">Estado</th>
-              <th className="px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-surface-container-low">
-            {utilizadores.map((u) => (
-              <Fragment key={u.id}>
-                <tr className="hover:bg-surface-container-low/30 transition-colors">
-                  <td className="px-8 py-5">
-                    <p className="text-xs font-bold text-on-surface">{u.nome_completo}</p>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-bold uppercase">
-                      {ROLES.find((r) => r.value === u.role)?.label ?? u.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <p className="text-xs text-on-surface-variant">{u.id_zona?.replace(/_/g, " ") ?? "Global"}</p>
-                  </td>
-                  <td className="px-6 py-5">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                      u.ativo ? "bg-emerald-100 text-emerald-700" : "bg-surface-container-high text-on-surface-variant"
-                    }`}>
-                      {u.ativo ? "Ativo" : "Inativo"}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="flex items-center justify-end gap-1">
+      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 overflow-hidden mosaic-card-hover">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left whitespace-nowrap">
+            <thead className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/50 uppercase border-b border-gray-200 dark:border-gray-700/60">
+              <tr>
+                <th className="px-6 py-4 font-semibold tracking-wider">Nome</th>
+                <th className="px-6 py-4 font-semibold tracking-wider">Role</th>
+                <th className="px-6 py-4 font-semibold tracking-wider">Zona</th>
+                <th className="px-6 py-4 font-semibold tracking-wider">Estado</th>
+                <th className="px-8 py-4 font-semibold tracking-wider text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
+              {utilizadores.map((u) => (
+                <Fragment key={u.id}>
+                  <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/80 transition-colors">
+                    <td className="px-6 py-4">
+                      <p className="font-semibold text-gray-900 dark:text-gray-100">{u.nome_completo}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 rounded text-[11px] font-semibold uppercase">
+                        {ROLES.find((r) => r.value === u.role)?.label ?? u.role}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-gray-500 dark:text-gray-400">{u.id_zona?.replace(/_/g, " ") ?? "Global"}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded text-[11px] font-semibold uppercase border ${
+                        u.ativo ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20" : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700"
+                      }`}>
+                        {u.ativo ? "Ativo" : "Inativo"}
+                      </span>
+                    </td>
+                    <td className="px-8 py-4">
+                      <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => toggleAtivo(u.id, u.ativo)}
                         className="p-1.5 rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors cursor-pointer"
@@ -251,8 +249,8 @@ export function UtilizadoresClient({
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
           <div className="bg-surface-container-lowest rounded-[1.5rem] shadow-xl w-full max-w-md p-6">
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Novo</p>
-            <h2 className="font-bold text-on-surface text-lg mb-5">Criar Utilizador</h2>
-            <div className="space-y-3">
+            <h2 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-5">Criar Utilizador</h2>
+            <div className="space-y-4">
               <input type="text" placeholder="Nome completo" value={novoUser.nome_completo}
                 onChange={(e) => setNovoUser((p) => ({ ...p, nome_completo: e.target.value }))}
                 className={inputClass} />
@@ -276,12 +274,12 @@ export function UtilizadoresClient({
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowModal(false)}
-                className="flex-1 py-2.5 bg-surface-container-low text-on-surface-variant rounded-full text-sm font-bold hover:bg-surface-container transition-colors cursor-pointer">
+                className="flex-1 px-4 py-2 text-sm font-semibold border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
                 Cancelar
               </button>
               <button onClick={handleCriar}
                 disabled={loading || !novoUser.email || !novoUser.password || !novoUser.nome_completo.trim() || (ROLES_COM_ZONA.includes(novoUser.role) && !novoUser.id_zona)}
-                className="flex-1 py-2.5 bg-primary text-white rounded-full text-sm font-bold hover:bg-primary/90 disabled:opacity-40 transition-opacity cursor-pointer">
+                className="flex-1 px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm cursor-pointer disabled:opacity-50">
                 {loading ? "A criar..." : "Criar"}
               </button>
             </div>
@@ -291,11 +289,10 @@ export function UtilizadoresClient({
 
       {/* Modal: Editar Utilizador */}
       {editUser && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-surface-container-lowest rounded-[1.5rem] shadow-xl w-full max-w-md p-6">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Editar</p>
-            <h2 className="font-bold text-on-surface text-lg mb-5">Utilizador</h2>
-            <div className="space-y-3">
+        <div className="fixed inset-0 bg-gray-900/40 dark:bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 transition-all duration-300">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700/60 w-full max-w-md p-6">
+            <h2 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-5">Editar Utilizador</h2>
+            <div className="space-y-4">
               <input type="text" placeholder="Nome completo" value={editUser.nome_completo}
                 onChange={(e) => setEditUser((p) => p ? { ...p, nome_completo: e.target.value } : p)}
                 className={inputClass} />
@@ -313,11 +310,11 @@ export function UtilizadoresClient({
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setEditUser(null)}
-                className="flex-1 py-2.5 bg-surface-container-low text-on-surface-variant rounded-full text-sm font-bold hover:bg-surface-container transition-colors cursor-pointer">
+                className="flex-1 px-4 py-2 text-sm font-semibold border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
                 Cancelar
               </button>
               <button onClick={handleEditar} disabled={loading || !editUser?.nome_completo.trim()}
-                className="flex-1 py-2.5 bg-primary text-white rounded-full text-sm font-bold hover:bg-primary/90 disabled:opacity-40 transition-opacity cursor-pointer">
+                className="flex-1 px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm cursor-pointer disabled:opacity-50">
                 {loading ? "A guardar..." : "Guardar"}
               </button>
             </div>

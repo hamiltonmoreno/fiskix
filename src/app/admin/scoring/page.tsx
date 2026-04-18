@@ -99,17 +99,16 @@ export default function ScoringPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-8 pt-8 pb-12">
-      <div className="mb-8">
-        <p className="text-xs font-bold text-primary uppercase tracking-[0.15em] mb-2">
-          Administração · Engine
-        </p>
-        <h1 className="text-[2.5rem] font-bold tracking-tighter text-on-surface leading-none">
-          Motor de Scoring
-        </h1>
-        <p className="text-sm text-on-surface-variant mt-2">
-          9 Regras Graduais v2 · Execução manual ou cron automático
-        </p>
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+      <div className="sm:flex sm:justify-between sm:items-center mb-8">
+        <div className="mb-4 sm:mb-0">
+          <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
+            Motor de Scoring
+          </h1>
+          <p className="text-sm text-gray-500 mt-1 uppercase tracking-wider font-semibold">
+            9 Regras Graduais v2 · Execução manual ou cron automático
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-12 gap-6">
