@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/observability/logger";
 import { runPool } from "@/lib/concurrency";
+import { calcularRMSE, type ParRMSE, type ResultadoRMSE } from "@/lib/ml/rmse";
 
 /**
  * Cron route: executa o motor ML para todas as subestações ativas.
@@ -135,11 +136,86 @@ export async function GET(request: Request) {
   const totalScored = resultados.reduce((s, r) => s + (r.scored ?? 0), 0);
   const erros = resultados.filter((r) => r.error);
 
+  let rmseResult: ResultadoRMSE | null = null;
+  let rmseError: string | undefined;
+
+  try {
+    const { data: predicoes } = await supabase
+      .from("ml_predicoes")
+      .select("id_cliente, score_ml")
+      .eq("mes_ano", mesAno)
+      .eq("modelo_versao", "heuristic_v1");
+
+    const { data: relatorios } = await supabase
+      .from("relatorios_inspecao")
+      .select("resultado, alertas_fraude!inner(id_cliente, mes_ano)")
+      .eq("alertas_fraude.mes_ano", mesAno);
+
+    const { data: alertasResolvidos } = await supabase
+      .from("alertas_fraude")
+      .select("id_cliente, resultado")
+      .eq("mes_ano", mesAno)
+      .not("resultado", "in", '("Pendente","Pendente_Inspecao")');
+
+    const POSITIVO = new Set(["Fraude_Confirmada", "Anomalia_Tecnica"]);
+    const NEGATIVO = new Set(["Sem_Anomalia", "Falso_Positivo"]);
+
+    const groundTruth = new Map<string, 0 | 1>();
+
+    for (const alerta of alertasResolvidos ?? []) {
+      if (POSITIVO.has(alerta.resultado)) groundTruth.set(alerta.id_cliente, 1);
+      else if (NEGATIVO.has(alerta.resultado)) groundTruth.set(alerta.id_cliente, 0);
+    }
+
+    for (const rel of relatorios ?? []) {
+      const af = rel.alertas_fraude as unknown as { id_cliente: string; mes_ano: string };
+      if (POSITIVO.has(rel.resultado)) groundTruth.set(af.id_cliente, 1);
+      else if (NEGATIVO.has(rel.resultado)) groundTruth.set(af.id_cliente, 0);
+    }
+
+    const pares: ParRMSE[] = [];
+    for (const pred of predicoes ?? []) {
+      const yTrue = groundTruth.get(pred.id_cliente);
+      if (yTrue !== undefined) {
+        pares.push({ score_ml: pred.score_ml, y_true: yTrue });
+      }
+    }
+
+    rmseResult = calcularRMSE(pares);
+
+    const { data: configRow } = await supabase
+      .from("configuracoes")
+      .select("valor")
+      .eq("chave", "ml_rmse_historico")
+      .single();
+
+    const historico: Array<{ mes_ano: string; rmse: number | null; n_amostras: number; nota?: string }> =
+      configRow?.valor ? JSON.parse(configRow.valor) : [];
+
+    const idx = historico.findIndex((h) => h.mes_ano === mesAno);
+    const entry = {
+      mes_ano: mesAno,
+      rmse: rmseResult.rmse,
+      n_amostras: rmseResult.n_amostras,
+      ...(rmseResult.nota ? { nota: rmseResult.nota } : {}),
+    };
+    if (idx >= 0) historico[idx] = entry;
+    else historico.push(entry);
+
+    await supabase
+      .from("configuracoes")
+      .upsert({ chave: "ml_rmse_historico", valor: JSON.stringify(historico) }, { onConflict: "chave" });
+  } catch (err) {
+    rmseError = err instanceof Error ? err.message : String(err);
+    log.warn("cron.ml.rmse_failed", { error: rmseError });
+  }
+
   log.info("cron.ml.completed", {
     mes_ano: mesAno,
     subestacoes_processadas: subestacoes.length,
     total_scored: totalScored,
     erros: erros.length,
+    rmse: rmseResult?.rmse ?? null,
     duration_ms: Date.now() - startedAt,
   });
 
@@ -151,6 +227,8 @@ export async function GET(request: Request) {
       total_scored: totalScored,
       erros: erros.length,
       resultados,
+      rmse: rmseResult ?? null,
+      ...(rmseError ? { rmse_error: rmseError } : {}),
     },
     200,
     requestId

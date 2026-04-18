@@ -396,7 +396,7 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
 
       {/* Sync success banner */}
       {syncedCount > 0 && (
-        <div className="fixed bottom-4 left-4 right-4 bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-2">
+        <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-4 bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-2">
           <CloudUpload className="w-4 h-4 text-green-600 shrink-0" />
           <p className="text-green-700 text-sm">{syncedCount} relatório(s) offline sincronizado(s)</p>
           <button onClick={() => setSyncedCount(0)} className="ml-auto text-green-500 text-lg leading-none">×</button>
@@ -405,7 +405,7 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
 
       {/* Aviso offline */}
       {!isOnline && (
-        <div className="fixed bottom-4 left-4 right-4 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
+        <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-4 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
           <p className="text-amber-700 text-sm">Modo offline — a mostrar dados guardados</p>
         </div>

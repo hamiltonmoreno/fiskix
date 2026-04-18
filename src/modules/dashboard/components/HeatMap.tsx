@@ -113,7 +113,7 @@ export function HeatMap({ mesAno, zona }: HeatMapProps) {
           </span>
         </div>
       </div>
-      <div className="h-[22rem] rounded-xl overflow-hidden">
+      <div className="h-[22rem] rounded-xl [overflow:clip]">
         <Map subestacoes={subestacoes} mesAno={mesAno} />
       </div>
     </div>

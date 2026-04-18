@@ -26,13 +26,17 @@ export default async function AdminPage() {
   const isAdmin = profile.role === "admin_fiskix";
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 py-4">
-        <h1 className="text-lg font-bold text-slate-900">Administração</h1>
-        <p className="text-sm text-slate-400">{profile.nome_completo} · {profile.role}</p>
-      </header>
+    <div className="min-h-screen bg-background px-8 pt-8 pb-12">
+      <div className="mb-8">
+        <p className="text-xs font-bold text-primary uppercase tracking-[0.15em] mb-2">
+          Configurações
+        </p>
+        <h1 className="text-[2.5rem] font-bold tracking-tighter text-on-surface leading-none">
+          Administração
+        </h1>
+      </div>
 
-      <main className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Link
             href="/admin/importar"
@@ -115,7 +119,7 @@ export default async function AdminPage() {
             </Link>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

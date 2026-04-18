@@ -1,5 +1,60 @@
 # Fiskix — Contexto para Claude Code
 
+## Workflow Orchestration
+
+### 1. Plan Mode por defeito
+- Entrar em plan mode para qualquer tarefa não-trivial (3+ passos ou decisões arquiteturais)
+- Se algo correr mal, PARAR e replanejar imediatamente
+- Usar plan mode para passos de verificação, não apenas para construção
+- Escrever specs detalhadas antes de implementar para reduzir ambiguidade
+
+### 2. Estratégia de Subagentes
+- Usar subagentes para manter o contexto principal limpo
+- Delegar research, exploração e análise paralela a subagentes
+- Para problemas complexos, usar mais compute via subagentes
+- Uma tarefa por subagente para execução focada
+
+### 3. Loop de Auto-Melhoria
+- Após QUALQUER correção do utilizador: registar o padrão internamente para não repetir
+- Iterar até a taxa de erro baixar
+- Rever lições aprendidas no início de cada sessão relevante
+
+### 4. Verificação Antes de Concluir
+- Nunca marcar uma tarefa como completa sem provar que funciona
+- Comparar comportamento entre `main` e as alterações quando relevante
+- Pergunta obrigatória: "Um staff engineer aprovaria isto?"
+- Correr `npm run test` e `npm run type-check` antes de declarar done
+
+### 5. Exigir Elegância (com equilíbrio)
+- Para mudanças não-triviais: pausar e perguntar "existe uma forma mais elegante?"
+- Se um fix parecer hacky: "Sabendo tudo o que sei agora, implementar a solução elegante"
+- Ignorar para fixes simples e óbvios — não over-engineerar
+- Questionar o próprio trabalho antes de apresentar
+
+### 6. Bug Fixing Autónomo
+- Quando receber um bug report: resolver sem pedir ajuda passo-a-passo
+- Apontar para logs, erros, testes falhados — e resolvê-los
+- Correr testes CI falhados sem precisar de ser instruído
+
+## Gestão de Tarefas
+
+1. **Planear primeiro** — delinear o plano com itens verificáveis antes de implementar
+2. **Verificar o plano** — confirmar abordagem antes de iniciar implementação
+3. **Acompanhar progresso** — marcar itens como completos à medida que avança
+4. **Explicar mudanças** — resumo de alto nível em cada passo relevante
+5. **Documentar resultados** — registar o que foi feito e o resultado
+6. **Capturar lições** — após correções, guardar o padrão para não repetir
+
+## Princípios Base
+
+- **Simplicidade primeiro** — cada mudança tão simples quanto possível. Impacto mínimo no código.
+- **Sem preguiça** — encontrar causas raiz. Sem fixes temporários. Standards de senior engineer.
+- **Impacto mínimo** — só tocar o necessário. Sem side effects com novos bugs.
+- **Segurança** — nunca expor `.env.local` ou secrets. Validar input nas fronteiras do sistema.
+- **Testes** — 300 testes devem passar antes de qualquer commit em `main`. Scoring engine é crítico: validar sempre com testes existentes antes de alterar `engine.ts`.
+
+---
+
 ## O que é o Fiskix
 
 Plataforma SaaS de deteção de fraudes e perdas comerciais de energia elétrica. Cliente inicial: **Electra (Cabo Verde)**. **Fases 1 e 2 completas** (de 3).

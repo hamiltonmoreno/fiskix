@@ -1,12 +1,6 @@
 import { cn } from "@/lib/utils";
 import { NavLink } from "./NavLink";
-
-interface NavItem {
-  label: string;
-  href: string;
-  icon: string;
-  badge?: number;
-}
+import type { NavItem } from "./types";
 
 interface NavGroupProps {
   label: string;

@@ -30,7 +30,7 @@ export function AlertasCriticosPanel({ alertas, loading, mesAno }: AlertasCritic
       </div>
 
       {/* List */}
-      <div className="flex-1 space-y-1 overflow-y-auto">
+      <div className="flex-1 space-y-1 overflow-y-auto max-h-[24rem] lg:max-h-none">
         {loading ? (
           Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-12 w-full rounded-xl" />
