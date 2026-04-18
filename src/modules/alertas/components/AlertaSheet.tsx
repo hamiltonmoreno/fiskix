@@ -53,7 +53,7 @@ export function AlertaSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[420px] sm:w-[420px] overflow-y-auto">
+      <SheetContent className="w-full sm:w-[420px] overflow-y-auto">
         <SheetHeader className="mb-4">
           <SheetTitle className="text-base">{alerta.cliente.nome_titular}</SheetTitle>
           <p className="text-sm text-muted-foreground">

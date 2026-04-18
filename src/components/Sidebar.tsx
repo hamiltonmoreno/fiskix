@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -30,20 +30,24 @@ export function Sidebar({ profile }: SidebarProps) {
 
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
-  function toggleCollapsed() {
+  const toggleCollapsed = useCallback(() => {
     const next = !collapsed;
     setCollapsed(next);
     localStorage.setItem("sidebar-collapsed", String(next));
-  }
+  }, [collapsed]);
 
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
+  const handleSignOut = useCallback(async () => {
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      router.push("/login");
+    }
+  }, [supabase, router]);
 
-  function isActive(href: string) {
-    return pathname === href || pathname.startsWith(href + "/");
-  }
+  const isActive = useCallback(
+    (href: string) => pathname === href || pathname.startsWith(href + "/"),
+    [pathname]
+  );
 
   const navProps = { profile, collapsed, isActive, onToggleCollapsed: toggleCollapsed, onSignOut: handleSignOut };
 

@@ -3,14 +3,7 @@ import { cn } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import { NavGroup } from "./NavGroup";
 import { NavLink } from "./NavLink";
-
-interface NavItem {
-  label: string;
-  href: string;
-  icon: string;
-  badge?: number;
-  superAdminOnly?: boolean;
-}
+import type { NavItem } from "./types";
 
 const MONITORAMENTO: NavItem[] = [
   { label: "Dashboard",  href: "/dashboard",  icon: "dashboard" },
@@ -51,7 +44,7 @@ export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, on
   const isRelatorios = ["admin_fiskix", "diretor", "gestor_perdas"].includes(profile.role);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full overflow-y-auto overflow-x-visible">
 
       {/* Logo / Workspace Header */}
       <div className={cn("flex items-center gap-3 px-6 py-6", collapsed && "justify-center px-3")}>

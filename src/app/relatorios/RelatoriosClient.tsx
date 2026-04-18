@@ -220,7 +220,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
           </div>
 
           {/* Tab list */}
-          <Tabs.List className="flex gap-1 overflow-x-auto">
+          <Tabs.List className="flex gap-1 overflow-x-auto pb-px scrollbar-hide">
             {TAB_DEFS.map((tab) => (
               <Tabs.Trigger
                 key={tab.value}
@@ -237,7 +237,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
 
         {/* Tab content */}
         <div className="px-8 pb-12 pt-0">
-          <div className="bg-surface-container-lowest rounded-b-[1.5rem] rounded-tr-[1.5rem] shadow-sm overflow-hidden">
+          <div className="bg-surface-container-lowest rounded-b-[1.5rem] rounded-tr-[1.5rem] shadow-sm">
             <div className="p-6">
               <Tabs.Content value="executivo" className="focus:outline-none">
                 <TabExecutivo filtros={filtros} active={activeTab === "executivo"} onExportReady={handleExportReady} />
