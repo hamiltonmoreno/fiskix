@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { Save, RotateCcw, AlertCircle, CheckCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { haptics } from "@/lib/haptics";
+import { Icon } from "@/components/Icon";
 
 interface Configuracao {
   chave: string;
@@ -127,61 +129,58 @@ export default function ConfiguracaoPage() {
   const configsVisiveis = configs.filter((c) => CONFIG_LABELS[c.chave]);
 
   return (
-    <div className="min-h-screen bg-background px-8 pt-8 pb-12">
-
+  return (
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
       {/* Page hero */}
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <p className="text-xs font-bold text-primary uppercase tracking-[0.15em] mb-2">
-            Administração · Parâmetros
-          </p>
-          <h1 className="text-[2.5rem] font-bold tracking-tighter text-on-surface leading-none">
+      <div className="sm:flex sm:justify-between sm:items-center mb-8">
+        <div className="mb-4 sm:mb-0">
+          <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
             Configuração do Motor
           </h1>
-          <p className="text-sm text-on-surface-variant mt-2">
-            Limiares ajustáveis sem reescrever código
+          <p className="text-sm text-gray-500 mt-1 uppercase tracking-wider font-semibold">
+            Limiares ajustáveis · 9 Regras v2
           </p>
         </div>
 
         {temAlteracoes && (
           <button
-            onClick={handleSalvar}
+            onClick={() => { haptics.medium(); handleSalvar(); }}
             disabled={saving || temErros}
-            className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white rounded-full font-bold text-sm transition-opacity cursor-pointer touch-manipulation"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-semibold text-sm transition-colors shadow-sm cursor-pointer"
             title={temErros ? "Corrija os erros antes de guardar" : undefined}
           >
-            <Save className="w-4 h-4" />
+            <Icon name="save" size="xs" />
             {saving
               ? "A guardar..."
               : temErros
               ? `${Object.values(erros).filter(Boolean).length} erro(s)`
-              : `Guardar ${Object.keys(editado).length} alteração(ões)`}
+              : `Guardar ${Object.keys(editado).length} alterações`}
           </button>
         )}
       </div>
 
       {erroGlobal && (
-        <div className="mb-4 p-4 bg-[#ffdad6]/30 rounded-xl flex items-center gap-2 text-sm text-[#ba1a1a]">
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-500/10 rounded-xl flex items-center gap-2 text-sm text-red-600 dark:text-red-400 border border-red-100 dark:border-red-500/20 shadow-sm">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           {erroGlobal}
         </div>
       )}
 
       {sucesso && (
-        <div className="mb-4 p-4 bg-emerald-50 rounded-xl flex items-center gap-2 text-sm text-emerald-700">
+        <div className="mb-6 p-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20 shadow-sm">
           <CheckCircle className="w-4 h-4 flex-shrink-0" />
           Configurações guardadas com sucesso
         </div>
       )}
 
       {loading ? (
-        <div className="space-y-3 max-w-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-[1rem]" />
+            <Skeleton key={i} className="h-40 w-full rounded-xl" />
           ))}
         </div>
       ) : (
-        <div className="max-w-2xl space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {configsVisiveis.map((c) => {
             const erro = erros[c.chave] ?? null;
             const isEdited = editado[c.chave] !== undefined;
@@ -190,26 +189,26 @@ export default function ConfiguracaoPage() {
             return (
               <div
                 key={c.chave}
-                className={`bg-surface-container-lowest rounded-[1rem] p-5 shadow-sm border transition-colors ${
+                className={`bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border transition-all duration-300 ${
                   erro
-                    ? "border-[#ba1a1a]/30"
+                    ? "border-red-300 dark:border-red-500/50 shadow-red-50/50 dark:shadow-none"
                     : isEdited
-                    ? "border-primary/30"
-                    : "border-outline-variant/10"
+                    ? "border-blue-300 dark:border-blue-500/50 shadow-blue-50/50 dark:shadow-none"
+                    : "border-gray-200 dark:border-gray-700/60"
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <label className="text-xs font-bold text-on-surface">
+                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     {CONFIG_LABELS[c.chave] ?? c.chave}
                   </label>
                   {limits && (
-                    <span className="text-[10px] font-mono text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-mono font-semibold text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900/50 px-2 py-0.5 rounded-md border border-gray-100 dark:border-gray-700/50">
                       {limits.hint}
                     </span>
                   )}
                 </div>
                 {c.descricao && (
-                  <p className="text-[11px] text-on-surface-variant mb-2">{c.descricao}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{c.descricao}</p>
                 )}
                 <div className="flex items-center gap-2">
                   <input
@@ -219,18 +218,18 @@ export default function ConfiguracaoPage() {
                     max={limits?.max}
                     value={getValor(c.chave)}
                     onChange={(e) => handleChange(c.chave, e.target.value)}
-                    className={`flex-1 px-4 py-2.5 rounded-xl text-sm border-none focus:outline-none focus:ring-2 transition-colors ${
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm border focus:outline-none focus:ring-0 transition-all duration-200 ${
                       erro
-                        ? "bg-[#ffdad6]/20 text-[#ba1a1a] focus:ring-[#ba1a1a]/30"
+                        ? "bg-red-50 dark:bg-red-500/5 border-red-200 dark:border-red-500/50 text-red-600 dark:text-red-400"
                         : isEdited
-                        ? "bg-primary/5 text-on-surface focus:ring-primary/30"
-                        : "bg-surface-container-low text-on-surface focus:ring-primary/30"
+                        ? "bg-blue-50 dark:bg-blue-500/5 border-blue-200 dark:border-blue-500/50 text-blue-600 dark:text-blue-400"
+                        : "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700/60 text-gray-900 dark:text-gray-100"
                     }`}
                   />
                   {isEdited && (
                     <button
-                      onClick={() => handleReverter(c.chave)}
-                      className="p-2 text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-container-low transition-colors cursor-pointer"
+                      onClick={() => { haptics.light(); handleReverter(c.chave); }}
+                      className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       title="Reverter"
                     >
                       <RotateCcw className="w-4 h-4" />
@@ -238,8 +237,8 @@ export default function ConfiguracaoPage() {
                   )}
                 </div>
                 {erro && (
-                  <p className="flex items-center gap-1 mt-2 text-[11px] text-[#ba1a1a]">
-                    <AlertCircle className="w-3 h-3" />
+                  <p className="flex items-center gap-1 mt-3 text-xs text-red-600 dark:text-red-400 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5" />
                     {erro}
                   </p>
                 )}

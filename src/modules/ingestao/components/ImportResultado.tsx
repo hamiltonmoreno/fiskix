@@ -8,30 +8,33 @@ interface ImportResultadoProps {
 
 export function ImportResultado({ resultado, onReset }: ImportResultadoProps) {
   return (
-    <div className="bg-surface-container-lowest rounded-[1.5rem] shadow-sm p-6 border border-outline-variant/10">
-      <div className="flex items-center gap-3 mb-4">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700/60 transition-all duration-300">
+      <div className="flex items-center gap-4 mb-5">
         {resultado.erros === 0 ? (
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-            <CheckCircle className="w-5 h-5 text-emerald-600" />
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center border border-emerald-100 dark:border-emerald-500/20">
+            <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
           </div>
         ) : (
-          <div className="w-10 h-10 rounded-xl bg-[#ffdad6] flex items-center justify-center">
-            <AlertCircle className="w-5 h-5 text-[#ba1a1a]" />
+          <div className="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center border border-red-100 dark:border-red-500/20">
+            <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
           </div>
         )}
         <div>
-          <p className="font-bold text-on-surface">Importação concluída</p>
-          <p className="text-xs text-on-surface-variant mt-0.5">
-            <span className="text-emerald-600">{resultado.sucesso} inseridos</span>
+          <p className="font-bold text-gray-900 dark:text-gray-100 text-lg">Importação concluída</p>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{resultado.sucesso} inseridos</span>
             {resultado.erros > 0 && (
-              <> · <span className="text-[#ba1a1a]">{resultado.erros} erros</span></>
+              <>
+                <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+                <span className="text-sm font-semibold text-red-600 dark:text-red-400">{resultado.erros} erros</span>
+              </>
             )}
-          </p>
+          </div>
         </div>
       </div>
       <button
-        onClick={onReset}
-        className="text-xs font-bold text-primary hover:underline cursor-pointer"
+        onClick={() => { haptics.light(); onReset(); }}
+        className="w-full sm:w-auto px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded-lg transition-colors cursor-pointer"
       >
         Importar mais dados
       </button>

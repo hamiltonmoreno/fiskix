@@ -1,6 +1,8 @@
-"use client";
+import { haptics } from "@/lib/haptics";
+import { Icon } from "@/components/Icon";
+import { CloudUpload } from "lucide-react";
 
-import { Upload } from "lucide-react";
+import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { HistoricoItem } from "./types";
 import { useImportarDados } from "./useImportarDados";
@@ -23,45 +25,45 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
   } = useImportarDados(historicoInicial);
 
   return (
-    <div className="min-h-screen bg-background px-8 pt-8 pb-12">
-      <div className="mb-8">
-        <p className="text-xs font-bold text-primary uppercase tracking-[0.15em] mb-2">
-          Administração · Ingestão
-        </p>
-        <h1 className="text-[2.5rem] font-bold tracking-tighter text-on-surface leading-none">
-          Importar Dados
-        </h1>
-        <p className="text-sm text-on-surface-variant mt-2">
-          CSV e Excel de faturação ou injeção de energia
-        </p>
+  return (
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+      <div className="sm:flex sm:justify-between sm:items-center mb-8">
+        <div className="mb-4 sm:mb-0">
+          <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
+            Importar Dados
+          </h1>
+          <p className="text-sm text-gray-500 mt-1 uppercase tracking-wider font-semibold">
+            CSV e Excel · Ingestão de Energia e Faturação
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 lg:col-span-7 space-y-4">
 
-          <div className="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-outline-variant/10">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700/60 mb-6">
+            <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">
               Tipo de Dados
             </p>
             <div className="flex gap-2">
               {(["faturacao", "injecao"] as const).map((t) => (
                 <button
                   key={t}
-                  onClick={() => setTipo(t)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer touch-manipulation ${
+                  onClick={() => { haptics.light(); setTipo(t); }}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm ${
                     tipo === t
-                      ? "bg-primary text-white"
-                      : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container"
+                      ? "bg-blue-600 text-white shadow-blue-100 dark:shadow-none"
+                      : "bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                 >
                   {t === "faturacao" ? "Faturação de Clientes" : "Injeção de Energia"}
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-on-surface-variant mt-3 font-mono">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 font-mono">
               {tipo === "faturacao"
-                ? "numero_contador · mes_ano (YYYY-MM) · kwh_faturado · valor_cve"
-                : "subestacao_nome · mes_ano (YYYY-MM) · total_kwh_injetado"}
+                ? "Colunas: numero_contador · mes_ano (YYYY-MM) · kwh_faturado · valor_cve"
+                : "Colunas: subestacao_nome · mes_ano (YYYY-MM) · total_kwh_injetado"}
             </p>
           </div>
 
@@ -70,10 +72,10 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
           )}
 
           {loading && (
-            <div className="bg-surface-container-lowest rounded-[1.5rem] shadow-sm p-8 text-center border border-outline-variant/10">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-sm text-on-surface-variant">A processar ficheiro...</p>
-              <Skeleton className="h-4 w-48 rounded mx-auto mt-3" />
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-12 text-center border border-gray-200 dark:border-gray-700/60">
+              <div className="w-10 h-10 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">A processar ficheiro...</p>
+              <Skeleton className="h-4 w-48 rounded-md mx-auto mt-4" />
             </div>
           )}
 
@@ -100,8 +102,6 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
         </div>
       </div>
 
-      {/* Upload icon override */}
-      <span className="hidden"><Upload /></span>
     </div>
   );
 }

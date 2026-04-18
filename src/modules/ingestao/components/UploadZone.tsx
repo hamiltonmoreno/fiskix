@@ -12,7 +12,7 @@ export function UploadZone({ onFile }: UploadZoneProps) {
 
   return (
     <div
-      className="bg-surface-container-lowest rounded-[1.5rem] shadow-sm border-2 border-dashed border-outline-variant/30 p-12 text-center cursor-pointer hover:border-primary/40 hover:bg-surface-container-low/30 transition-all"
+      className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border-2 border-dashed border-gray-200 dark:border-gray-700/60 p-12 text-center cursor-pointer hover:border-blue-500/50 hover:bg-blue-50/30 dark:hover:bg-blue-500/5 transition-all duration-300 group"
       onClick={() => fileRef.current?.click()}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
@@ -21,11 +21,11 @@ export function UploadZone({ onFile }: UploadZoneProps) {
         if (file) onFile(file);
       }}
     >
-      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-        <CloudUpload className="w-6 h-6 text-primary" />
+      <div className="w-14 h-14 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
+        <CloudUpload className="w-7 h-7 text-blue-600 dark:text-blue-400" />
       </div>
-      <p className="font-bold text-on-surface">Arrastar ficheiro ou clicar para selecionar</p>
-      <p className="text-xs text-on-surface-variant mt-1">CSV, XLS, XLSX · máx. 10MB</p>
+      <p className="font-bold text-gray-800 dark:text-gray-100 text-lg">Arrastar ficheiro ou clicar</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Formatos aceites: CSV, XLS, XLSX · máx. 10MB</p>
       <input
         ref={fileRef}
         type="file"

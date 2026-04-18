@@ -7,40 +7,49 @@ interface ImportHistoricoProps {
 
 export function ImportHistorico({ historico }: ImportHistoricoProps) {
   return (
-    <div className="bg-surface-container-lowest rounded-[1.5rem] shadow-sm overflow-hidden border border-outline-variant/10">
-      <div className="px-6 py-5 border-b border-surface-container-low">
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700/60">
+      <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700/60">
+        <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">
           Histórico
         </p>
-        <p className="font-bold text-on-surface">Importações Recentes</p>
+        <p className="font-bold text-gray-900 dark:text-gray-100">Importações Recentes</p>
       </div>
 
       {historico.length === 0 ? (
-        <div className="p-10 text-center">
-          <FileText className="w-8 h-8 text-on-surface-variant/30 mx-auto mb-2" />
-          <p className="text-sm text-on-surface-variant">Nenhuma importação ainda</p>
+        <div className="p-12 text-center">
+          <FileText className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Nenhuma importação registada</p>
         </div>
       ) : (
-        <div className="divide-y divide-surface-container-low">
+        <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
           {historico.map((h) => (
-            <div key={h.id} className="px-6 py-4 hover:bg-surface-container-low/30 transition-colors">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-xs font-bold text-on-surface truncate flex-1">{h.nome_ficheiro}</p>
-                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase flex-shrink-0 ${
+            <div key={h.id} className="px-6 py-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate flex-1">{h.nome_ficheiro}</p>
+                <span className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase flex-shrink-0 ${
                   h.tipo === "faturacao"
-                    ? "bg-primary/10 text-primary"
-                    : "bg-emerald-100 text-emerald-700"
+                    ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20"
+                    : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20"
                 }`}>
-                  {h.tipo}
+                  {h.tipo === "faturacao" ? "Faturação" : "Injeção"}
                 </span>
               </div>
-              <div className="flex items-center gap-3 mt-1.5">
-                <span className="text-[11px] text-on-surface-variant">{h.total_registos} total</span>
-                <span className="text-[11px] text-emerald-600">{h.registos_sucesso} ok</span>
+              <div className="flex items-center gap-4 mt-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+                  <span className="text-[11px] font-medium text-gray-500 dark:text-gray-400 leading-none">{h.total_registos} total</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 leading-none">{h.registos_sucesso} ok</span>
+                </div>
                 {h.registos_erro > 0 && (
-                  <span className="text-[11px] text-[#ba1a1a]">{h.registos_erro} erros</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                    <span className="text-[11px] font-medium text-red-600 dark:text-red-400 leading-none">{h.registos_erro} erros</span>
+                  </div>
                 )}
-                <span className="text-[11px] text-on-surface-variant ml-auto tabular-nums">
+                <span className="text-[11px] text-gray-400 dark:text-gray-500 ml-auto tabular-nums font-mono">
                   {new Date(h.criado_em).toLocaleDateString("pt-CV")}
                 </span>
               </div>

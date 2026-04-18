@@ -1,9 +1,8 @@
-"use client";
-
-import { useState, useMemo } from "react";
-import { Shield, KeyRound, CheckCircle, AlertCircle } from "lucide-react";
+import { Shield, KeyRound, CheckCircle, AlertCircle, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { UserRole } from "@/types/database";
+import { haptics } from "@/lib/haptics";
+import { Icon } from "@/components/Icon";
 
 interface Profile {
   id: string;
@@ -40,7 +39,7 @@ function formatDate(iso: string) {
 
 type FeedbackState = { type: "success" | "error"; message: string } | null;
 
-const inputClass = "w-full px-4 py-2.5 bg-surface-container-low text-on-surface rounded-xl text-sm border-none focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-on-surface-variant/50";
+const inputClass = "w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700/60 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 placeholder:text-gray-400";
 
 export function PerfilClient({ profile: profileInicial, email }: Props) {
   const supabase = useMemo(() => createClient(), []);
@@ -59,6 +58,7 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
     if (!nome.trim()) return;
     setSavingNome(true);
     setFeedbackNome(null);
+    haptics.medium();
 
     const { error } = await supabase
       .from("perfis")
@@ -76,6 +76,7 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
   async function handleMudarPassword(e: React.FormEvent) {
     e.preventDefault();
     setFeedbackPassword(null);
+    haptics.medium();
 
     if (novaPassword.length < 8) {
       setFeedbackPassword({ type: "error", message: "A password deve ter pelo menos 8 caracteres." });
@@ -100,186 +101,196 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-background px-8 pt-8 pb-12">
-
-      {/* Page hero with avatar */}
-      <div className="flex items-center gap-6 mb-10">
-        <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center flex-shrink-0">
-          <span className="text-xl font-bold text-white">
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
+        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center flex-shrink-0 animate-in fade-in zoom-in duration-500 shadow-lg shadow-blue-500/20">
+          <span className="text-2xl font-bold text-white tracking-widest">
             {getInitials(nome || profileInicial.nome_completo)}
           </span>
         </div>
         <div>
-          <p className="text-xs font-bold text-primary uppercase tracking-[0.15em] mb-1">
-            Perfil
-          </p>
-          <h1 className="text-[2.5rem] font-bold tracking-tighter text-on-surface leading-none">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
             {nome || profileInicial.nome_completo}
           </h1>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-[10px] font-bold uppercase">
+          <div className="flex flex-wrap items-center gap-2 mt-3">
+            <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 rounded text-[11px] font-bold uppercase">
               {ROLE_LABELS[profileInicial.role]}
             </span>
-            <span className="px-2.5 py-0.5 bg-surface-container-high text-on-surface-variant rounded-full text-[10px] font-bold uppercase">
+            <span className="px-2.5 py-1 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded text-[11px] font-bold uppercase">
               {profileInicial.id_zona?.replace(/_/g, " ") ?? "Acesso Global"}
             </span>
-            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-              profileInicial.ativo ? "bg-emerald-100 text-emerald-700" : "bg-surface-container-high text-on-surface-variant"
+            <span className={`px-2.5 py-1 rounded text-[11px] font-bold uppercase border animate-pulse ${
+              profileInicial.ativo ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20" : "bg-gray-100 text-gray-500 border-gray-200"
             }`}>
-              {profileInicial.ativo ? "Ativo" : "Inativo"}
+              {profileInicial.ativo ? "Online" : "Inativo"}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="max-w-xl space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-5xl">
+        <div className="lg:col-span-7 space-y-6">
+          {/* Personal info */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700/60 mosaic-card-hover">
+            <h2 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-6">
+              Configurações de Conta
+            </h2>
 
-        {/* Personal info */}
-        <div className="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-outline-variant/10">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">
-            Informação Pessoal
-          </p>
-
-          <form onSubmit={handleGuardarNome} className="space-y-3">
-            <div>
-              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">
-                Nome completo
-              </label>
-              <input
-                type="text"
-                value={nome}
-                onChange={(e) => { setNome(e.target.value); setFeedbackNome(null); }}
-                required
-                className={inputClass}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                disabled
-                className={inputClass + " opacity-50 cursor-not-allowed"}
-              />
-            </div>
-
-            {feedbackNome && (
-              <div className={`flex items-center gap-2 p-3 rounded-xl text-xs ${
-                feedbackNome.type === "success"
-                  ? "bg-emerald-50 text-emerald-700"
-                  : "bg-[#ffdad6]/30 text-[#ba1a1a]"
-              }`}>
-                {feedbackNome.type === "success"
-                  ? <CheckCircle className="w-4 h-4 flex-shrink-0" />
-                  : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
-                {feedbackNome.message}
+            <form onSubmit={handleGuardarNome} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                  Nome Completo
+                </label>
+                <input
+                  type="text"
+                  value={nome}
+                  onChange={(e) => { setNome(e.target.value); setFeedbackNome(null); }}
+                  onFocus={() => haptics.light()}
+                  required
+                  className={inputClass}
+                />
               </div>
-            )}
 
-            <div className="flex justify-end pt-1">
-              <button
-                type="submit"
-                disabled={savingNome || !nome.trim() || nome.trim() === profileInicial.nome_completo}
-                className="px-5 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-40 text-white rounded-full text-xs font-bold transition-opacity cursor-pointer touch-manipulation"
-              >
-                {savingNome ? "A guardar..." : "Guardar alterações"}
-              </button>
-            </div>
-          </form>
-        </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                  Email Institucional
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  disabled
+                  className={inputClass + " bg-gray-100 dark:bg-gray-900 border-gray-100 dark:border-gray-800 opacity-60 cursor-not-allowed"}
+                />
+              </div>
 
-        {/* Security */}
-        <div className="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-outline-variant/10">
-          <div className="flex items-center gap-2 mb-4">
-            <KeyRound className="w-4 h-4 text-on-surface-variant" />
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-              Segurança
-            </p>
+              {feedbackNome && (
+                <div className={`flex items-center gap-3 p-4 rounded-lg text-sm font-medium animate-in slide-in-from-top-2 duration-300 ${
+                  feedbackNome.type === "success"
+                    ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20"
+                    : "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-500/20"
+                }`}>
+                  {feedbackNome.type === "success"
+                    ? <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                    : <AlertCircle className="w-5 h-5 flex-shrink-0" />}
+                  {feedbackNome.message}
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={savingNome || !nome.trim() || nome.trim() === profileInicial.nome_completo}
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-bold text-sm transition-all shadow-sm shadow-blue-100 dark:shadow-none"
+                >
+                  {savingNome ? "A guardar..." : "Guardar Alterações"}
+                </button>
+              </div>
+            </form>
           </div>
 
-          <form onSubmit={handleMudarPassword} className="space-y-3">
-            <div>
-              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">
-                Nova password
-              </label>
-              <input
-                type="password"
-                value={novaPassword}
-                onChange={(e) => { setNovaPassword(e.target.value); setFeedbackPassword(null); }}
-                placeholder="Mínimo 8 caracteres"
-                autoComplete="new-password"
-                className={inputClass}
-              />
+          {/* Security */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700/60 transition-all duration-300">
+            <div className="flex items-center gap-2 mb-6">
+              <Icon name="keys" size="xs" className="text-gray-400" />
+              <h2 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                Segurança & Credenciais
+              </h2>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1.5">
-                Confirmar password
-              </label>
-              <input
-                type="password"
-                value={confirmarPassword}
-                onChange={(e) => { setConfirmarPassword(e.target.value); setFeedbackPassword(null); }}
-                placeholder="Repetir password"
-                autoComplete="new-password"
-                className={inputClass}
-              />
-            </div>
-
-            {feedbackPassword && (
-              <div className={`flex items-center gap-2 p-3 rounded-xl text-xs ${
-                feedbackPassword.type === "success"
-                  ? "bg-emerald-50 text-emerald-700"
-                  : "bg-[#ffdad6]/30 text-[#ba1a1a]"
-              }`}>
-                {feedbackPassword.type === "success"
-                  ? <CheckCircle className="w-4 h-4 flex-shrink-0" />
-                  : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
-                {feedbackPassword.message}
+            <form onSubmit={handleMudarPassword} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                  Nova Password
+                </label>
+                <input
+                  type="password"
+                  value={novaPassword}
+                  onChange={(e) => { setNovaPassword(e.target.value); setFeedbackPassword(null); }}
+                  onFocus={() => haptics.light()}
+                  placeholder="Mínimo 8 caracteres"
+                  autoComplete="new-password"
+                  className={inputClass}
+                />
               </div>
-            )}
 
-            <div className="flex justify-end pt-1">
-              <button
-                type="submit"
-                disabled={savingPassword || !novaPassword || !confirmarPassword}
-                className="px-5 py-2.5 bg-primary hover:bg-primary/90 disabled:opacity-40 text-white rounded-full text-xs font-bold transition-opacity cursor-pointer touch-manipulation"
-              >
-                {savingPassword ? "A mudar..." : "Mudar password"}
-              </button>
-            </div>
-          </form>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                  Confirmar Password
+                </label>
+                <input
+                  type="password"
+                  value={confirmarPassword}
+                  onChange={(e) => { setConfirmarPassword(e.target.value); setFeedbackPassword(null); }}
+                  onFocus={() => haptics.light()}
+                  placeholder="Repetir password"
+                  autoComplete="new-password"
+                  className={inputClass}
+                />
+              </div>
+
+              {feedbackPassword && (
+                <div className={`flex items-center gap-3 p-4 rounded-lg text-sm font-medium animate-in slide-in-from-top-2 duration-300 ${
+                  feedbackPassword.type === "success"
+                    ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20"
+                    : "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-500/20"
+                }`}>
+                  {feedbackPassword.type === "success"
+                    ? <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                    : <AlertCircle className="w-5 h-5 flex-shrink-0" />}
+                  {feedbackPassword.message}
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={savingPassword || !novaPassword || !confirmarPassword}
+                  className="px-6 py-2.5 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 font-bold text-sm rounded-lg hover:bg-gray-800 dark:hover:bg-white transition-colors"
+                >
+                  {savingPassword ? "A mudar..." : "Alterar Password"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
 
-        {/* System info */}
-        <div className="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-outline-variant/10">
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">
-            Informações do Sistema
-          </p>
-          <dl className="space-y-3">
-            <div className="flex items-center justify-between">
-              <dt className="text-xs text-on-surface-variant">Conta criada em</dt>
-              <dd className="text-xs font-bold text-on-surface">{formatDate(profileInicial.criado_em)}</dd>
-            </div>
-            <div className="flex items-center justify-between">
-              <dt className="text-xs text-on-surface-variant">Última atualização</dt>
-              <dd className="text-xs font-bold text-on-surface">{formatDate(profileInicial.atualizado_em)}</dd>
-            </div>
-            {profileInicial.role === "admin_fiskix" && (
-              <div className="flex items-center justify-between">
-                <dt className="text-xs text-on-surface-variant flex items-center gap-1.5">
-                  <Shield className="w-3 h-3" /> ID de utilizador
-                </dt>
-                <dd className="text-[10px] font-mono text-on-surface-variant/60">{profileInicial.id}</dd>
+        <div className="lg:col-span-5 space-y-6">
+          {/* Metadata */}
+          <div className="bg-gray-50/50 dark:bg-gray-900/50 rounded-xl p-6 border border-gray-200 dark:border-gray-700/60 sticky top-8">
+            <h2 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-6 border-b border-gray-200 dark:border-gray-700/60 pb-3">
+              Informações Técnicas
+            </h2>
+            <div className="space-y-6">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-tighter">Conta Registada</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">{formatDate(profileInicial.criado_em)}</span>
               </div>
-            )}
-          </dl>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-tighter">Última Atividade</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">{formatDate(profileInicial.atualizado_em)}</span>
+              </div>
+              {profileInicial.role === "admin_fiskix" && (
+                <div className="flex flex-col gap-1.5 pt-4 border-t border-gray-200 dark:border-gray-700/60">
+                   <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase">
+                    <Shield className="w-3 h-3" /> UID de Segurança
+                  </div>
+                  <code className="text-[10px] bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700/60 text-gray-500 break-all select-all">
+                    {profileInicial.id}
+                  </code>
+                </div>
+              )}
+              <div className="pt-6 border-t border-gray-200 dark:border-gray-700/60">
+                <p className="text-[10px] text-gray-400 leading-tight">
+                  Os dados do seu perfil são partilhados apenas com administradores da plataforma para gestão de acessos e auditoria.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-
       </div>
     </div>
+  );
+}
   );
 }
