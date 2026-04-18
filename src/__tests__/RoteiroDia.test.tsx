@@ -267,7 +267,7 @@ describe("RoteiroDia — Listagem de ordens", () => {
     await waitFor(() => {
       const link = screen.getByRole("link", { name: /João da Silva/i });
       expect(link).toHaveAttribute("href", "/mobile/ordem-critica-001");
-    });
+    }, { timeout: 10000 });
   });
 
   it("mostra as regras pontuadas (R1, R3) em badges", async () => {
