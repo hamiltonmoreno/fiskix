@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-CV"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Fiskix | Supervisor Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#adc6ff",
+                    "on-primary-fixed-variant": "#004493",
+                    "on-background": "#1a1c1f",
+                    "surface-tint": "#005bc1",
+                    "surface-dim": "#d9dade",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-container": "#a1befd",
+                    "on-surface-variant": "#414755",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed-dim": "#ffb595",
+                    "outline": "#717786",
+                    "on-secondary-container": "#2d4c83",
+                    "surface-container-low": "#f3f3f8",
+                    "on-error-container": "#93000a",
+                    "surface-container-highest": "#e2e2e7",
+                    "on-tertiary-fixed-variant": "#7c2e00",
+                    "on-tertiary-fixed": "#351000",
+                    "primary-container": "#0070eb",
+                    "on-surface": "#1a1c1f",
+                    "on-primary-container": "#fefcff",
+                    "secondary": "#405e96",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "outline-variant": "#c1c6d7",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-high": "#e8e8ed",
+                    "on-secondary-fixed-variant": "#26467d",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#001a41",
+                    "secondary-fixed": "#d8e2ff",
+                    "background": "#f9f9fe",
+                    "inverse-on-surface": "#f0f0f5",
+                    "primary-fixed": "#d8e2ff",
+                    "primary": "#0058bc",
+                    "tertiary-container": "#c64f00",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed": "#ffdbcc",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#2e3034",
+                    "surface": "#f9f9fe",
+                    "tertiary": "#9e3d00",
+                    "surface-container": "#ededf2",
+                    "surface-bright": "#f9f9fe",
+                    "on-tertiary-container": "#fffbff",
+                    "surface-variant": "#e2e2e7",
+                    "on-secondary-fixed": "#001a41",
+                    "inverse-primary": "#adc6ff",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "1rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 bottom-0 w-64 z-50 flex flex-col h-full py-6 border-r border-slate-100 bg-[#f9f9fe] dark:bg-slate-950 font-['Inter'] font-medium text-[13px] tracking-wide">
+<!-- Brand Header -->
+<div class="px-6 mb-10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined" data-weight="fill">bolt</span>
+</div>
+<div>
+<h1 class="text-lg font-bold text-slate-900 dark:text-white leading-none">Fiskix Energy</h1>
+<p class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest font-semibold">Cabo Verde Operations</p>
+</div>
+</div>
+</div>
+<!-- Navigation Groups -->
+<nav class="flex-1 space-y-8 overflow-y-auto no-scrollbar px-2">
+<!-- Monitoramento Section -->
+<div>
+<p class="px-4 mb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Monitoramento</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 py-2.5 px-4 bg-white dark:bg-slate-900 text-[#007AFF] shadow-sm rounded-lg transition-all scale-100 active:scale-98" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 py-2.5 px-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span>Analytics</span>
+</a>
+<a class="flex items-center gap-3 py-2.5 px-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span>Live Map</span>
+</a>
+</div>
+</div>
+<!-- Operações Section -->
+<div>
+<p class="px-4 mb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Operações</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 py-2.5 px-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="assignment_ind">assignment_ind</span>
+<span>Supervisor</span>
+</a>
+<a class="flex items-center gap-3 py-2.5 px-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="engineering">engineering</span>
+<span>Field Ops</span>
+</a>
+<a class="flex items-center gap-3 py-2.5 px-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="rule">rule</span>
+<span>Validation Queue</span>
+</a>
+<a class="flex items-center gap-3 py-2.5 px-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="upload_file">upload_file</span>
+<span>Data Import</span>
+</a>
+</div>
+</div>
+<!-- Configurações Section -->
+<div>
+<p class="px-4 mb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configurações</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 py-2.5 px-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>Users</span>
+</a>
+<a class="flex items-center gap-3 py-2.5 px-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</div>
+</div>
+</nav>
+<!-- Footer Actions -->
+<div class="px-4 mt-auto border-t border-slate-100 dark:border-slate-800 pt-6">
+<button class="w-full bg-primary-container text-white py-3 rounded-xl font-semibold shadow-md shadow-primary/30 hover:shadow-lg transition-all flex items-center justify-center gap-2 mb-4">
+<span class="material-symbols-outlined text-[20px]">description</span>
+                Relatório Diário
+            </button>
+<div class="space-y-1">
+<a class="flex items-center gap-3 py-2 px-4 text-slate-500 hover:text-slate-900 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">support</span>
+<span>Ajuda</span>
+</a>
+<a class="flex items-center gap-3 py-2 px-4 text-error hover:opacity-80 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span>Sair</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- TopNavBar Shell -->
+<header class="fixed top-0 right-0 left-0 z-40 glass shadow-sm shadow-blue-900/5 flex justify-between items-center w-full px-8 py-4 ml-64 font-['Inter']">
+<div class="flex items-center gap-6">
+<h2 class="text-xl font-bold tracking-tighter text-[#007AFF]">Supervisor Dashboard</h2>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="pl-10 pr-4 py-2 bg-slate-100/50 border-none rounded-full text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search agents or orders..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-5 py-2 bg-primary-container/10 text-[#007AFF] rounded-full text-sm font-semibold hover:bg-primary-container/20 transition-colors">
+                Monitoramento Ao Vivo
+            </button>
+<div class="flex items-center gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors">
+<span class="material-symbols-outlined text-slate-600">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors">
+<span class="material-symbols-outlined text-slate-600">help_outline</span>
+</button>
+</div>
+<div class="h-8 w-[1px] bg-slate-200"></div>
+<div class="flex items-center gap-3 pl-2">
+<div class="text-right">
+<p class="text-xs font-bold text-on-surface leading-none">Supervisor Admin</p>
+<p class="text-[10px] text-slate-500 mt-0.5">Praia, CV Hub</p>
+</div>
+<img class="w-9 h-9 rounded-full object-cover ring-2 ring-white shadow-sm" data-alt="Close up portrait of a professional African man with a friendly smile wearing a smart casual blazer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMeCtpdTSi-tQl3W9bAfEzU94O2xTohXfxtNUXkVkvK0MKEvDmivqkWODN9B0m2vGoFHqG4JxlN9udjyQC7vMpImyhP2LvH5_6KuLA2Td7hT-z5vzvdpm6IWRFCxQsKq_888JJwsTOedMXdGWMe__upOlLaOCYcXyL51vrKfzU_1Caj_DAwxAP3UlfE-Fl11NECXGS3GMDOYYsQENhdribc4L_uB5bGrafz00zcU-MVBaC1bYtpZ-bndYqNlxm_8B3yDKOAu1_JG_J"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 p-8 min-h-screen bg-surface">
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Live Map Section (Hero Bento) -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+<div class="px-6 py-4 flex items-center justify-between border-b border-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-weight="fill">location_on</span>
+<h3 class="font-bold text-on-surface">Agent Tracking: Praia, Cabo Verde</h3>
+</div>
+<div class="flex gap-2">
+<span class="flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                            12 Active
+                        </span>
+</div>
+</div>
+<div class="relative flex-1 bg-slate-200 min-h-[400px]">
+<img class="w-full h-full object-cover" data-alt="High quality aerial satellite map view of Praia city in Cape Verde with coastal details and urban streets" data-location="Praia" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYYPaCXBw94CEnrDZefzGKF4CQLz-izemdrb9Lg9FC0EPRTfgIs7w8QJfGMpBvd_UnuPjL4v7CYu6Zn0MG2kfAnqJoyMoTg8i2_8QyU2V_FQMwEXqhFCG1nkWACp09Ek3K1PHJZTtsMSZGlsIs9Nmlp34uQQr-SH3LHAFmeFjbz7Y8rpdxwZEdQ5mcGqPyg6Q6GJPKedO10T_tCLfyUJ0NRmyS85YZRaEk4rYmYVI2Cdal6k6e3N1qvaPkvzNLjvMYShRzlm8-9Ypu"/>
+<!-- Agent Overlays -->
+<div class="absolute top-1/4 left-1/3 group cursor-pointer">
+<div class="bg-primary text-white p-1 rounded-full shadow-lg ring-4 ring-primary/20 hover:scale-110 transition-transform">
+<img class="w-8 h-8 rounded-full" data-alt="Circular avatar of a female agent Maria Lima" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7B17jX8J0iXUqF6qYGZm4OXtm8-V8F2QutYPIE2a--oPmGgdkrjLOERVTFAHKLiy4bIFib2pf7GhYMswMiEKkUAi8S6tAOGZF_JjEzYZ9yVuq1Bqt_7PkDOImQJ5-X-J5ArYSxuUzdvuBVLsISfedh4spkAi9KSQcHDXV-433s8nJ2FMOcm0BuTwVN9O8VKersHSaV47WrBY0jGCWniuKVsnCnXjQyKfk0ckXCSJ-Tl8Ipwb5MMh2oR40hb85IWfsYcPyJ6D5jPIY"/>
+</div>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 bg-white p-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+<p class="text-[11px] font-bold">Maria Lima</p>
+<p class="text-[9px] text-slate-500">Route: Achada Santo António</p>
+</div>
+</div>
+<div class="absolute bottom-1/3 right-1/4 group cursor-pointer">
+<div class="bg-primary text-white p-1 rounded-full shadow-lg ring-4 ring-primary/20 hover:scale-110 transition-transform">
+<img class="w-8 h-8 rounded-full" data-alt="Circular avatar of a male agent João Varela" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCJvbTk-zOVu9amwrsAXS20N6gt3OdIETIO-PYcuIh9ECS1OezZOTm-ztqPRiVI-c2m41MXjVt-lLPOJDgBRPiSeqatsB8QQsoBYctE60_sFOPHpakezAtztjPADRi2K6TwYeWN4psaTVQfzS_Nl2gRzIT6WJ-tazZVliho4UZmDei8HeMNIzbTcvB7ToUJelCHQNTnp8JEaOHbvAOemwFEOM4jkAJ2QBg8zz-GpBEiAqUKh4LFaJKLcDkczCyWG0E3mVH6c5ObS02"/>
+</div>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 bg-white p-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+<p class="text-[11px] font-bold">João Varela</p>
+<p class="text-[9px] text-slate-500">Route: Plateau District</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Validation Queue (Right Sidebar Bento) -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container-low rounded-xl p-6 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<h3 class="font-bold text-on-surface">Validation Queue</h3>
+<span class="text-[10px] font-bold text-primary-container bg-primary-container/10 px-2 py-0.5 rounded">4 Pending</span>
+</div>
+<div class="space-y-4 overflow-y-auto max-h-[460px] pr-2 no-scrollbar">
+<!-- Validation Card 1 -->
+<div class="bg-surface-container-lowest p-3 rounded-xl shadow-sm border border-transparent hover:border-primary/20 transition-all cursor-pointer">
+<div class="relative w-full h-32 mb-3 rounded-lg overflow-hidden bg-slate-100">
+<img class="w-full h-full object-cover" data-alt="Close up of a metallic electric meter box with visible signs of tampering and loose wires" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxlH-xoh3IYtUgKV2GQqBO4HwAuHBAalm_4-40awgmg0gNzo9548HQESCcYHRcrfLEUErYV6b62jSwz-paeCjaXcB670J4k0y0fXwmVcmE3eo3YVznB9bS0uG8kOSBJi6njIPyKdKad4N46lmG7FiLCGIQpw6JbRa8z1HsO5fYvOoYcRixzdRtvbAzAaXEjhMNf-yAFt6fQa-piPnHcTFD-bFssASVXkiatRORcloG_zltPK82LxaYumoGP3E6L7p0cXePJy_iCCUY"/>
+<div class="absolute top-2 right-2 px-2 py-0.5 bg-error text-white text-[9px] font-bold rounded uppercase">Anomaly</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-xs font-bold leading-tight">Meter Tampering #882</h4>
+<p class="text-[10px] text-slate-500 mt-0.5">Agent: Ricardo Gomes</p>
+</div>
+<span class="text-[10px] text-slate-400">2m ago</span>
+</div>
+<div class="flex gap-2 mt-3">
+<button class="flex-1 py-1.5 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded-lg hover:bg-surface-container-highest transition-colors">Discard</button>
+<button class="flex-1 py-1.5 bg-primary-container text-white text-[10px] font-bold rounded-lg hover:shadow-md transition-all">Verify</button>
+</div>
+</div>
+<!-- Validation Card 2 -->
+<div class="bg-surface-container-lowest p-3 rounded-xl shadow-sm border border-transparent hover:border-primary/20 transition-all cursor-pointer">
+<div class="relative w-full h-32 mb-3 rounded-lg overflow-hidden bg-slate-100">
+<img class="w-full h-full object-cover" data-alt="Commercial utility water meter installed in a concrete floor hatch with clear dial readings" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXUPV9jdTPm_Fm3yR-6sVGLpla6o46kX69Wp5-M0IBxIBSVgUN2MqSgBlwZFzQnvnOsVbOh0caRwMhem10BoNhv5locp_f-remDNg5VMvIn-E9cDbMbWJXhXjv3Zufq0vtckdTVox1sOnTqcJ1sJhvA_Iu2VI1YMjQvW-N01PGi0R92UGHw2PcS6KJlnwVWG4UIGuJzFHTQ8EMV1hAehMTo1-i7VTGtzQ8nneeCLDLs2nc8nKeLwCvrc-o7cWzEPHA6iH8Do-cjw5i"/>
+<div class="absolute top-2 right-2 px-2 py-0.5 bg-secondary text-white text-[9px] font-bold rounded uppercase">Standard</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-xs font-bold leading-tight">Routine Check #901</h4>
+<p class="text-[10px] text-slate-500 mt-0.5">Agent: Maria Lima</p>
+</div>
+<span class="text-[10px] text-slate-400">15m ago</span>
+</div>
+<div class="flex gap-2 mt-3">
+<button class="flex-1 py-1.5 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded-lg hover:bg-surface-container-highest transition-colors">Discard</button>
+<button class="flex-1 py-1.5 bg-primary-container text-white text-[10px] font-bold rounded-lg hover:shadow-md transition-all">Verify</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Unassigned Orders Table Section -->
+<div class="col-span-12 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="px-8 py-6 flex items-center justify-between">
+<div>
+<h3 class="font-bold text-lg text-on-surface">Unassigned Work Orders</h3>
+<p class="text-xs text-slate-500">Service requests pending technician dispatch</p>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-low text-on-surface-variant rounded-full text-xs font-bold hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        Filter All
+                    </button>
+</div>
+<div class="w-full overflow-x-auto">
+<table class="w-full border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50 text-left border-b border-surface-container-low">
+<th class="px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Order ID</th>
+<th class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Customer / Address</th>
+<th class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Type</th>
+<th class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Priority</th>
+<th class="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+<th class="px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-8 py-5 font-mono text-xs font-bold text-primary">ORD-4492-CV</td>
+<td class="px-6 py-5">
+<p class="text-xs font-bold">Residencial Palmarejo</p>
+<p class="text-[10px] text-slate-500">Rua da Prainha, Bloco B</p>
+</td>
+<td class="px-6 py-5">
+<span class="text-xs text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-slate-400">electric_bolt</span>
+                                        Connection Failure
+                                    </span>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-[9px] font-bold uppercase tracking-wider">High</span>
+</td>
+<td class="px-6 py-5">
+<span class="flex items-center gap-2 text-[10px] font-medium text-slate-500">
+<span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                                        Unassigned
+                                    </span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="text-[11px] font-bold text-primary hover:underline">Assign Agent</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-8 py-5 font-mono text-xs font-bold text-primary">ORD-4501-CV</td>
+<td class="px-6 py-5">
+<p class="text-xs font-bold">Hotel Mindelo Express</p>
+<p class="text-[10px] text-slate-500">Av. Marginal, São Vicente</p>
+</td>
+<td class="px-6 py-5">
+<span class="text-xs text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-slate-400">build</span>
+                                        Maintenance
+                                    </span>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 bg-primary-container/10 text-primary-container rounded-full text-[9px] font-bold uppercase tracking-wider">Normal</span>
+</td>
+<td class="px-6 py-5">
+<span class="flex items-center gap-2 text-[10px] font-medium text-slate-500">
+<span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                                        Unassigned
+                                    </span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="text-[11px] font-bold text-primary hover:underline">Assign Agent</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-8 py-5 font-mono text-xs font-bold text-primary">ORD-4512-CV</td>
+<td class="px-6 py-5">
+<p class="text-xs font-bold">Condomínio Terra Branca</p>
+<p class="text-[10px] text-slate-500">Lot 12, Praia</p>
+</td>
+<td class="px-6 py-5">
+<span class="text-xs text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-slate-400">water_drop</span>
+                                        Leak Inspection
+                                    </span>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[9px] font-bold uppercase tracking-wider">Low</span>
+</td>
+<td class="px-6 py-5">
+<span class="flex items-center gap-2 text-[10px] font-medium text-slate-500">
+<span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                                        Unassigned
+                                    </span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="text-[11px] font-bold text-primary hover:underline">Assign Agent</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Operational Stats Row -->
+<div class="col-span-12 md:col-span-4 bg-primary-container text-white rounded-xl p-6 shadow-lg shadow-primary/10">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined bg-white/20 p-2 rounded-lg">speed</span>
+<span class="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded uppercase">+12% vs Ontem</span>
+</div>
+<p class="text-sm font-medium opacity-80">Tempo Médio de Resposta</p>
+<h4 class="text-3xl font-bold mt-1">42 min</h4>
+<div class="mt-4 h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
+<div class="h-full bg-white w-2/3"></div>
+</div>
+</div>
+<div class="col-span-12 md:col-span-4 bg-surface-container-highest rounded-xl p-6 shadow-sm border border-surface-container-high">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg">task_alt</span>
+</div>
+<p class="text-sm font-medium text-on-surface-variant">Ordens Concluídas Hoje</p>
+<h4 class="text-3xl font-bold text-on-surface mt-1">156</h4>
+<p class="text-[11px] text-green-600 font-bold mt-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                    Meta de 200 quase atingida
+                </p>
+</div>
+<div class="col-span-12 md:col-span-4 bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-surface-container-high">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-error bg-error/10 p-2 rounded-lg">warning</span>
+</div>
+<p class="text-sm font-medium text-on-surface-variant">Alertas Críticos</p>
+<h4 class="text-3xl font-bold text-on-surface mt-1">03</h4>
+<p class="text-[11px] text-error font-bold mt-2">Requer atenção imediata</p>
+</div>
+</div>
+</main>
+<!-- Contextual Floating Action Button -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary-container text-white rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+</body></html>

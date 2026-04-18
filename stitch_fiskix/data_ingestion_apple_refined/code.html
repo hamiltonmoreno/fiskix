@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Fiskix | Data Ingestion Engine</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-primary-fixed-variant": "#004493",
+                        "on-background": "#1a1c1f",
+                        "surface-tint": "#005bc1",
+                        "surface-dim": "#d9dade",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#a1befd",
+                        "on-surface-variant": "#414755",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#ffb595",
+                        "outline": "#717786",
+                        "on-secondary-container": "#2d4c83",
+                        "surface-container-low": "#f3f3f8",
+                        "on-error-container": "#93000a",
+                        "surface-container-highest": "#e2e2e7",
+                        "on-tertiary-fixed-variant": "#7c2e00",
+                        "on-tertiary-fixed": "#351000",
+                        "primary-container": "#0070eb",
+                        "on-surface": "#1a1c1f",
+                        "on-primary-container": "#fefcff",
+                        "secondary": "#405e96",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "outline-variant": "#c1c6d7",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-high": "#e8e8ed",
+                        "on-secondary-fixed-variant": "#26467d",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#001a41",
+                        "secondary-fixed": "#d8e2ff",
+                        "background": "#f9f9fe",
+                        "inverse-on-surface": "#f0f0f5",
+                        "primary-fixed": "#d8e2ff",
+                        "primary": "#0058bc",
+                        "tertiary-container": "#c64f00",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffdbcc",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2e3034",
+                        "surface": "#f9f9fe",
+                        "tertiary": "#9e3d00",
+                        "surface-container": "#ededf2",
+                        "surface-bright": "#f9f9fe",
+                        "on-tertiary-container": "#fffbff",
+                        "surface-variant": "#e2e2e7",
+                        "on-secondary-fixed": "#001a41",
+                        "inverse-primary": "#adc6ff",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-surface antialiased overflow-x-hidden">
+<!-- SideNavBar (Authority: JSON & Design System) -->
+<nav class="fixed left-0 top-0 bottom-0 w-64 z-50 flex flex-col h-full py-6 border-r border-slate-100 bg-[#f9f9fe]">
+<div class="px-6 mb-8">
+<h1 class="text-lg font-bold text-slate-900 tracking-tight">Fiskix Energy</h1>
+<p class="text-[11px] text-slate-500 uppercase tracking-widest font-semibold mt-1">Cabo Verde Operations</p>
+</div>
+<div class="flex-1 space-y-8 overflow-y-auto px-4">
+<!-- Navigation Groups -->
+<div>
+<p class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Monitoramento</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-200/50 rounded-lg transition-all text-[13px] font-medium" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span> Dashboard
+                    </a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-200/50 rounded-lg transition-all text-[13px] font-medium" href="#">
+<span class="material-symbols-outlined text-[20px]">insights</span> Analytics
+                    </a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-200/50 rounded-lg transition-all text-[13px] font-medium" href="#">
+<span class="material-symbols-outlined text-[20px]">map</span> Live Map
+                    </a>
+</div>
+</div>
+<div>
+<p class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Operações</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-200/50 rounded-lg transition-all text-[13px] font-medium" href="#">
+<span class="material-symbols-outlined text-[20px]">assignment_ind</span> Supervisor
+                    </a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-200/50 rounded-lg transition-all text-[13px] font-medium" href="#">
+<span class="material-symbols-outlined text-[20px]">engineering</span> Field Ops
+                    </a>
+<a class="flex items-center gap-3 px-4 py-2 bg-white text-[#007AFF] shadow-sm rounded-lg text-[13px] font-semibold" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">upload_file</span> Data Import
+                    </a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-200/50 rounded-lg transition-all text-[13px] font-medium" href="#">
+<span class="material-symbols-outlined text-[20px]">rule</span> Validation Queue
+                    </a>
+</div>
+</div>
+<div>
+<p class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Configurações</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-200/50 rounded-lg transition-all text-[13px] font-medium" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span> Users
+                    </a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-200/50 rounded-lg transition-all text-[13px] font-medium" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span> Settings
+                    </a>
+</div>
+</div>
+</div>
+<div class="mt-auto px-4 pt-6 space-y-1">
+<button class="w-full flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-200/50 rounded-lg transition-all text-[13px] font-medium">
+<span class="material-symbols-outlined text-[20px]">support</span> Ajuda
+            </button>
+<button class="w-full flex items-center gap-3 px-4 py-2 text-error hover:bg-error-container/20 rounded-lg transition-all text-[13px] font-medium">
+<span class="material-symbols-outlined text-[20px]">logout</span> Sair
+            </button>
+</div>
+</nav>
+<!-- TopNavBar (Authority: JSON) -->
+<header class="fixed top-0 right-0 left-0 z-40 bg-white/80 backdrop-blur-xl flex justify-between items-center w-full px-8 py-3 ml-64">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-low rounded-full">
+<span class="material-symbols-outlined text-slate-400 text-sm">search</span>
+<input class="bg-transparent border-none text-xs focus:ring-0 w-48 text-on-surface" placeholder="Search datasets..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="bg-primary text-white px-5 py-2 rounded-full text-xs font-semibold hover:opacity-90 transition-opacity flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">sensors</span> Monitoramento Ao Vivo
+            </button>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-500 hover:text-primary cursor-pointer transition-colors">notifications</span>
+<span class="material-symbols-outlined text-slate-500 hover:text-primary cursor-pointer transition-colors">help_outline</span>
+<div class="h-8 w-8 rounded-full overflow-hidden bg-slate-200">
+<img alt="User profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYFnHA6J-7N6rxL-EGnwPbbhsffIM6HTGRqe1RqaEkkocA2YiY7KQJ_D9mJ96J_6xq4LNJk180ftoDvh13TFlVWELpMEPIkObbYAufGhiOGqHLvhDzg_psbcjr8OZJFEhE8ZwMpW2KlsPA8QE3VmIC5vX9IlAi-J8l4Y0ZRCf_3dk-mJiCo_R0aUdgC13Y3Bg5yGrz70gF-hVnNDt9WBOto45xnFfnfjKyQr9ZuBcbIzsL5Jcr3PNUf9eqtE0-QJMaXsZOtnU74Fb6"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="ml-64 pt-20 px-8 pb-12">
+<div class="max-w-7xl mx-auto">
+<!-- Hero Title / Editorial Section -->
+<div class="grid grid-cols-12 gap-8 mb-12 items-end">
+<div class="col-span-8">
+<h2 class="text-[3.5rem] font-bold text-on-surface tracking-tighter leading-tight">Data Ingestion Engine</h2>
+<p class="mt-4 text-on-surface-variant max-w-xl text-lg leading-relaxed">
+                        Securely stream, validate, and normalize meter readings across the Cabo Verde electrical grid with real-time schema mapping.
+                    </p>
+</div>
+<div class="col-span-4 flex flex-col items-end gap-2">
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Engine Status</span>
+<div class="flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="text-xs font-semibold text-emerald-700">Cluster Operational</span>
+</div>
+</div>
+</div>
+<!-- Bento Layout -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Upload Zone -->
+<div class="col-span-12 lg:col-span-7">
+<div class="bg-surface-container-lowest rounded-[1.5rem] p-1 shadow-sm border border-outline-variant/10">
+<div class="border-2 border-dashed border-outline-variant/30 rounded-[1.2rem] p-12 flex flex-col items-center justify-center text-center bg-surface-container-low/30 hover:bg-surface-container-low transition-all group cursor-pointer">
+<div class="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[40px] text-primary" style="font-variation-settings: 'wght' 200;">cloud_upload</span>
+</div>
+<h3 class="text-xl font-semibold text-on-surface">Drop dataset here</h3>
+<p class="text-on-surface-variant text-sm mt-2 max-w-xs">Supported formats: CSV, JSON, Parquet. Maximum file size 500MB.</p>
+<button class="mt-8 px-6 py-2.5 bg-on-background text-white rounded-full text-xs font-semibold hover:bg-slate-800 transition-colors">Browse Local Files</button>
+</div>
+</div>
+<!-- Mapping Table -->
+<div class="mt-6 bg-surface-container-lowest rounded-[1.5rem] p-8 shadow-sm border border-outline-variant/10">
+<div class="flex justify-between items-center mb-6">
+<h4 class="text-sm font-bold uppercase tracking-widest text-slate-400">Schema Mapping Preview</h4>
+<span class="text-[11px] font-medium text-primary px-2 py-1 bg-primary/10 rounded">Auto-detected Electra V2.1</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-[11px] font-bold text-slate-400 uppercase tracking-widest border-b border-surface-container">
+<th class="pb-3 px-2">Source Field</th>
+<th class="pb-3 px-2">Data Type</th>
+<th class="pb-3 px-2">Mapping Target</th>
+<th class="pb-3 px-2">Status</th>
+</tr>
+</thead>
+<tbody class="text-[13px] divide-y divide-surface-container-low">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-4 px-2 font-medium">uuid_client</td>
+<td class="py-4 px-2 text-on-surface-variant font-mono">string</td>
+<td class="py-4 px-2">
+<div class="flex items-center gap-2 text-primary font-semibold">
+<span class="material-symbols-outlined text-sm">link</span> customer_id
+                                            </div>
+</td>
+<td class="py-4 px-2">
+<span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">Valid</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-4 px-2 font-medium">meter_kw_total</td>
+<td class="py-4 px-2 text-on-surface-variant font-mono">float64</td>
+<td class="py-4 px-2">
+<div class="flex items-center gap-2 text-primary font-semibold">
+<span class="material-symbols-outlined text-sm">link</span> reading_value
+                                            </div>
+</td>
+<td class="py-4 px-2">
+<span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">Valid</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-4 px-2 font-medium">device_sn</td>
+<td class="py-4 px-2 text-on-surface-variant font-mono">string</td>
+<td class="py-4 px-2">
+<div class="flex items-center gap-2 text-primary font-semibold">
+<span class="material-symbols-outlined text-sm">link</span> meter_serial
+                                            </div>
+</td>
+<td class="py-4 px-2">
+<span class="px-2 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded uppercase">Manual Link</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-4 px-2 font-medium">ts_unix</td>
+<td class="py-4 px-2 text-on-surface-variant font-mono">int64</td>
+<td class="py-4 px-2">
+<div class="flex items-center gap-2 text-error font-semibold">
+<span class="material-symbols-outlined text-sm">error</span> Unmapped
+                                            </div>
+</td>
+<td class="py-4 px-2">
+<span class="px-2 py-1 bg-error-container/40 text-error text-[10px] font-bold rounded uppercase">Errors</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Console & Real-time Logs -->
+<div class="col-span-12 lg:col-span-5 flex flex-col gap-6">
+<!-- Console View -->
+<div class="bg-on-background rounded-[1.5rem] p-6 h-full flex flex-col shadow-2xl relative overflow-hidden group">
+<!-- Glass shine effect -->
+<div class="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-white/10 to-transparent blur-3xl pointer-events-none"></div>
+<div class="flex justify-between items-center mb-4 relative z-10">
+<div class="flex gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-[#FF5F56]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#27C93F]"></div>
+</div>
+<span class="text-[10px] font-mono text-slate-500">ingestion_cli — fiskix-v2.1.0</span>
+</div>
+<div class="flex-1 font-mono text-[11px] text-slate-300 space-y-2 overflow-y-auto relative z-10 custom-scrollbar">
+<p class="text-emerald-400">[info] Initializing stream listener on port 443...</p>
+<p>[info] Connected to Electra-API at praia-hub-01</p>
+<p class="text-blue-400">[debug] Handshake verified. RSA 2048bit</p>
+<p>[info] Receiving batch: CV-9923 (1,452 records)</p>
+<p class="text-emerald-400">[success] Batch CV-9923 validation: 100% compliant</p>
+<p>[info] Receiving batch: CV-9924 (892 records)</p>
+<p class="text-amber-400">[warn] Schema mismatch on index 44: meter_serial overflow</p>
+<p class="text-error">[error] Failed to parse row 44. Skipping...</p>
+<p class="text-emerald-400 text-opacity-80 animate-pulse">[info] Awaiting new data packets...</p>
+<div class="h-4 w-1 bg-primary/60 inline-block animate-bounce ml-1"></div>
+</div>
+<div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center relative z-10">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-500 uppercase font-bold">Throughput</span>
+<span class="text-lg font-bold text-white tracking-tight">1.2 GB/s</span>
+</div>
+<button class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-[11px] font-bold transition-all backdrop-blur-md">
+                                Export Logs
+                            </button>
+</div>
+</div>
+<!-- Statistics / Mini Stats -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-outline-variant/10">
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Ingested</p>
+<h4 class="text-2xl font-bold text-on-surface">1.8M</h4>
+<p class="text-[11px] text-emerald-600 font-semibold mt-2 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span> +12% vs last week
+                            </p>
+</div>
+<div class="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-outline-variant/10">
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Error Rate</p>
+<h4 class="text-2xl font-bold text-on-surface">0.04%</h4>
+<p class="text-[11px] text-slate-500 font-semibold mt-2">Within SLA limits</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Meta -->
+<div class="mt-12 flex justify-between items-center text-on-surface-variant">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span class="text-xs font-medium">Node: Praia-Center-A</span>
+</div>
+<div class="text-xs font-medium">Uptime: 99.98%</div>
+</div>
+<div class="text-xs font-mono opacity-50">
+                    System Architecture: Fiskix-Electra-24.0.0
+                </div>
+</div>
+</div>
+</main>
+<!-- Contextual Floating Notification (Design System Influence) -->
+<div class="fixed bottom-8 right-8 flex items-center gap-4 bg-white/90 backdrop-blur-xl p-4 rounded-2xl shadow-2xl shadow-primary/10 border border-slate-100 z-50">
+<div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">analytics</span>
+</div>
+<div class="pr-4">
+<h5 class="text-[13px] font-bold text-on-surface">Live Ingestion Analysis</h5>
+<p class="text-[11px] text-on-surface-variant">42,012 data points processed in last 60s</p>
+</div>
+<button class="material-symbols-outlined text-slate-300 hover:text-slate-600">close</button>
+</div>
+</body></html>

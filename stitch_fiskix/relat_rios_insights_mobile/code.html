@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#e2e2e7",
+                    "tertiary": "#9e3d00",
+                    "surface-container": "#ededf2",
+                    "surface-bright": "#f9f9fe",
+                    "on-tertiary-container": "#fffbff",
+                    "on-error": "#ffffff",
+                    "inverse-primary": "#adc6ff",
+                    "on-secondary-fixed": "#001a41",
+                    "inverse-surface": "#2e3034",
+                    "tertiary-fixed": "#ffdbcc",
+                    "on-primary": "#ffffff",
+                    "surface": "#f9f9fe",
+                    "background": "#f9f9fe",
+                    "secondary-fixed": "#d8e2ff",
+                    "surface-container-high": "#e8e8ed",
+                    "on-secondary-fixed-variant": "#26467d",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#001a41",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "tertiary-container": "#c64f00",
+                    "primary-fixed": "#d8e2ff",
+                    "primary": "#0058bc",
+                    "inverse-on-surface": "#f0f0f5",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "outline-variant": "#c1c6d7",
+                    "secondary": "#405e96",
+                    "on-primary-container": "#fefcff",
+                    "on-surface": "#1a1c1f",
+                    "primary-container": "#0070eb",
+                    "surface-container-low": "#f3f3f8",
+                    "on-error-container": "#93000a",
+                    "surface-container-highest": "#e2e2e7",
+                    "on-tertiary-fixed-variant": "#7c2e00",
+                    "on-tertiary-fixed": "#351000",
+                    "error": "#ba1a1a",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-container": "#a1befd",
+                    "on-surface-variant": "#414755",
+                    "on-secondary-container": "#2d4c83",
+                    "outline": "#717786",
+                    "tertiary-fixed-dim": "#ffb595",
+                    "surface-tint": "#005bc1",
+                    "on-background": "#1a1c1f",
+                    "on-primary-fixed-variant": "#004493",
+                    "primary-fixed-dim": "#adc6ff",
+                    "surface-dim": "#d9dade"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "1rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter", "sans-serif"],
+                    "body": ["Inter", "sans-serif"],
+                    "label": ["Inter", "sans-serif"],
+                    "mono": ["JetBrains Mono", "monospace"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .tonal-transition { transition: background-color 0.3s ease; }
+        .no-line { border: none !important; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.04)] h-16 flex items-center justify-between px-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-600 dark:text-blue-400" data-icon="energy_savings_leaf">energy_savings_leaf</span>
+<h1 class="text-xl font-bold tracking-tighter text-slate-900 dark:text-white">Fiskix</h1>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-high overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="professional portrait of a technical manager in a minimalist clean lighting style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFuGo3nPzMJ6ARrMVDKPP7CQ6m2csLcTnzHxc0O1JAvxlJlTfAk0sGsTKFHgc3drVIJ9nIDZwJvgztKwwZBmSDRxWcbBBxvX1rp_Azp5dCq3CKqGNqGOAE_JQsNf9slN4mM2zxOpiuQvtFRimc7ajfnq2mZWCWGKXc8IrMMOrQTQCd8p6I-1dOis2vuo1hg8BQv_WuuP7E-ZtFL5pyBcwOa_-39xtJCXui5DYfc_MaBitxSSisPjxk6mUmuz8UH_K-Ba_kznxflIyD"/>
+</div>
+</header>
+<main class="pt-20 px-4 space-y-8">
+<!-- Header & Insights Title -->
+<section class="space-y-4">
+<h2 class="text-3xl font-extrabold tracking-tight text-on-surface">Relatórios &amp; Insights</h2>
+<div class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar">
+<button class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold whitespace-nowrap shadow-lg shadow-primary/20">Global</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-semibold whitespace-nowrap">Subestação A1</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-semibold whitespace-nowrap">Ilha Norte</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-semibold whitespace-nowrap">Setor Industrial</button>
+</div>
+</section>
+<!-- KPI Bento Grid -->
+<section class="grid grid-cols-2 gap-3">
+<div class="col-span-2 p-6 rounded-xl bg-surface-container-lowest shadow-[0_8px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between h-32 relative overflow-hidden">
+<div class="z-10">
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant opacity-70">Carga Total</span>
+<div class="text-4xl font-mono font-bold text-primary mt-1">142.8 <span class="text-xl">MW</span></div>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-[120px]" data-icon="bolt">bolt</span>
+</div>
+</div>
+<div class="p-5 rounded-xl bg-surface-container-lowest shadow-[0_8px_24px_rgba(0,0,0,0.02)]">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant opacity-70">Alertas Críticos</span>
+<div class="text-2xl font-mono font-bold text-error mt-2">12</div>
+<div class="mt-2 flex items-center text-[10px] text-error font-bold">
+<span class="material-symbols-outlined text-xs mr-1" data-icon="trending_up">trending_up</span>
+                    +15% vs ontem
+                </div>
+</div>
+<div class="p-5 rounded-xl bg-surface-container-lowest shadow-[0_8px_24px_rgba(0,0,0,0.02)]">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant opacity-70">Eficiência</span>
+<div class="text-2xl font-mono font-bold text-green-600 mt-2">94.1%</div>
+<div class="mt-2 flex items-center text-[10px] text-green-600 font-bold">
+<span class="material-symbols-outlined text-xs mr-1" data-icon="check_circle">check_circle</span>
+                    Estável
+                </div>
+</div>
+</section>
+<!-- Charts Section -->
+<section class="space-y-6">
+<div class="p-6 rounded-xl bg-surface-container-lowest shadow-[0_8px_24px_rgba(0,0,0,0.02)]">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h3 class="text-lg font-bold text-on-surface">Load vs Efficiency</h3>
+<p class="text-xs text-on-surface-variant">Variação nas últimas 24h</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="more_horiz">more_horiz</span>
+</div>
+<div class="h-48 flex items-end justify-between gap-2 px-2">
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary/10 rounded-t-lg relative group h-[40%]">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-lg h-[80%] transition-all"></div>
+</div>
+<span class="text-[8px] font-bold opacity-40">00h</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary/10 rounded-t-lg relative group h-[60%]">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-lg h-[70%] transition-all"></div>
+</div>
+<span class="text-[8px] font-bold opacity-40">04h</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary/10 rounded-t-lg relative group h-[85%]">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-lg h-[95%] transition-all"></div>
+</div>
+<span class="text-[8px] font-bold opacity-40">08h</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary/10 rounded-t-lg relative group h-[100%]">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-lg h-[90%] transition-all"></div>
+</div>
+<span class="text-[8px] font-bold opacity-40">12h</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary/10 rounded-t-lg relative group h-[75%]">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-lg h-[65%] transition-all"></div>
+</div>
+<span class="text-[8px] font-bold opacity-40">16h</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-full">
+<div class="w-full bg-primary/10 rounded-t-lg relative group h-[50%]">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-lg h-[40%] transition-all"></div>
+</div>
+<span class="text-[8px] font-bold opacity-40">20h</span>
+</div>
+</div>
+</div>
+<!-- Foco Geográfico Map -->
+<div class="p-6 rounded-xl bg-surface-container-lowest shadow-[0_8px_24px_rgba(0,0,0,0.02)] overflow-hidden">
+<div class="flex justify-between items-center mb-4">
+<h3 class="text-lg font-bold text-on-surface">Foco Geográfico</h3>
+<div class="px-3 py-1 bg-surface-container-high rounded-full text-[10px] font-bold uppercase">Live Map</div>
+</div>
+<div class="aspect-video w-full rounded-lg bg-surface-container overflow-hidden relative border border-outline-variant/10">
+<img class="w-full h-full object-cover opacity-60 mix-blend-multiply" data-alt="abstract satellite view of an urban power grid network at night with glowing blue lines and data points" data-location="São Paulo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCR6fE0EbHPxPlk2_pqAvt3hqUb6cE7xTM2TTgRw3oWnYM8WegmnuWwEoFFF0LkDL4T0Aqwpf4SCSR1YH_xbmCODUt9XrSTVcIjyHgs-yKfzNBKT3dr1VdmsoUGlgxjYd4NuuhF5vBhKJIjCtB3vVqykqk17jSYbzONjtqrDVdhxSH8UBTfen0LD3_8LiJVzQW2MJNMSujsNf8Yz8xyFk50Y8wubFkMJ8-lYsaxUbexTbroa-TJrvNrkJ-Xa4QGl5q9p7DFDk3vz22g"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="relative">
+<div class="absolute -inset-4 bg-primary/30 rounded-full blur-xl"></div>
+<div class="w-4 h-4 bg-primary rounded-full border-2 border-white relative z-10"></div>
+</div>
+</div>
+<div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur p-2 rounded-lg text-[10px] font-mono shadow-sm">
+                        LAT: -23.5505 <br/> LNG: -46.6333
+                    </div>
+</div>
+</div>
+</section>
+<!-- Operational Logs Section -->
+<section class="space-y-4">
+<div class="flex justify-between items-center">
+<h3 class="text-lg font-bold text-on-surface">Logs Operacionais</h3>
+<button class="text-primary text-sm font-semibold">Ver todos</button>
+</div>
+<div class="space-y-2">
+<div class="p-4 rounded-xl bg-surface-container-low flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-xl" data-icon="warning">warning</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<span class="text-xs font-bold text-on-surface">Queda de Tensão</span>
+<span class="text-[10px] font-mono opacity-50">14:22</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1">Subestação A1 - Requisitada manutenção imediata.</p>
+</div>
+</div>
+<div class="p-4 rounded-xl bg-surface-container-low flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-blue-600/10 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined text-xl" data-icon="sync">sync</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<span class="text-xs font-bold text-on-surface">Sincronismo de Rede</span>
+<span class="text-[10px] font-mono opacity-50">12:05</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1">Setor Industrial - Reequilíbrio concluído.</p>
+</div>
+</div>
+<div class="p-4 rounded-xl bg-surface-container-low flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-green-600/10 flex items-center justify-center text-green-600">
+<span class="material-symbols-outlined text-xl" data-icon="verified">verified</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between">
+<span class="text-xs font-bold text-on-surface">Backup Ativado</span>
+<span class="text-[10px] font-mono opacity-50">09:45</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1">Ilha Norte - Sistema operando em redundância.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] rounded-[2rem] bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] z-50 flex justify-around items-center py-3 px-4 no-line surface-container-low">
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 opacity-60 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 rounded-2xl p-2 transition-all active:scale-90">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[10px] font-semibold tracking-wide uppercase mt-1">Dashboard</span>
+</button>
+<button class="flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 scale-110 transition-all p-2 rounded-2xl">
+<span class="material-symbols-outlined" data-icon="recycling">recycling</span>
+<span class="text-[10px] font-semibold tracking-wide uppercase mt-1">Recovery</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 opacity-60 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 rounded-2xl p-2 transition-all active:scale-90">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="text-[10px] font-semibold tracking-wide uppercase mt-1">Users</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 opacity-60 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 rounded-2xl p-2 transition-all active:scale-90">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[10px] font-semibold tracking-wide uppercase mt-1">Settings</span>
+</button>
+</nav>
+</body></html>

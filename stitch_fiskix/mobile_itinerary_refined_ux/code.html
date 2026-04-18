@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Fiskix: O Meu Roteiro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#adc6ff",
+                        "on-secondary-fixed": "#001a41",
+                        "on-error": "#ffffff",
+                        "tertiary": "#9e3d00",
+                        "surface-container": "#ededf2",
+                        "surface-bright": "#f9f9fe",
+                        "on-tertiary-container": "#fffbff",
+                        "surface-variant": "#e2e2e7",
+                        "surface": "#f9f9fe",
+                        "tertiary-fixed": "#ffdbcc",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2e3034",
+                        "primary-fixed": "#d8e2ff",
+                        "primary": "#0058bc",
+                        "inverse-on-surface": "#f0f0f5",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#c64f00",
+                        "surface-container-high": "#e8e8ed",
+                        "on-secondary-fixed-variant": "#26467d",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#001a41",
+                        "on-tertiary": "#ffffff",
+                        "background": "#f9f9fe",
+                        "secondary-fixed": "#d8e2ff",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "outline-variant": "#c1c6d7",
+                        "secondary": "#405e96",
+                        "on-surface": "#1a1c1f",
+                        "primary-container": "#0070eb",
+                        "on-primary-container": "#fefcff",
+                        "surface-container-highest": "#e2e2e7",
+                        "on-tertiary-fixed-variant": "#7c2e00",
+                        "on-tertiary-fixed": "#351000",
+                        "surface-container-low": "#f3f3f8",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#ffb595",
+                        "on-secondary-container": "#2d4c83",
+                        "outline": "#717786",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#a1befd",
+                        "on-surface-variant": "#414755",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#d9dade",
+                        "on-primary-fixed-variant": "#004493",
+                        "primary-fixed-dim": "#adc6ff",
+                        "surface-tint": "#005bc1",
+                        "on-background": "#1a1c1f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    },
+                    "animation": {
+                        "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                        "shimmer": "shimmer 2s infinite linear",
+                        "haptic": "haptic 0.2s ease-in-out"
+                    },
+                    "keyframes": {
+                        "shimmer": {
+                            "0%": { "background-position": "-1000px 0" },
+                            "100%": { "background-position": "1000px 0" }
+                        },
+                        "haptic": {
+                            "0%, 100%": { "transform": "scale(1)" },
+                            "50%": { "transform": "scale(0.92)" }
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f5 25%, #e2e2e7 50%, #f0f0f5 75%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite linear;
+        }
+        .haptic-feedback:active {
+            animation: haptic 0.2s ease-in-out;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- Offline Indicator -->
+<div class="fixed top-16 left-0 w-full z-[45] bg-tertiary-container/90 backdrop-blur-md px-4 py-1.5 flex items-center justify-center gap-2 border-b border-tertiary/10 transition-all duration-300">
+<span class="material-symbols-outlined text-sm text-on-tertiary-container">cloud_off</span>
+<span class="text-[11px] font-bold tracking-wide uppercase text-on-tertiary-container">Modo Offline • Sincronizando Alterações</span>
+</div>
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#f9f9fe]/80 dark:bg-[#1a1c1f]/80 backdrop-blur-xl flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden">
+<img alt="Inspector Profile" class="w-full h-full object-cover" data-alt="professional headshot of a middle-aged male field inspector wearing a neutral-colored work polo shirt, soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoNcLRFHSlSIDyWs6JKDhRukaCKlQCWLWmQTTMlAnQzmRcG6HONyHgbYpSnB5yxlXYer5zk7WgTL9M-PLp2vtoWGt47eBz7UzGVkzWv_ApDHYq-Oga5IxDMHo8Gfk73_VeriBOh3Y0CyqTHRO9D_5_i9swIMbjimVMhD2XHGWBhI_vj4PqhUmM7NRxkVpufJeM3nbEMmugmUU1aqU4idIf2QUn5DPE1L1CVUrn9oiFYiCdUH0c8l5e3QKNxIl8tF18c4Jk7umcL2Ko"/>
+</div>
+<span class="text-lg font-bold tracking-tighter text-[#1a1c1f] dark:text-[#f9f9fe]">Field Central</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#0058bc] dark:text-[#0070eb] hover:opacity-80 transition-opacity haptic-feedback">cloud_sync</button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="pt-28 pb-32 px-6 max-w-2xl mx-auto">
+<!-- Header Section (Hero) -->
+<header class="mb-10">
+<div class="flex flex-col gap-1">
+<h1 class="text-3xl font-bold tracking-tight text-on-surface">O Meu Roteiro</h1>
+<p class="text-on-surface-variant font-medium">Carlos Eduardo • 24 de Outubro</p>
+</div>
+<!-- Status Pill Grid -->
+<div class="flex gap-4 mt-6">
+<div class="flex-1 bg-surface-container-low p-4 rounded-2xl flex flex-col gap-1">
+<span class="text-[10px] font-bold uppercase tracking-widest text-outline">Total</span>
+<span class="text-xl font-bold text-on-surface">12 Ordens</span>
+</div>
+<div class="flex-1 bg-primary-container p-4 rounded-2xl flex flex-col gap-1">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-primary-container/70">Concluído</span>
+<span class="text-xl font-bold text-on-primary-container">4 / 12</span>
+</div>
+</div>
+</header>
+<!-- Itinerary List -->
+<section class="flex flex-col gap-6">
+<div class="flex items-center justify-between mb-2">
+<h2 class="text-sm font-bold uppercase tracking-widest text-outline">Próximas Visitas</h2>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<span class="text-xs font-semibold text-primary">Ordenar por proximidade</span>
+</div>
+</div>
+<!-- Skeleton Loading Card (Hidden by default, shown during sync) -->
+<div class="bg-surface-container-lowest rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.04)] opacity-50 hidden">
+<div class="flex justify-between items-start mb-6">
+<div class="flex flex-col gap-2 w-full">
+<div class="w-24 h-3 skeleton rounded-full"></div>
+<div class="w-48 h-5 skeleton rounded-lg"></div>
+<div class="w-32 h-3 skeleton rounded-full"></div>
+</div>
+<div class="flex flex-col items-end gap-2">
+<div class="w-10 h-6 skeleton rounded-lg"></div>
+<div class="w-8 h-2 skeleton rounded-full"></div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<div class="h-14 skeleton rounded-2xl"></div>
+<div class="h-14 skeleton rounded-2xl"></div>
+<div class="h-14 skeleton rounded-2xl"></div>
+</div>
+</div>
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.04)] transition-all active:scale-[0.98]">
+<div class="flex justify-between items-start mb-6">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Hidrômetro #45920-X</span>
+<h3 class="text-lg font-semibold leading-snug">Av. Paulista, 1578, Bela Vista</h3>
+<p class="text-sm text-on-surface-variant mt-1">S. Paulo, SP • 0.4 km de distância</p>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-mono text-xl font-extrabold text-error">8.4</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-outline">Risco</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<button class="h-14 flex flex-col items-center justify-center bg-surface-container rounded-2xl text-primary transition-all active:bg-primary/10 active:scale-95 haptic-feedback">
+<span class="material-symbols-outlined mb-1">map</span>
+<span class="text-[10px] font-bold uppercase">Mapa</span>
+</button>
+<button class="h-14 flex flex-col items-center justify-center bg-surface-container rounded-2xl text-primary transition-all active:bg-primary/10 active:scale-95 haptic-feedback">
+<span class="material-symbols-outlined mb-1">call</span>
+<span class="text-[10px] font-bold uppercase">Ligar</span>
+</button>
+<button class="h-14 flex flex-col items-center justify-center bg-primary-container text-white rounded-2xl shadow-lg shadow-primary/20 transition-all active:opacity-80 active:scale-95 haptic-feedback">
+<span class="material-symbols-outlined mb-1">visibility</span>
+<span class="text-[10px] font-bold uppercase">Detalhes</span>
+</button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.04)] transition-all active:scale-[0.98]">
+<div class="flex justify-between items-start mb-6">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Hidrômetro #11283-B</span>
+<h3 class="text-lg font-semibold leading-snug">Rua Peixoto Gomide, 996</h3>
+<p class="text-sm text-on-surface-variant mt-1">Jardins, SP • 1.2 km de distância</p>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-mono text-xl font-extrabold text-tertiary">4.2</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-outline">Risco</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<button class="h-14 flex flex-col items-center justify-center bg-surface-container rounded-2xl text-primary transition-all active:bg-primary/10 active:scale-95 haptic-feedback">
+<span class="material-symbols-outlined mb-1">map</span>
+<span class="text-[10px] font-bold uppercase">Mapa</span>
+</button>
+<button class="h-14 flex flex-col items-center justify-center bg-surface-container rounded-2xl text-primary transition-all active:bg-primary/10 active:scale-95 haptic-feedback">
+<span class="material-symbols-outlined mb-1">call</span>
+<span class="text-[10px] font-bold uppercase">Ligar</span>
+</button>
+<button class="h-14 flex flex-col items-center justify-center bg-primary-container text-white rounded-2xl shadow-lg shadow-primary/20 transition-all active:opacity-80 active:scale-95 haptic-feedback">
+<span class="material-symbols-outlined mb-1">visibility</span>
+<span class="text-[10px] font-bold uppercase">Detalhes</span>
+</button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.04)] transition-all active:scale-[0.98]">
+<div class="flex justify-between items-start mb-6">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Hidrômetro #22741-K</span>
+<h3 class="text-lg font-semibold leading-snug">Al. Santos, 2224, 8º Andar</h3>
+<p class="text-sm text-on-surface-variant mt-1">Cerqueira César, SP • 1.8 km de distância</p>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-mono text-xl font-extrabold text-secondary">1.5</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-outline">Risco</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<button class="h-14 flex flex-col items-center justify-center bg-surface-container rounded-2xl text-primary transition-all active:bg-primary/10 active:scale-95 haptic-feedback">
+<span class="material-symbols-outlined mb-1">map</span>
+<span class="text-[10px] font-bold uppercase">Mapa</span>
+</button>
+<button class="h-14 flex flex-col items-center justify-center bg-surface-container rounded-2xl text-primary transition-all active:bg-primary/10 active:scale-95 haptic-feedback">
+<span class="material-symbols-outlined mb-1">call</span>
+<span class="text-[10px] font-bold uppercase">Ligar</span>
+</button>
+<button class="h-14 flex flex-col items-center justify-center bg-primary-container text-white rounded-2xl shadow-lg shadow-primary/20 transition-all active:opacity-80 active:scale-95 haptic-feedback">
+<span class="material-symbols-outlined mb-1">visibility</span>
+<span class="text-[10px] font-bold uppercase">Detalhes</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] h-20 bg-[#f9f9fe]/80 dark:bg-[#1a1c1f]/80 backdrop-blur-3xl rounded-[2rem] flex justify-around items-center px-4 z-50 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-none">
+<!-- Itinerary (Active) -->
+<button class="flex flex-col items-center justify-center bg-[#0058bc] text-white rounded-2xl h-14 w-14 transition-all duration-300 haptic-feedback active:scale-90">
+<span class="material-symbols-outlined text-[22px]">calendar_today</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-0.5">Itinerary</span>
+</button>
+<!-- Intel -->
+<button class="flex flex-col items-center justify-center text-[#5a5c5f] h-14 w-14 hover:bg-[#f3f3f8] dark:hover:bg-[#2a2c2f] rounded-2xl transition-all duration-200 haptic-feedback active:scale-90">
+<span class="material-symbols-outlined text-[22px]">analytics</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-0.5">Intel</span>
+</button>
+<!-- Inspect -->
+<button class="flex flex-col items-center justify-center text-[#5a5c5f] h-14 w-14 hover:bg-[#f3f3f8] dark:hover:bg-[#2a2c2f] rounded-2xl transition-all duration-200 haptic-feedback active:scale-90">
+<span class="material-symbols-outlined text-[22px]">fact_check</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-0.5">Inspect</span>
+</button>
+<!-- Settings -->
+<button class="flex flex-col items-center justify-center text-[#5a5c5f] h-14 w-14 hover:bg-[#f3f3f8] dark:hover:bg-[#2a2c2f] rounded-2xl transition-all duration-200 haptic-feedback active:scale-90">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-widest mt-0.5">Settings</span>
+</button>
+</nav>
+<!-- FAB Overlay (If applicable for rapid start) -->
+<div class="fixed bottom-32 right-6">
+<button class="w-14 h-14 bg-tertiary-container text-on-tertiary-container rounded-full shadow-2xl flex items-center justify-center transition-transform active:scale-90 haptic-feedback">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+</body></html>
