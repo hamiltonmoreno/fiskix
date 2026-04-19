@@ -115,7 +115,6 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
   const mesesDisponiveis = getLastNMonths(24);
 
   return (
-  return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
       <Tabs.Root
         value={activeTab}
@@ -162,7 +161,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
                 className="p-2 text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-container-low cursor-pointer touch-manipulation transition-colors"
                 title="Imprimir / PDF"
               >
-                <Printer className="w-4 h-4" />
+                <Icon name="print" size="sm" />
               </button>
               <button
                 onClick={() => { haptics.medium(); setAgendarOpen(true); setAgendarSuccess(false); }}

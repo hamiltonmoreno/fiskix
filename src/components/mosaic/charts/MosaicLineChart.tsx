@@ -15,7 +15,7 @@ import {
 import { chartTheme, appColors } from "./RechartsConfig";
 
 interface MosaicLineChartProps {
-  data: any[];
+  data: object[];
   lines: {
     dataKey: string;
     stroke?: string;

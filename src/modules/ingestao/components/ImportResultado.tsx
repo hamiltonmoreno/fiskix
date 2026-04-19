@@ -1,5 +1,6 @@
 import { CheckCircle, AlertCircle } from "lucide-react";
 import type { ImportResult } from "./types";
+import { haptics } from "@/lib/haptics";
 
 interface ImportResultadoProps {
   resultado: ImportResult;

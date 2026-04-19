@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { haptics } from "@/lib/haptics";
+import { toast } from "sonner";
 
 interface DashboardCard07Props {
   mesAno: string;
@@ -59,6 +60,8 @@ export function DashboardCard07({ mesAno, zona }: DashboardCard07Props) {
     try {
       await enviarSMS(alertaId, tipo);
       await reload();
+    } catch {
+      toast.error("Erro ao enviar SMS. Tente novamente.");
     } finally {
       setActionLoading(null);
     }
@@ -70,6 +73,8 @@ export function DashboardCard07({ mesAno, zona }: DashboardCard07Props) {
     try {
       await gerarOrdem(alertaId);
       await reload();
+    } catch {
+      toast.error("Erro ao gerar ordem de inspeção. Tente novamente.");
     } finally {
       setActionLoading(null);
     }

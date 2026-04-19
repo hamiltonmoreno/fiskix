@@ -50,7 +50,7 @@ export function DashboardCardHeatMap({ mesAno, zona }: DashboardCardHeatMapProps
 
         const kwh_faturado = (fatClientes || [])
           .filter((f) => {
-            const c = f.clientes as any;
+            const c = f.clientes as { id_subestacao: string };
             return c?.id_subestacao === s.id;
           })
           .reduce((sum, f) => sum + f.kwh_faturado, 0);
@@ -58,7 +58,7 @@ export function DashboardCardHeatMap({ mesAno, zona }: DashboardCardHeatMapProps
         const perda_pct = kwh_injetado > 0 ? ((kwh_injetado - kwh_faturado) / kwh_injetado) * 100 : 0;
 
         const alertas_criticos = (alertas || []).filter((a) => {
-          const c = a.clientes as any;
+          const c = a.clientes as { id_subestacao: string };
           return c?.id_subestacao === s.id;
         }).length;
 

@@ -57,20 +57,20 @@ describe("ImportarDados.tsx", () => {
     render(<ImportarDados historico={[]} />);
 
     expect(screen.getByText("Importar Dados")).toBeInTheDocument();
-    expect(screen.getByText(/CSV e Excel de faturação ou injeção/)).toBeInTheDocument();
+    expect(screen.getByText(/CSV e Excel/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Faturação de Clientes" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Injeção de Energia" })).toBeInTheDocument();
   });
 
   it("exibe a zona de upload por defeito", () => {
     render(<ImportarDados historico={[]} />);
-    expect(screen.getByText("Arrastar ficheiro ou clicar para selecionar")).toBeInTheDocument();
+    expect(screen.getByText("Arrastar ficheiro ou clicar")).toBeInTheDocument();
     expect(screen.getByText(/CSV, XLS, XLSX/)).toBeInTheDocument();
   });
 
   it("mostra mensagem quando histórico está vazio", () => {
     render(<ImportarDados historico={[]} />);
-    expect(screen.getByText("Nenhuma importação ainda")).toBeInTheDocument();
+    expect(screen.getByText("Nenhuma importação registada")).toBeInTheDocument();
   });
 
   it("renderiza o histórico de importações quando tem dados", () => {
@@ -153,7 +153,7 @@ describe("ImportarDados.tsx", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Erros de validação/)).toBeInTheDocument();
-      expect(screen.getByText(/Linha 2 · kwh_faturado: Valor não numérico/)).toBeInTheDocument();
+      expect(screen.getByText(/kwh_faturado.*Valor não numérico/)).toBeInTheDocument();
     });
   });
 

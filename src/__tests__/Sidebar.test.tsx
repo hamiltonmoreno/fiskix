@@ -167,13 +167,13 @@ describe("Sidebar — Collapse com localStorage", () => {
   it("lê o estado collapsed do localStorage na montagem", () => {
     localStorage.setItem("sidebar-collapsed", "true");
     const { aside } = renderSidebar("gestor_perdas");
-    expect(aside.className).toContain("w-16");
+    expect(aside.className).toContain("w-[4.5rem]");
   });
 
   it("ao clicar no botão de recolher, persiste 'true' no localStorage", () => {
     const { aside } = renderSidebar("gestor_perdas");
     // within(aside) garante que apanhamos apenas o botão do desktop
-    const collapseBtn = within(aside).getByTitle("Recolher menu");
+    const collapseBtn = within(aside).getByRole("button", { name: "Recolher menu" });
     fireEvent.click(collapseBtn);
     expect(localStorage.getItem("sidebar-collapsed")).toBe("true");
   });

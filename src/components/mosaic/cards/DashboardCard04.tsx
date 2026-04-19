@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Icon } from "@/components/Icon";
 import { MosaicBarChart } from "../charts/MosaicBarChart";
 import { createClient } from "@/lib/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,8 +11,22 @@ interface DashboardCard04Props {
   mesAno: string;
 }
 
+interface SubChartData {
+  nome: string;
+  fullName: string;
+  injetado: number;
+  faturado: number;
+  tarifa_media: number;
+}
+
+interface TooltipEntry {
+  name: string;
+  value: number;
+  payload: SubChartData;
+}
+
 export function DashboardCard04({ mesAno }: DashboardCard04Props) {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<SubChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
@@ -64,12 +77,12 @@ export function DashboardCard04({ mesAno }: DashboardCard04Props) {
         }
 
         const chartData = injecoes.map((inj) => {
-          const sub = inj.subestacoes as any;
+          const sub = inj.subestacoes as { nome: string } | null;
           const kwh_injetado = inj.total_kwh_injetado;
           const { kwh: kwh_faturado, cve: cve_faturado } = faturacaoPorSub[inj.id_subestacao] || { kwh: 0, cve: 0 };
           
           return {
-            nome: sub?.nome ? sub.nome.split(' ').pop() : "Desc.", // Shorten name for chart X-axis
+            nome: sub?.nome ? (sub.nome.split(' ').pop() ?? "Desc.") : "Desc.",
             fullName: sub?.nome || "Desconhecida",
             injetado: Math.round(kwh_injetado),
             faturado: Math.round(kwh_faturado),
@@ -86,11 +99,11 @@ export function DashboardCard04({ mesAno }: DashboardCard04Props) {
     load();
   }, [mesAno, supabase]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipEntry[]; label?: string }) => {
     if (!active || !payload?.length) return null;
 
-    const inj = payload.find((p: any) => p.name === "Injetado")?.value || 0;
-    const fat = payload.find((p: any) => p.name === "Faturado")?.value || 0;
+    const inj = payload.find((p) => p.name === "Injetado")?.value || 0;
+    const fat = payload.find((p) => p.name === "Faturado")?.value || 0;
     const tarifaMedia = payload[0]?.payload?.tarifa_media || 15;
     const perdaKwh = inj - fat;
     const perdaCVE = perdaKwh * tarifaMedia;

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { haptics } from "@/lib/haptics";
+import { useClickOutside } from "@/hooks/useClickOutside";
 
 interface DropdownProfileProps {
   profile: {
@@ -29,17 +28,9 @@ function getInitials(name: string) {
 export function DropdownProfile({ profile, onSignOut }: DropdownProfileProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const close = useCallback(() => setOpen(false), []);
+  useClickOutside(ref, close);
 
   return (
     <div className="relative inline-flex" ref={ref}>
@@ -47,10 +38,10 @@ export function DropdownProfile({ profile, onSignOut }: DropdownProfileProps) {
         className="inline-flex justify-center items-center group cursor-pointer"
         aria-haspopup="true"
         aria-expanded={open}
-        onClick={(e) => { 
-          e.stopPropagation(); 
+        onClick={(e) => {
+          e.stopPropagation();
           if (!open) haptics.light();
-          setOpen(!open); 
+          setOpen(!open);
         }}
       >
         <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold flex-shrink-0">

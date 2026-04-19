@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Icon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
+import { useClickOutside } from "@/hooks/useClickOutside";
 
 interface FilterOption {
   label: string;
@@ -20,15 +21,8 @@ export function DropdownFilter({ label = "Filtro", options, selected, onChange }
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const close = useCallback(() => setOpen(false), []);
+  useClickOutside(ref, close);
 
   function toggleValue(value: string) {
     if (selected.includes(value)) {

@@ -3,23 +3,7 @@
 import { useState } from "react";
 import { History, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import type { HistoricoRun } from "./types";
-
-interface ScoringHistoricoProps {
-  historico: HistoricoRun[];
-  onLimpar: () => void;
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString("pt-CV", {
-    day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
-  });
-}
-
-import { History, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
-import type { HistoricoRun } from "./types";
 import { haptics } from "@/lib/haptics";
-import { Icon } from "@/components/Icon";
 
 interface ScoringHistoricoProps {
   historico: HistoricoRun[];
@@ -154,7 +138,7 @@ export function ScoringHistorico({ historico, onLimpar }: ScoringHistoricoProps)
               </div>
               <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50/20 flex justify-end">
                 <button
-                  onClick={() => { haptics.notification("warning"); onLimpar(); }}
+                  onClick={() => { haptics.warning(); onLimpar(); }}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer rounded-md hover:bg-red-50 dark:hover:bg-red-900/10"
                 >
                   <Trash2 className="w-3.5 h-3.5" />

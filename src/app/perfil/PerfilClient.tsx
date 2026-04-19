@@ -1,3 +1,6 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import { Shield, KeyRound, CheckCircle, AlertCircle, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { UserRole } from "@/types/database";
@@ -290,7 +293,5 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
         </div>
       </div>
     </div>
-  );
-}
   );
 }

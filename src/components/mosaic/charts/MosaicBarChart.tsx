@@ -14,7 +14,7 @@ import {
 import { chartTheme, appColors } from "./RechartsConfig";
 
 interface MosaicBarChartProps {
-  data: any[];
+  data: object[];
   bars: {
     dataKey: string;
     fill?: string;

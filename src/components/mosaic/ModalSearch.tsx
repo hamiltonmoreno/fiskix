@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
-import { cn } from "@/lib/utils";
+
 
 interface ModalSearchProps {
   isOpen: boolean;
@@ -22,9 +22,9 @@ export function ModalSearch({ isOpen, onClose }: ModalSearchProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 50);
+      requestAnimationFrame(() => inputRef.current?.focus());
     } else {
       setQuery("");
     }

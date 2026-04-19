@@ -1,23 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
+import { useClickOutside } from "@/hooks/useClickOutside";
 
 export function DropdownHelp() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const close = useCallback(() => setOpen(false), []);
+  useClickOutside(ref, close);
 
   const links = [
     { icon: "menu_book", label: "Documentação", href: "/docs", desc: "Guias e tutoriais" },

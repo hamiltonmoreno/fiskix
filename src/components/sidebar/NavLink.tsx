@@ -19,7 +19,7 @@ export function NavLink({ href, icon, label, sub, badge, active, collapsed }: Na
         href={href}
         aria-current={active ? "page" : undefined}
         className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-sm font-medium cursor-pointer",
+          "relative flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-sm font-medium cursor-pointer",
           collapsed && "justify-center px-2",
           active
             ? "bg-gray-100 dark:bg-gray-700/30 text-primary"

@@ -26,7 +26,7 @@ export function DashboardCard06({ mesAno, zona }: DashboardCard06Props) {
           .eq("mes_ano", mesAno);
 
         if (zona) {
-          query = (query as any).eq("clientes.subestacoes.zona_bairro", zona);
+          query = (query as typeof query).eq("clientes.subestacoes.zona_bairro", zona);
         }
 
         const { data: alertas } = await query;
@@ -61,7 +61,7 @@ export function DashboardCard06({ mesAno, zona }: DashboardCard06Props) {
 
   const total = data.reduce((acc, d) => acc + d.value, 0);
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: { name: string; value: number; color: string } }> }) => {
     if (!active || !payload?.length) return null;
     const { name, value, color } = payload[0].payload;
     const pct = total > 0 ? Math.round((value / total) * 100) : 0;

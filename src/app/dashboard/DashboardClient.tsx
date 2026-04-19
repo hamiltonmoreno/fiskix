@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useKPIs } from "@/modules/dashboard/hooks/useKPIs";
 import { getCurrentMesAno } from "@/lib/utils";
@@ -8,7 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Icon } from "@/components/Icon";
 import { DashboardCard12 } from "@/components/mosaic/cards/DashboardCard12";
 import { DashboardCard06 } from "@/components/mosaic/cards/DashboardCard06";
-import { DatepickerMosaic } from "@/components/mosaic/DatepickerMosaic";
 import { DropdownFilter } from "@/components/mosaic/DropdownFilter";
 
 // Import charts dynamically to avoid SSR issues with Recharts
@@ -53,10 +53,15 @@ const MESES = Array.from({ length: 12 }, (_, i) => {
 
 export function DashboardClient({ profile }: DashboardClientProps) {
   const [mesAno, setMesAno] = useState(getCurrentMesAno());
-  
-  // Mosaic dropdown filter usage pattern
   const [zonasSelecionadas, setZonasSelecionadas] = useState<string[]>([]);
-  const zona = zonasSelecionadas.length === 1 ? zonasSelecionadas[0] : undefined;
+  const zona = zonasSelecionadas[0]; // single-select: first (and only) item, or undefined
+  const router = useRouter();
+
+  // Constrain to single selection: only keep the newly added zone
+  const handleZonaChange = useCallback((newSelected: string[]) => {
+    const added = newSelected.find((z) => !zonasSelecionadas.includes(z));
+    setZonasSelecionadas(added ? [added] : []);
+  }, [zonasSelecionadas]);
 
   const { data: kpis, loading: kpisLoading } = useKPIs(mesAno, zona);
 
@@ -114,17 +119,19 @@ export function DashboardClient({ profile }: DashboardClientProps) {
             </div>
           </div>
 
-          <DropdownFilter 
-            label="Zona" 
-            options={filterOptions} 
-            selected={zonasSelecionadas} 
-            onChange={setZonasSelecionadas} 
+          <DropdownFilter
+            label="Zona"
+            options={filterOptions}
+            selected={zonasSelecionadas}
+            onChange={handleZonaChange}
           />
 
-          <button className="bg-primary hover:bg-primary/90 text-white font-medium text-sm px-3 py-2 rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-2 touch-manipulation">
-            {/* Added touch-manipulation per Mosaic mobile guidelines */}
-            <Icon name="add" size="xs" className="text-white" />
-            <span>Gerar Relatório</span>
+          <button
+            onClick={() => router.push("/relatorios")}
+            className="bg-primary hover:bg-primary/90 text-white font-medium text-sm px-3 py-2 rounded-lg shadow-sm transition-colors cursor-pointer flex items-center gap-2 touch-manipulation"
+          >
+            <Icon name="summarize" size="xs" className="text-white" />
+            <span>Relatórios</span>
           </button>
         </div>
       </div>

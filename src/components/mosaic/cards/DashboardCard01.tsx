@@ -14,6 +14,32 @@ interface DashboardCard01Props {
 
 const MESES_PT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
+interface ChartPoint {
+  mes: string;
+  mes_ano: string;
+  perda_pct: number;
+  kwh_injetado: number;
+  perda_kwh: number;
+  tarifa_media: number;
+}
+
+interface InjecaoRow {
+  mes_ano: string;
+  total_kwh_injetado: number;
+}
+
+interface FaturacaoRow {
+  mes_ano: string;
+  kwh_faturado: number;
+  valor_cve: number;
+}
+
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: ChartPoint }>;
+  label?: string;
+}
+
 function getLast12Months(mesAno: string): string[] {
   const [y, m] = mesAno.split("-").map(Number);
   return Array.from({ length: 12 }, (_, i) => {
@@ -23,7 +49,7 @@ function getLast12Months(mesAno: string): string[] {
 }
 
 export function DashboardCard01({ mesAno, zona }: DashboardCard01Props) {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<ChartPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPerda, setCurrentPerda] = useState({ pct: 0, delta: 0, cve: 0 });
   const supabase = createClient();
@@ -34,31 +60,35 @@ export function DashboardCard01({ mesAno, zona }: DashboardCard01Props) {
       try {
         const meses = getLast12Months(mesAno);
         
-        const injecoesSelect = zona
-          ? "mes_ano, total_kwh_injetado, subestacoes!inner(zona_bairro)"
-          : "mes_ano, total_kwh_injetado";
+        const [{ data: rawInjecoes }, { data: rawFaturacao }] = await Promise.all([
+          zona
+            ? supabase.from("injecao_energia")
+                .select("mes_ano, total_kwh_injetado, subestacoes!inner(zona_bairro)")
+                .in("mes_ano", meses)
+                .eq("subestacoes.zona_bairro", zona)
+            : supabase.from("injecao_energia")
+                .select("mes_ano, total_kwh_injetado")
+                .in("mes_ano", meses),
+          zona
+            ? supabase.from("faturacao_clientes")
+                .select("mes_ano, kwh_faturado, valor_cve, clientes!inner(subestacoes!inner(zona_bairro))")
+                .in("mes_ano", meses)
+                .eq("clientes.subestacoes.zona_bairro", zona)
+            : supabase.from("faturacao_clientes")
+                .select("mes_ano, kwh_faturado, valor_cve")
+                .in("mes_ano", meses),
+        ]);
 
-        const fatSelect = zona
-          ? "mes_ano, kwh_faturado, valor_cve, clientes!inner(subestacoes!inner(zona_bairro))"
-          : "mes_ano, kwh_faturado, valor_cve";
-
-        let injecoesQuery = supabase.from("injecao_energia").select(injecoesSelect).in("mes_ano", meses);
-        let fatQuery = supabase.from("faturacao_clientes").select(fatSelect).in("mes_ano", meses);
-
-        if (zona) {
-          injecoesQuery = (injecoesQuery as any).eq("subestacoes.zona_bairro", zona);
-          fatQuery = (fatQuery as any).eq("clientes.subestacoes.zona_bairro", zona);
-        }
-
-        const [{ data: injecoes }, { data: faturacao }] = await Promise.all([injecoesQuery, fatQuery]);
+        const injecoes = (rawInjecoes ?? []) as InjecaoRow[];
+        const faturacao = (rawFaturacao ?? []) as FaturacaoRow[];
 
         const injetadoPorMes: Record<string, number> = {};
-        for (const i of ((injecoes || []) as any[])) {
+        for (const i of injecoes) {
           injetadoPorMes[i.mes_ano] = (injetadoPorMes[i.mes_ano] || 0) + i.total_kwh_injetado;
         }
 
         const faturadoPorMes: Record<string, { kwh: number; cve: number }> = {};
-        for (const f of ((faturacao || []) as any[])) {
+        for (const f of faturacao) {
           const prev = faturadoPorMes[f.mes_ano] || { kwh: 0, cve: 0 };
           faturadoPorMes[f.mes_ano] = { kwh: prev.kwh + f.kwh_faturado, cve: prev.cve + f.valor_cve };
         }
@@ -103,7 +133,7 @@ export function DashboardCard01({ mesAno, zona }: DashboardCard01Props) {
 
   const isDeltaNegative = currentPerda.delta < 0; // Negative loss delta is good
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: ChartTooltipProps) => {
     if (!active || !payload?.length) return null;
     const d = payload[0].payload;
     const perdaCVE = d.perda_kwh * d.tarifa_media;
