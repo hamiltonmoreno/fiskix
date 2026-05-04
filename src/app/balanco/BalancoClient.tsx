@@ -136,7 +136,7 @@ export function BalancoClient({ profile }: { profile: Profile }) {
 
       <main className="space-y-6">
         {/* Filtros */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-slate-200 dark:border-gray-700/60 p-4">
+        <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 mosaic-card-hover p-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs text-slate-500 dark:text-gray-400 mb-1.5 font-medium uppercase tracking-wide">
@@ -348,7 +348,7 @@ export function BalancoClient({ profile }: { profile: Profile }) {
         </ChartCard>
 
         {/* Tabela */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-slate-200 dark:border-gray-700/60 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 mosaic-card-hover overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 dark:border-gray-700/60 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-slate-700 dark:text-gray-200">Balanço por Subestação</h3>
@@ -497,7 +497,7 @@ function KpiCard({
     slate: "bg-slate-100 text-slate-500 dark:bg-gray-700 dark:text-gray-400",
   };
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-slate-200 dark:border-gray-700/60 p-4 sm:p-5">
+    <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 mosaic-card-hover p-4 sm:p-5">
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-medium text-slate-500 dark:text-gray-400 truncate">{label}</span>
         <div className={`p-2 rounded-lg ${palette[color]} shrink-0`}>
@@ -526,7 +526,7 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-slate-200 dark:border-gray-700/60 p-4 sm:p-5">
+    <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 mosaic-card-hover p-4 sm:p-5">
       <h3 className="text-sm font-semibold text-slate-700 dark:text-gray-200 mb-4">{title}</h3>
       {loading ? <div className="h-64 bg-slate-100 dark:bg-gray-900/40 animate-pulse rounded-lg" /> : children}
     </div>

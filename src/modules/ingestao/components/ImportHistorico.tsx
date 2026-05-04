@@ -7,7 +7,7 @@ interface ImportHistoricoProps {
 
 export function ImportHistorico({ historico }: ImportHistoricoProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700/60">
+    <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 mosaic-card-hover overflow-hidden">
       <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700/60">
         <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">
           Histórico
