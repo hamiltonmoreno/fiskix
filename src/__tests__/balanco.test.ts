@@ -137,6 +137,23 @@ describe("calcularBalancoPorSubestacao", () => {
     expect(rows[0].cve_estimado).toBe(5000);
   });
 
+  it("respects custom atencaoPct/criticoPct thresholds", () => {
+    const injecoes = [inj("LOW", "2026-01", 1000), inj("MID", "2026-01", 1000), inj("HIGH", "2026-01", 1000)];
+    const faturacoes = [
+      fat("LOW", "2026-01", 950), // 5% loss
+      fat("MID", "2026-01", 880), // 12% loss
+      fat("HIGH", "2026-01", 800), // 20% loss
+    ];
+    const rows = calcularBalancoPorSubestacao(injecoes, faturacoes, {
+      atencaoPct: 10,
+      criticoPct: 18,
+    });
+    const byId = Object.fromEntries(rows.map((r) => [r.id, r]));
+    expect(byId.LOW.classificacao).toBe("ok");
+    expect(byId.MID.classificacao).toBe("atencao"); // 12% > 10
+    expect(byId.HIGH.classificacao).toBe("critico"); // 20% > 18
+  });
+
   it("returns empty array when no injecoes", () => {
     expect(calcularBalancoPorSubestacao([], [fat("A", "2026-01", 100)])).toEqual([]);
   });

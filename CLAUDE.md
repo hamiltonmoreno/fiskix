@@ -24,13 +24,15 @@ src/modules/
   scoring/       — Motor de 9 regras (engine.ts — lógica local)
   ingestao/      — Import CSV/Excel de faturação e injeção
   alertas/       — CRUD alertas_fraude
+  relatorios/    — 6 abas analíticas (executivo, inspeções, perdas/zona, recidivismo, balanço, gerar)
+  balanco/       — Balanço Energético (lib pura + hook + drill-down)
   admin/         — utilizadores, configuração, importar
 
 supabase/functions/
-  scoring-engine — Motor scoring (Deno) — versão deployada
-  send-sms       — SMS via Twilio (Deno)
-  ingest-data    — Parse CSV/Excel (Deno)
-  balanco-energetico — (futuro)
+  scoring-engine     — Motor scoring (Deno) — deployed
+  send-sms           — SMS via Twilio (Deno) — deployed
+  ingest-data        — Parse CSV/Excel (Deno) — deployed
+  balanco-energetico — Balanço por subestação (técnica vs comercial) — pendente deploy
 ```
 
 ## Base de Dados (9 tabelas principais)
@@ -67,7 +69,7 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 5. Fiscal abre PWA `/mobile` → vê roteiro → abre ficha → inspeção com foto GPS
 6. Resultado sincronizado → receita recuperada atualizada no KPI
 
-## Status atual (Abril 2026)
+## Status atual (Maio 2026)
 - ✅ Auth + RLS completo (5 roles, isolamento por zona)
 - ✅ Dashboard: KPIs, mapa React Leaflet, tabela alertas, gráficos Recharts
 - ✅ Sidebar responsiva retrátil (desktop + mobile drawer)
@@ -76,7 +78,12 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 - ✅ SMS Twilio com fallback
 - ✅ App mobile PWA (roteiro, ficha inteligência, relatório inspeção com câmara GPS)
 - ✅ Admin: utilizadores, configuração, importar
+- ✅ Relatórios analíticos (6 abas) com export Excel
+- ✅ Balanço Energético dedicado (`/balanco`): KPIs com YoY, técnica vs comercial,
+  drill-down por subestação (evolução 6m + top 10 clientes), edge function `balanco-energetico`
+- ✅ Suite de testes Vitest (105 testes a passar)
 - ✅ Deploy produção: Vercel + Supabase Edge Functions
+- ⏳ Pendente: deploy da edge function `balanco-energetico` + correr migration `003_balanco_config.sql`
 
 ## Bugs já corrigidos (não voltar a introduzir)
 - RLS: fiscal só faz UPDATE em alertas `Pendente_Inspecao` na sua zona

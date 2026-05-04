@@ -8,7 +8,12 @@ import {
   calcularBalancoPorSubestacao,
   calcularEvolucaoMensal,
   topContribuidores,
+  DEFAULT_ATENCAO_PCT,
+  DEFAULT_CRITICO_PCT,
+  DEFAULT_PRICE_CVE_PER_KWH,
+  DEFAULT_TECH_LOSS_PCT,
   type BalancoKPIs,
+  type BalancoOptions,
   type ClienteContribuidor,
   type EvolucaoMensalRow,
   type FaturacaoRow,
@@ -56,7 +61,7 @@ export function useBalanco(filtros: BalancoFiltros) {
     const yoyMes = shiftMesAno(filtros.mesAno, -12);
     const mesesPlusYoy = Array.from(new Set([...meses, yoyMes]));
 
-    const [injecaoRes, faturacaoRes] = await Promise.all([
+    const [injecaoRes, faturacaoRes, configRes] = await Promise.all([
       supabase
         .from("injecao_energia")
         .select("id_subestacao, mes_ano, total_kwh_injetado, subestacoes!inner(nome, ilha, zona_bairro)")
@@ -65,7 +70,27 @@ export function useBalanco(filtros: BalancoFiltros) {
         .from("faturacao_clientes")
         .select("mes_ano, kwh_faturado, valor_cve, clientes!inner(id, id_subestacao, tipo_tarifa)")
         .in("mes_ano", mesesPlusYoy),
+      supabase
+        .from("configuracoes")
+        .select("chave, valor")
+        .in("chave", [
+          "limiar_perda_tecnica_pct",
+          "preco_cve_por_kwh",
+          "limiar_atencao_perda_pct",
+          "limiar_critico_perda_pct",
+        ]),
     ]);
+
+    const cfg: Record<string, number> = {};
+    for (const row of configRes.data ?? []) cfg[row.chave] = parseFloat(row.valor);
+    const sharedOpts: BalancoOptions = {
+      tecnicoMaxPct: cfg.limiar_perda_tecnica_pct ?? DEFAULT_TECH_LOSS_PCT,
+      precoCvePorKwh: cfg.preco_cve_por_kwh ?? DEFAULT_PRICE_CVE_PER_KWH,
+      atencaoPct: cfg.limiar_atencao_perda_pct ?? DEFAULT_ATENCAO_PCT,
+      criticoPct: cfg.limiar_critico_perda_pct ?? DEFAULT_CRITICO_PCT,
+      zona: filtros.zona,
+      tipoTarifa: filtros.tipoTarifa,
+    };
 
     const allInjecoes: InjecaoRow[] = (injecaoRes.data ?? []).map((r: Record<string, unknown>) => ({
       id_subestacao: r.id_subestacao as string,
@@ -85,29 +110,23 @@ export function useBalanco(filtros: BalancoFiltros) {
     const injCurrent = allInjecoes.filter((r) => r.mes_ano === filtros.mesAno);
     const fatCurrent = allFaturacoes.filter((r) => r.mes_ano === filtros.mesAno);
 
-    const porSubestacao = calcularBalancoPorSubestacao(injCurrent, fatCurrent, {
-      zona: filtros.zona,
-      tipoTarifa: filtros.tipoTarifa,
-    });
+    const porSubestacao = calcularBalancoPorSubestacao(injCurrent, fatCurrent, sharedOpts);
 
-    const kpis = agregarKPIs(porSubestacao);
+    const kpis = agregarKPIs(porSubestacao, sharedOpts);
 
     // Trend over last N months
     const evolucao = calcularEvolucaoMensal(
       allInjecoes.filter((r) => meses.includes(r.mes_ano)),
       allFaturacoes.filter((r) => meses.includes(r.mes_ano)),
       meses,
-      { zona: filtros.zona, tipoTarifa: filtros.tipoTarifa },
+      sharedOpts,
     );
 
     // YoY comparison
     const injYoY = allInjecoes.filter((r) => r.mes_ano === yoyMes);
     const fatYoY = allFaturacoes.filter((r) => r.mes_ano === yoyMes);
-    const porSubYoY = calcularBalancoPorSubestacao(injYoY, fatYoY, {
-      zona: filtros.zona,
-      tipoTarifa: filtros.tipoTarifa,
-    });
-    const kpisYoY = agregarKPIs(porSubYoY);
+    const porSubYoY = calcularBalancoPorSubestacao(injYoY, fatYoY, sharedOpts);
+    const kpisYoY = agregarKPIs(porSubYoY, sharedOpts);
     const yoy = porSubYoY.length > 0
       ? {
           perdaPct: kpisYoY.perdaPct,

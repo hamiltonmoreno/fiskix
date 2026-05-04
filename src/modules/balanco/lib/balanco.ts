@@ -68,23 +68,33 @@ export interface ClienteContribuidor {
   share_pct: number;
 }
 
-const DEFAULT_TECH_LOSS_PCT = 8;
-const DEFAULT_PRICE_CVE_PER_KWH = 15;
+export const DEFAULT_TECH_LOSS_PCT = 8;
+export const DEFAULT_PRICE_CVE_PER_KWH = 15;
+export const DEFAULT_ATENCAO_PCT = 15;
+export const DEFAULT_CRITICO_PCT = 25;
 
 export interface BalancoOptions {
   /** Below this %, all loss is treated as technical. Above, the excess is commercial. */
   tecnicoMaxPct?: number;
   /** Price per kWh in CVE for monetary estimates. */
   precoCvePorKwh?: number;
+  /** Loss % threshold for "atencao" classification. */
+  atencaoPct?: number;
+  /** Loss % threshold for "critico" classification. */
+  criticoPct?: number;
   /** Optional zona filter applied after aggregation. */
   zona?: string;
   /** Optional tarifa filter applied to invoicing rows before aggregation. */
   tipoTarifa?: string;
 }
 
-function classify(perdaPct: number): SubestacaoBalancoRow["classificacao"] {
-  if (perdaPct >= 25) return "critico";
-  if (perdaPct >= 15) return "atencao";
+function classify(
+  perdaPct: number,
+  atencao = DEFAULT_ATENCAO_PCT,
+  critico = DEFAULT_CRITICO_PCT,
+): SubestacaoBalancoRow["classificacao"] {
+  if (perdaPct >= critico) return "critico";
+  if (perdaPct >= atencao) return "atencao";
   return "ok";
 }
 
@@ -102,6 +112,8 @@ export function calcularBalancoPorSubestacao(
 ): SubestacaoBalancoRow[] {
   const tecnicoMaxPct = opts.tecnicoMaxPct ?? DEFAULT_TECH_LOSS_PCT;
   const preco = opts.precoCvePorKwh ?? DEFAULT_PRICE_CVE_PER_KWH;
+  const atencao = opts.atencaoPct ?? DEFAULT_ATENCAO_PCT;
+  const critico = opts.criticoPct ?? DEFAULT_CRITICO_PCT;
 
   const inj: Record<string, { kwh: number; nome: string; ilha: string; zona: string }> = {};
   for (const r of injecoes) {
@@ -142,7 +154,7 @@ export function calcularBalancoPorSubestacao(
       cve_estimado: Math.round(perdaKwh * preco),
       perda_tecnica_kwh: Math.round(tecnica),
       perda_comercial_kwh: Math.round(comercial),
-      classificacao: classify(perdaPct),
+      classificacao: classify(perdaPct, atencao, critico),
     };
   });
 
