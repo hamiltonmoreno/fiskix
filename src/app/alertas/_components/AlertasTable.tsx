@@ -8,6 +8,8 @@ import {
   XCircle,
   Wrench,
   ClipboardList,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { ScoreBadge } from "@/components/ui/score-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -41,11 +43,13 @@ interface AlertasTableProps {
   page: number;
   pageSize: number;
   actionLoading: string | null;
+  sortDir?: "asc" | "desc";
   onRowClick: (alerta: Alerta) => void;
   onEnviarSMS: (alertaId: string) => void;
   onGerarOrdem: (alertaId: string) => void;
   onSetPendingStatus: (update: { alertaId: string; novoStatus: InspecaoResultado; label: string }) => void;
   onPageChange: (page: number) => void;
+  onSortChange?: (dir: "asc" | "desc") => void;
 }
 
 const ESTADOS_FINAIS = ["Fraude_Confirmada", "Anomalia_Tecnica", "Falso_Positivo"];
@@ -57,11 +61,13 @@ export function AlertasTable({
   page,
   pageSize,
   actionLoading,
+  sortDir,
   onRowClick,
   onEnviarSMS,
   onGerarOrdem,
   onSetPendingStatus,
   onPageChange,
+  onSortChange,
 }: AlertasTableProps) {
   const totalPages = Math.ceil(total / pageSize);
 
@@ -71,11 +77,21 @@ export function AlertasTable({
         <table className="w-full text-sm text-left whitespace-nowrap">
           <thead className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/50 uppercase border-b border-gray-200 dark:border-gray-700/60">
             <tr>
-              {["Score", "Contador", "Titular", "Zona", "Tarifa", "Regras", "Estado", "Ações"].map((h) => (
-                <th key={h} className={`px-6 py-4 font-semibold tracking-wider ${h === "Ações" ? "text-right px-8" : h === "Score" ? "px-8" : ""}`}>
-                  {h}
-                </th>
+              <th className="px-8 py-4 font-semibold tracking-wider">
+                {onSortChange ? (
+                  <button
+                    onClick={() => onSortChange(sortDir === "asc" ? "desc" : "asc")}
+                    className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                  >
+                    Score
+                    {sortDir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                  </button>
+                ) : "Score"}
+              </th>
+              {["Contador", "Titular", "Zona", "Tarifa", "Regras", "Estado"].map((h) => (
+                <th key={h} className="px-6 py-4 font-semibold tracking-wider">{h}</th>
               ))}
+              <th className="px-8 py-4 font-semibold tracking-wider text-right">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">

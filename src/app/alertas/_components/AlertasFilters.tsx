@@ -12,9 +12,11 @@ interface AlertasFiltersProps {
   zona: string;
   zonas: string[];
   hasAlertas: boolean;
+  defaultMesAno: string;
   onMesAnoChange: (value: string) => void;
   onStatusChange: (value: string) => void;
   onZonaChange: (value: string) => void;
+  onClear: () => void;
   onExport: () => void;
   onRefresh: () => void;
 }
@@ -25,12 +27,16 @@ export function AlertasFilters({
   zona,
   zonas,
   hasAlertas,
+  defaultMesAno,
   onMesAnoChange,
   onStatusChange,
   onZonaChange,
+  onClear,
   onExport,
   onRefresh,
 }: AlertasFiltersProps) {
+  const isFiltered = mesAno !== defaultMesAno || statusFilter !== "todos" || zona !== "todas";
+
   return (
     <div className="sm:flex sm:justify-between sm:items-center mb-8">
       {/* Left: Title */}
@@ -83,6 +89,16 @@ export function AlertasFilters({
             <option key={z} value={z}>{z.replace(/_/g, " ")}</option>
           ))}
         </select>
+
+        {isFiltered && (
+          <button
+            onClick={() => { haptics.light(); onClear(); }}
+            className="px-3 py-2 border border-gray-200 dark:border-gray-700/60 rounded-lg text-sm font-medium bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+            title="Limpar filtros"
+          >
+            Limpar
+          </button>
+        )}
 
         <button
           onClick={() => { haptics.light(); onExport(); }}

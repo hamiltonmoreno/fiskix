@@ -19,6 +19,8 @@ import {
 import {
   Activity,
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
   Download,
   TrendingDown,
   TrendingUp,
@@ -63,6 +65,8 @@ export function BalancoClient({ profile }: { profile: Profile }) {
   const [zona, setZona] = useState<string | undefined>(profile.id_zona ?? undefined);
   const [tipoTarifa, setTipoTarifa] = useState<string | undefined>(undefined);
   const [drillId, setDrillId] = useState<string | null>(null);
+  const [tablePage, setTablePage] = useState(0);
+  const TABLE_PAGE_SIZE = 15;
 
   const filtros: BalancoFiltros = useMemo(
     () => ({ mesAno, zona, tipoTarifa, nMeses: 12 }),
@@ -71,7 +75,12 @@ export function BalancoClient({ profile }: { profile: Profile }) {
 
   const { data, loading } = useBalanco(filtros);
 
+  useEffect(() => { setTablePage(0); }, [data]);
+
   const drillSub = data?.porSubestacao.find((s) => s.id === drillId) ?? null;
+  const tableRows = data?.porSubestacao.slice(tablePage * TABLE_PAGE_SIZE, (tablePage + 1) * TABLE_PAGE_SIZE) ?? [];
+  const tableTotal = data?.porSubestacao.length ?? 0;
+  const tableTotalPages = Math.ceil(tableTotal / TABLE_PAGE_SIZE);
 
   function handleExport() {
     if (!data) return;
@@ -346,80 +355,107 @@ export function BalancoClient({ profile }: { profile: Profile }) {
               <p className="text-xs text-slate-400 mt-0.5">Clique numa linha para ver detalhes</p>
             </div>
             <span className="text-xs text-slate-400">
-              {data?.porSubestacao.length ?? 0} subestações
+              {tableTotal} subestações
             </span>
           </div>
           {loading ? (
             <div className="h-40 bg-slate-50 animate-pulse" />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-100 text-xs text-slate-500 uppercase tracking-wide bg-slate-50">
-                    <th className="px-5 py-3 text-left font-medium">Subestação</th>
-                    <th className="px-5 py-3 text-left font-medium">Zona</th>
-                    <th className="px-5 py-3 text-right font-medium">Injetado</th>
-                    <th className="px-5 py-3 text-right font-medium">Faturado</th>
-                    <th className="px-5 py-3 text-right font-medium">Perda kWh</th>
-                    <th className="px-5 py-3 text-right font-medium">Perda %</th>
-                    <th className="px-5 py-3 text-right font-medium">Comercial</th>
-                    <th className="px-5 py-3 text-right font-medium">CVE</th>
-                    <th className="px-5 py-3 text-center font-medium">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {(data?.porSubestacao ?? []).length === 0 ? (
-                    <tr>
-                      <td colSpan={9} className="px-5 py-10 text-center text-slate-400 text-sm">
-                        Sem dados de injeção para o período/filtros selecionados
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-xs text-slate-500 uppercase tracking-wide bg-slate-50">
+                      <th className="px-5 py-3 text-left font-medium">Subestação</th>
+                      <th className="px-5 py-3 text-left font-medium">Zona</th>
+                      <th className="px-5 py-3 text-right font-medium">Injetado</th>
+                      <th className="px-5 py-3 text-right font-medium">Faturado</th>
+                      <th className="px-5 py-3 text-right font-medium">Perda kWh</th>
+                      <th className="px-5 py-3 text-right font-medium">Perda %</th>
+                      <th className="px-5 py-3 text-right font-medium">Comercial</th>
+                      <th className="px-5 py-3 text-right font-medium">CVE</th>
+                      <th className="px-5 py-3 text-center font-medium">Estado</th>
                     </tr>
-                  ) : (
-                    data?.porSubestacao.map((r) => (
-                      <tr
-                        key={r.id}
-                        onClick={() => setDrillId(r.id)}
-                        className="hover:bg-blue-50/40 transition-colors cursor-pointer"
-                      >
-                        <td className="px-5 py-3 font-medium text-slate-700">{r.nome}</td>
-                        <td className="px-5 py-3 text-slate-500">{r.zona_bairro}</td>
-                        <td className="px-5 py-3 text-right tabular-nums text-slate-600">
-                          {r.kwh_injetado.toLocaleString("pt-CV")}
-                        </td>
-                        <td className="px-5 py-3 text-right tabular-nums text-slate-600">
-                          {r.kwh_faturado.toLocaleString("pt-CV")}
-                        </td>
-                        <td className="px-5 py-3 text-right tabular-nums text-red-600 font-medium">
-                          {r.perda_kwh.toLocaleString("pt-CV")}
-                        </td>
-                        <td className="px-5 py-3 text-right">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                              r.classificacao === "critico"
-                                ? "bg-red-100 text-red-700"
-                                : r.classificacao === "atencao"
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-green-100 text-green-700"
-                            }`}
-                          >
-                            {r.perda_pct}%
-                          </span>
-                        </td>
-                        <td className="px-5 py-3 text-right tabular-nums text-slate-600">
-                          {r.perda_comercial_kwh.toLocaleString("pt-CV")}
-                        </td>
-                        <td className="px-5 py-3 text-right tabular-nums text-slate-600">
-                          {formatCVE(r.cve_estimado)}
-                        </td>
-                        <td className="px-5 py-3 text-center">
-                          <ClassificacaoBadge value={r.classificacao} />
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {tableTotal === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="px-5 py-10 text-center text-slate-400 text-sm">
+                          Sem dados de injeção para o período/filtros selecionados
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ) : (
+                      tableRows.map((r) => (
+                        <tr
+                          key={r.id}
+                          onClick={() => setDrillId(r.id)}
+                          className="hover:bg-blue-50/40 transition-colors cursor-pointer"
+                        >
+                          <td className="px-5 py-3 font-medium text-slate-700">{r.nome}</td>
+                          <td className="px-5 py-3 text-slate-500">{r.zona_bairro}</td>
+                          <td className="px-5 py-3 text-right tabular-nums text-slate-600">
+                            {r.kwh_injetado.toLocaleString("pt-CV")}
+                          </td>
+                          <td className="px-5 py-3 text-right tabular-nums text-slate-600">
+                            {r.kwh_faturado.toLocaleString("pt-CV")}
+                          </td>
+                          <td className="px-5 py-3 text-right tabular-nums text-red-600 font-medium">
+                            {r.perda_kwh.toLocaleString("pt-CV")}
+                          </td>
+                          <td className="px-5 py-3 text-right">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                r.classificacao === "critico"
+                                  ? "bg-red-100 text-red-700"
+                                  : r.classificacao === "atencao"
+                                  ? "bg-amber-100 text-amber-700"
+                                  : "bg-green-100 text-green-700"
+                              }`}
+                            >
+                              {r.perda_pct}%
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-right tabular-nums text-slate-600">
+                            {r.perda_comercial_kwh.toLocaleString("pt-CV")}
+                          </td>
+                          <td className="px-5 py-3 text-right tabular-nums text-slate-600">
+                            {formatCVE(r.cve_estimado)}
+                          </td>
+                          <td className="px-5 py-3 text-center">
+                            <ClassificacaoBadge value={r.classificacao} />
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              {tableTotalPages > 1 && (
+                <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
+                  <p className="text-xs text-slate-400">
+                    {tablePage * TABLE_PAGE_SIZE + 1}–{Math.min((tablePage + 1) * TABLE_PAGE_SIZE, tableTotal)} de {tableTotal}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setTablePage((p) => Math.max(0, p - 1))}
+                      disabled={tablePage === 0}
+                      aria-label="Página anterior"
+                      className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 disabled:opacity-40 transition-colors"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setTablePage((p) => Math.min(tableTotalPages - 1, p + 1))}
+                      disabled={tablePage >= tableTotalPages - 1}
+                      aria-label="Página seguinte"
+                      className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 disabled:opacity-40 transition-colors"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>

@@ -166,7 +166,7 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
   }
 
   return (
-    <div className="mobile-app min-h-screen" style={{ backgroundColor: "#F1F5F9", color: "#0F172A" }}>
+    <div className="mobile-app min-h-screen">
       {/* Header */}
       <header className="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-40">
         <div className="flex items-center justify-between">
@@ -365,20 +365,28 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
         )}
       </div>
 
-      {/* Sync success banner */}
-      {syncedCount > 0 && (
-        <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-4 bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-2">
-          <CloudUpload className="w-4 h-4 text-green-600 shrink-0" />
-          <p className="text-green-700 text-sm">{syncedCount} relatório(s) offline sincronizado(s)</p>
-          <button onClick={() => setSyncedCount(0)} className="ml-auto text-green-500 text-lg leading-none">×</button>
-        </div>
-      )}
-
-      {/* Aviso offline */}
-      {!isOnline && (
-        <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-4 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-          <p className="text-amber-700 text-sm">Modo offline — a mostrar dados guardados</p>
+      {/* Bottom banners — stacked to prevent overlap */}
+      {(syncedCount > 0 || !isOnline) && (
+        <div className="fixed bottom-0 left-0 right-0 flex flex-col gap-2 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          {syncedCount > 0 && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-2">
+              <CloudUpload className="w-4 h-4 text-green-600 shrink-0" />
+              <p className="text-green-700 text-sm">{syncedCount} relatório(s) sincronizado(s)</p>
+              <button
+                onClick={() => setSyncedCount(0)}
+                aria-label="Fechar"
+                className="ml-auto p-1 text-green-500 rounded-lg hover:bg-green-100 transition-colors"
+              >
+                <span aria-hidden>×</span>
+              </button>
+            </div>
+          )}
+          {!isOnline && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              <p className="text-amber-700 text-sm">Modo offline — a mostrar dados guardados</p>
+            </div>
+          )}
         </div>
       )}
 
