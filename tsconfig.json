@@ -9,6 +9,7 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -22,6 +23,20 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "supabase/functions"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "supabase/functions/_shared/**/*.ts",
+    "supabase/functions/scoring-engine/pure.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "supabase/functions/balanco-energetico",
+    "supabase/functions/ingest-data",
+    "supabase/functions/ml-scoring",
+    "supabase/functions/send-sms",
+    "supabase/functions/scoring-engine/index.ts"
+  ]
 }
