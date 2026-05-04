@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/Sidebar";
-import { Breadcrumb } from "@/components/Breadcrumb";
+import { TopBar } from "@/components/TopBar";
 
 export default async function DashboardLayout({
   children,
@@ -24,12 +24,10 @@ export default async function DashboardLayout({
   if (!profile) redirect("/login");
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-background">
       <Sidebar profile={profile} />
       <div className="flex-1 min-w-0 lg:pl-0 pt-14 lg:pt-0">
-        <div className="px-6 py-2.5 border-b border-slate-100 bg-white">
-          <Breadcrumb />
-        </div>
+        <TopBar profile={profile} />
         {children}
       </div>
     </div>

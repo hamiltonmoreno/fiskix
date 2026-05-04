@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html lang="pt"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#f9f9fe",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "inverse-surface": "#2e3034",
+                    "on-primary-container": "#fefcff",
+                    "surface": "#f9f9fe",
+                    "error": "#ba1a1a",
+                    "primary": "#0058bc",
+                    "on-secondary-fixed-variant": "#26467d",
+                    "tertiary": "#9e3d00",
+                    "on-surface": "#1a1c1f",
+                    "surface-container-low": "#f3f3f8",
+                    "surface-container-high": "#e8e8ed",
+                    "on-secondary-fixed": "#001a41",
+                    "secondary": "#405e96",
+                    "primary-fixed-dim": "#adc6ff",
+                    "inverse-on-surface": "#f0f0f5",
+                    "background": "#f9f9fe",
+                    "on-error-container": "#93000a",
+                    "error-container": "#ffdad6",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-container": "#c64f00",
+                    "on-tertiary-fixed-variant": "#7c2e00",
+                    "tertiary-fixed": "#ffdbcc",
+                    "on-error": "#ffffff",
+                    "on-background": "#1a1c1f",
+                    "surface-container-highest": "#e2e2e7",
+                    "outline-variant": "#c1c6d7",
+                    "on-primary-fixed-variant": "#004493",
+                    "inverse-primary": "#adc6ff",
+                    "surface-variant": "#e2e2e7",
+                    "on-secondary-container": "#2d4c83",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed": "#d8e2ff",
+                    "surface-dim": "#d9dade",
+                    "surface-tint": "#005bc1",
+                    "on-tertiary-fixed": "#351000",
+                    "primary-container": "#0070eb",
+                    "outline": "#717786",
+                    "on-surface-variant": "#414755",
+                    "on-tertiary": "#ffffff",
+                    "surface-container": "#ededf2",
+                    "secondary-container": "#a1befd",
+                    "on-primary-fixed": "#001a41",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb595",
+                    "on-tertiary-container": "#fffbff",
+                    "secondary-fixed": "#d8e2ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"],
+                    "mono": ["JetBrains Mono"]
+            }
+          },
+        }
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .mono-value { font-family: 'JetBrains Mono', monospace; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tonal-layering { background: linear-gradient(180deg, rgba(243, 243, 248, 0) 0%, rgba(243, 243, 248, 1) 100%); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#f9f9fe]/80 backdrop-blur-xl shadow-[0_32px_64px_rgba(26,28,31,0.06)]">
+<div class="flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-surface-container">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="close-up portrait of a professional male executive in a well-lit modern office setting, clean lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAngqh3SA6-H5Z3F4YYMQbRSAmZJuYeirMYh-XP3suVdHq-R7UjpgIcVF_TsxE2_epiCun7AvvJHmppMRL4-bifzYI_eUNXuutPMOKDR5IxLOrpJCUZyqoYclmvCt8G3hr4ZLciZrJnP1b-cEHXqaX9AVNUV1mY-PA94xmB_dS5fJ0MSy5sD8gintsEVHaUmgMXNQGbjwifwaxiy3wulbL8jmxZHEp5VattC2v1SEIJwei-Nu6g8uv5ENjKdkt6HiNM-EHIGuLLuREy"/>
+</div>
+<h1 class="text-lg font-semibold tracking-tight text-[#1a1c1f]">Visão Geral</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#ededf2] transition-all active:scale-95 duration-200 text-[#1a1c1f]">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<main class="mt-20 px-6 space-y-8">
+<!-- KPI Section -->
+<section class="space-y-4">
+<div class="grid grid-cols-1 gap-4">
+<!-- Perda Estimada (Critical) -->
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-[0_4px_24px_rgba(26,28,31,0.02)] flex items-center justify-between border-l-4 border-error">
+<div class="space-y-1">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Perda Estimada</span>
+<div class="flex items-baseline gap-1">
+<span class="mono-value text-2xl font-bold text-error">14.2M</span>
+<span class="mono-value text-xs font-medium text-error/70">CVE</span>
+</div>
+</div>
+<div class="bg-error-container/30 p-2 rounded-lg text-error">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">trending_down</span>
+</div>
+</div>
+<!-- Clientes em Risco (Warning) -->
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-[0_4px_24px_rgba(26,28,31,0.02)] flex items-center justify-between border-l-4 border-tertiary">
+<div class="space-y-1">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Clientes em Risco</span>
+<div class="flex items-baseline gap-1">
+<span class="mono-value text-2xl font-bold text-tertiary">1,242</span>
+</div>
+</div>
+<div class="bg-tertiary-fixed p-2 rounded-lg text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group_off</span>
+</div>
+</div>
+<!-- Ordens Ativas (Info) -->
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-[0_4px_24px_rgba(26,28,31,0.02)] flex items-center justify-between border-l-4 border-primary">
+<div class="space-y-1">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Ordens Ativas</span>
+<div class="flex items-baseline gap-1">
+<span class="mono-value text-2xl font-bold text-primary">318</span>
+</div>
+</div>
+<div class="bg-secondary-container p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">assignment</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Map Section -->
+<section class="space-y-4">
+<div class="flex justify-between items-end">
+<div class="space-y-1">
+<h2 class="text-xl font-semibold tracking-tight">Mapa de Calor</h2>
+<p class="text-xs text-on-surface-variant/70">Santiago - Zona Sul</p>
+</div>
+<button class="bg-surface-container-high px-4 py-2 rounded-full text-xs font-semibold text-primary active:scale-95 transition-all">Ver Mapa</button>
+</div>
+<div class="relative h-48 rounded-2xl overflow-hidden bg-surface-container shadow-inner">
+<img class="w-full h-full object-cover opacity-80" data-alt="abstract top-down map view with neon orange and red heat map overlays on a dark blue urban grid" data-location="Praia, Cape Verde" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKxIj7gcpfUn6D43tG7R5VDg4eOQsTfUp0Pj-U1Bysy0-L33dX9Yvb1S-cDdpfwXt8mKiP5K2VY7B_aeEj0tpAU_zbIJG_fBLCYAyyMGZfeTYXMifgUxtY7XTMqhkcLXwpGzJGenQCoevZO1Qu7LRzUVR_86MHWAMoLUkKYe3ZSH3srBKTIYUTzwfMjxyweaNcfTPvrGZWWNLuHT1nWu1X8GKvUqTxWSXAtpYXM-Pj2eDclvS29Lwne3CgpoQhmrYaLJRGdc3ENQNW"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+<div class="absolute bottom-4 left-4 flex gap-2">
+<span class="bg-error px-2 py-1 rounded text-[10px] font-bold text-white shadow-lg">Alta Perda</span>
+<span class="bg-tertiary px-2 py-1 rounded text-[10px] font-bold text-white shadow-lg">Alerta</span>
+</div>
+</div>
+</section>
+<!-- Performance Section -->
+<section class="space-y-5 bg-surface-container-low p-6 rounded-2xl">
+<h2 class="text-xl font-semibold tracking-tight">Performance das Equipes</h2>
+<div class="space-y-6">
+<div class="space-y-2">
+<div class="flex justify-between text-sm">
+<span class="font-medium">Equipe A</span>
+<span class="mono-value font-semibold">94%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 94%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-sm">
+<span class="font-medium">Equipe D</span>
+<span class="mono-value font-semibold">82%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary/70 rounded-full" style="width: 82%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-sm">
+<span class="font-medium">Equipe B</span>
+<span class="mono-value font-semibold">65%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-tertiary rounded-full" style="width: 65%"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Validation Queue -->
+<section class="space-y-4">
+<div class="flex items-center gap-2">
+<h2 class="text-xl font-semibold tracking-tight">Fila de Validação</h2>
+<span class="bg-primary-container text-white px-2 py-0.5 rounded-full text-[10px] font-bold">12 NOVAS</span>
+</div>
+<div class="flex overflow-x-auto gap-4 pb-4 -mx-6 px-6 no-scrollbar">
+<!-- Card 1 -->
+<div class="min-w-[280px] bg-surface-container-lowest p-5 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.03)] space-y-4 border border-outline-variant/10">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<h3 class="font-semibold text-sm">Condomínio Palmarejo</h3>
+<p class="text-xs text-on-surface-variant/60">Ref: #44291-A</p>
+</div>
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">apartment</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-primary/10 border-2 border-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px]">person</span>
+</div>
+<div class="w-6 h-6 rounded-full bg-secondary-container border-2 border-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px]">person</span>
+</div>
+</div>
+<span class="text-[10px] text-on-surface-variant">2 Analistas</span>
+</div>
+<button class="w-full py-2.5 bg-surface-container-high rounded-xl text-xs font-bold text-primary">Validar Agora</button>
+</div>
+<!-- Card 2 -->
+<div class="min-w-[280px] bg-surface-container-lowest p-5 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.03)] space-y-4 border border-outline-variant/10">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<h3 class="font-semibold text-sm">Hotel Praia Mar</h3>
+<p class="text-xs text-on-surface-variant/60">Ref: #88320-B</p>
+</div>
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">hotel</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-primary/10 border-2 border-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px]">person</span>
+</div>
+</div>
+<span class="text-[10px] text-on-surface-variant">1 Analista</span>
+</div>
+<button class="w-full py-2.5 bg-surface-container-high rounded-xl text-xs font-bold text-primary">Validar Agora</button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full px-4 pb-8 flex justify-around items-center bg-[#f9f9fe]/80 backdrop-blur-xl z-50">
+<div class="w-full max-w-lg mx-auto flex justify-around items-center h-20 rounded-2xl bg-surface-container/40">
+<!-- Dashboard Active -->
+<a class="flex flex-col items-center justify-center text-[#0058bc] bg-[#ededf2] rounded-xl px-4 py-2 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-[0.05em] mt-1">Dashboard</span>
+</a>
+<!-- Recovery Inactive -->
+<a class="flex flex-col items-center justify-center text-[#1a1c1f]/50 px-4 py-2 hover:text-[#0058bc] transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-[0.05em] mt-1">Recovery</span>
+</a>
+<!-- Users Inactive -->
+<a class="flex flex-col items-center justify-center text-[#1a1c1f]/50 px-4 py-2 hover:text-[#0058bc] transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-[0.05em] mt-1">Users</span>
+</a>
+<!-- Settings Inactive -->
+<a class="flex flex-col items-center justify-center text-[#1a1c1f]/50 px-4 py-2 hover:text-[#0058bc] transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-[0.05em] mt-1">Settings</span>
+</a>
+</div>
+</nav>
+<style>
+        /* Custom hide scrollbar */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</body></html>

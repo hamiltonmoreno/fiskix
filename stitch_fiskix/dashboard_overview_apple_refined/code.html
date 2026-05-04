@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-CV"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-fixed-dim": "#adc6ff",
+                      "on-primary-fixed-variant": "#004493",
+                      "on-background": "#1a1c1f",
+                      "surface-tint": "#005bc1",
+                      "surface-dim": "#d9dade",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary-container": "#a1befd",
+                      "on-surface-variant": "#414755",
+                      "error": "#ba1a1a",
+                      "tertiary-fixed-dim": "#ffb595",
+                      "outline": "#717786",
+                      "on-secondary-container": "#2d4c83",
+                      "surface-container-low": "#f3f3f8",
+                      "on-error-container": "#93000a",
+                      "surface-container-highest": "#e2e2e7",
+                      "on-tertiary-fixed-variant": "#7c2e00",
+                      "on-tertiary-fixed": "#351000",
+                      "primary-container": "#0070eb",
+                      "on-surface": "#1a1c1f",
+                      "on-primary-container": "#fefcff",
+                      "secondary": "#405e96",
+                      "secondary-fixed-dim": "#adc6ff",
+                      "outline-variant": "#c1c6d7",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-high": "#e8e8ed",
+                      "on-secondary-fixed-variant": "#26467d",
+                      "on-secondary": "#ffffff",
+                      "on-primary-fixed": "#001a41",
+                      "secondary-fixed": "#d8e2ff",
+                      "background": "#f9f9fe",
+                      "inverse-on-surface": "#f0f0f5",
+                      "primary-fixed": "#d8e2ff",
+                      "primary": "#0058bc",
+                      "tertiary-container": "#c64f00",
+                      "error-container": "#ffdad6",
+                      "tertiary-fixed": "#ffdbcc",
+                      "on-primary": "#ffffff",
+                      "inverse-surface": "#2e3034",
+                      "surface": "#f9f9fe",
+                      "tertiary": "#9e3d00",
+                      "surface-container": "#ededf2",
+                      "surface-bright": "#f9f9fe",
+                      "on-tertiary-container": "#fffbff",
+                      "surface-variant": "#e2e2e7",
+                      "on-secondary-fixed": "#001a41",
+                      "inverse-primary": "#adc6ff",
+                      "on-error": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "xxl": "1.5rem"
+              }
+            }
+          }
+        }
+      </script>
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 bottom-0 w-64 z-50 flex flex-col py-6 border-r border-slate-100 bg-[#f9f9fe] dark:bg-slate-950 font-['Inter'] font-medium text-[13px] tracking-wide">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div>
+<h1 class="text-lg font-bold text-slate-900 dark:text-white leading-tight">Fiskix Energy</h1>
+<p class="text-[10px] text-slate-500 uppercase tracking-widest">Cabo Verde Operations</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-2 space-y-8 overflow-y-auto">
+<!-- Monitoramento Section -->
+<div>
+<p class="px-4 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Monitoramento</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-slate-900 text-[#007AFF] shadow-sm rounded-lg mx-2 transition-transform active:scale-98" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 mx-2 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">insights</span>
+<span>Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 mx-2 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">map</span>
+<span>Live Map</span>
+</a>
+</div>
+</div>
+<!-- Operações Section -->
+<div>
+<p class="px-4 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Operações</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 mx-2 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">assignment_ind</span>
+<span>Supervisor</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 mx-2 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">engineering</span>
+<span>Field Ops</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 mx-2 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">rule</span>
+<span>Validation Queue</span>
+</a>
+</div>
+</div>
+<!-- Configurações Section -->
+<div>
+<p class="px-4 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configurações</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 mx-2 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">upload_file</span>
+<span>Data Import</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 mx-2 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span>Users</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 mx-2 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span>Settings</span>
+</a>
+</div>
+</div>
+</nav>
+<div class="px-4 pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
+<button class="w-full py-3 px-4 bg-primary text-white rounded-xl font-semibold text-sm shadow-lg shadow-primary/10 active:scale-95 transition-transform">
+                Relatório Diário
+            </button>
+<div class="mt-4 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-slate-900 text-xs" href="#">
+<span class="material-symbols-outlined text-[18px]">support</span>
+<span>Ajuda</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-error hover:opacity-80 text-xs" href="#">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+<span>Sair</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen pb-12">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-64 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl flex justify-between items-center px-8 py-4 shadow-sm shadow-blue-900/5 border-b border-slate-100/20">
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm w-80 focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Pesquisar medidores, bairros ou O.S..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-4 py-2 text-[#007AFF] bg-primary-fixed/30 rounded-full text-sm font-semibold hover:bg-primary-fixed/50 transition-colors">
+                    Monitoramento Ao Vivo
+                </button>
+<div class="flex items-center gap-2 pr-4 border-r border-slate-200">
+<button class="p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+</div>
+<div class="flex items-center gap-3 pl-2">
+<div class="text-right">
+<p class="text-sm font-bold text-slate-900">Eng. Carlos Silva</p>
+<p class="text-[11px] text-slate-500 font-medium">Operações Praia</p>
+</div>
+<img alt="User profile" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" data-alt="portrait of a professional male engineer with short hair and glasses in a corporate environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCb-rYmWbeu-YOhZ4JyvuhteXT92ipE8BI1yWlfbmPCc8LdLD41MPdeRr0CbuhzJWGFgAgUwj5rbDUSkPdnVRacVrcC2LCQ-weKkHPewUgfnDc_Xb07jfOQRQCtLJcE6hZZlIm5FD6CJ-JqkPKmzz8NP-Z5SbOsxL1Z9tpb9lMwsAzQymepZq8n3mdcp-3EKjcMswcSdsdh-lcD2QYDGEnaVDUfi4l5JDqMRrn5r65f3mR8b8ZkgFvvmKpss8ASOVJ5Col8Vz4355hu"/>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="mt-24 px-8 space-y-8">
+<!-- Header Section -->
+<div class="flex justify-between items-end">
+<div class="max-w-2xl">
+<h2 class="text-4xl font-bold tracking-tight text-on-surface mb-2">Visão Geral Electra</h2>
+<p class="text-on-surface-variant text-lg">Análise em tempo real de perdas técnicas e comerciais em Santiago e São Vicente.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-5 py-2.5 bg-surface-container-high text-on-surface rounded-xl font-medium text-sm flex items-center gap-2 hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+                        Últimos 30 dias
+                    </button>
+<button class="px-5 py-2.5 bg-primary text-white rounded-xl font-semibold text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Exportar Relatório
+                    </button>
+</div>
+</div>
+<!-- KPI Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- KPI Card 1 -->
+<div class="bg-surface-container-lowest p-6 rounded-xxl shadow-sm border border-outline-variant/10 group hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-error-container text-error rounded-xl">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">trending_down</span>
+</div>
+<span class="text-xs font-bold text-error bg-error/10 px-2 py-1 rounded-full">+12.4% vs mês ant.</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mb-1">Perda Estimada (CVE)</p>
+<h3 class="text-3xl font-bold text-on-surface tracking-tighter">14.285.000 <span class="text-sm font-normal text-slate-400">CVE</span></h3>
+<div class="mt-4 pt-4 border-t border-slate-50 flex items-center gap-2 text-xs text-slate-500">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+<span>Crítico em Achada Santo António</span>
+</div>
+</div>
+<!-- KPI Card 2 -->
+<div class="bg-surface-container-lowest p-6 rounded-xxl shadow-sm border border-outline-variant/10 group hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-secondary-container text-on-secondary-container rounded-xl">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">group_work</span>
+</div>
+<span class="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-full">-3.2% vs ontem</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mb-1">Clientes em Risco</p>
+<h3 class="text-3xl font-bold text-on-surface tracking-tighter">1.242 <span class="text-sm font-normal text-slate-400">Medidores</span></h3>
+<div class="mt-4 pt-4 border-t border-slate-50 flex items-center gap-2 text-xs text-slate-500">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+<span>84 novos alertas de bypass</span>
+</div>
+</div>
+<!-- KPI Card 3 -->
+<div class="bg-surface-container-lowest p-6 rounded-xxl shadow-sm border border-outline-variant/10 group hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-primary-fixed text-primary rounded-xl">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+</div>
+<span class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-full">Meta: 85%</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mb-1">Ordens Ativas</p>
+<h3 class="text-3xl font-bold text-on-surface tracking-tighter">318 <span class="text-sm font-normal text-slate-400">Ações</span></h3>
+<div class="mt-4 pt-4 border-t border-slate-50 flex items-center gap-2 text-xs text-slate-500">
+<span class="material-symbols-outlined text-[14px]">bolt</span>
+<span>42 equipes em campo (Praia &amp; Mindelo)</span>
+</div>
+</div>
+</div>
+<!-- Analytics & Map Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Live Map Section -->
+<div class="lg:col-span-2 bg-surface-container-lowest rounded-xxl shadow-sm border border-outline-variant/10 overflow-hidden flex flex-col min-h-[500px]">
+<div class="p-6 border-b border-slate-50 flex justify-between items-center">
+<div>
+<h4 class="font-bold text-lg">Distribuição Geográfica de Perdas</h4>
+<p class="text-sm text-slate-500">Santiago - Zona Sul</p>
+</div>
+<div class="flex bg-slate-100 p-1 rounded-lg">
+<button class="px-3 py-1.5 text-xs font-bold bg-white shadow-sm rounded-md text-primary">Mapa Calor</button>
+<button class="px-3 py-1.5 text-xs font-bold text-slate-500">Rede</button>
+</div>
+</div>
+<div class="flex-1 relative bg-slate-200">
+<!-- Simulated Map -->
+<div class="absolute inset-0 grayscale opacity-60 bg-cover bg-center" data-alt="stylized detailed city map overhead view of Praia Cape Verde with clean minimalist aesthetic and subtle grid lines" data-location="Praia, Cape Verde" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuABf8aaHhlGwrQmJWfuKgUBIaoqm9QpzPkl1a-UwW5_bpn46pzEcZZR3bgciEqogZn778IBsNkBxwyMTJGSKB-hJgyYEHhlB_j_DsqdbQauFMriVFgdrWRuzYfLqVBRL4fKSe2TPda7dvJ3Mmx43j1kyLvxZ_06LXrGbRWifYAoEgv3NmM23mowbXlimSaHO9GOLTs6VV7VyL0LErTI1f4P0FTPNTH9Pf4DDeIbDOGRZN1sl7V8P-FDz5wTmBUMZgoKMqB95sy9E7EN')"></div>
+<!-- Pulse Dots (Heatmap) -->
+<div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-error/40 rounded-full animate-pulse flex items-center justify-center">
+<div class="w-3 h-3 bg-error rounded-full"></div>
+<div class="absolute -bottom-12 bg-white px-3 py-2 rounded-lg shadow-xl text-[10px] font-bold border border-error/20">
+                                Palmarejo: 24% Perda
+                            </div>
+</div>
+<div class="absolute top-1/2 left-1/4 w-6 h-6 bg-primary/30 rounded-full flex items-center justify-center">
+<div class="w-2 h-2 bg-primary rounded-full"></div>
+</div>
+<!-- Map Legend Overlay -->
+<div class="absolute bottom-6 right-6 glass-panel p-4 rounded-xl shadow-2xl border border-white/50 max-w-xs">
+<h5 class="text-xs font-bold uppercase tracking-wider mb-3 text-slate-400">Zonas de Intervenção</h5>
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-slate-600">Achada Santo António</span>
+<span class="text-xs font-bold text-error">Alto Risco</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-slate-600">Tira Chapéu</span>
+<span class="text-xs font-bold text-primary">Monitorizado</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-slate-600">Cidadela</span>
+<span class="text-xs font-bold text-emerald-500">Estável</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Side List: Validation Queue -->
+<div class="bg-surface-container-lowest rounded-xxl shadow-sm border border-outline-variant/10 flex flex-col">
+<div class="p-6 border-b border-slate-50">
+<div class="flex justify-between items-center mb-1">
+<h4 class="font-bold text-lg">Fila de Validação</h4>
+<span class="text-primary text-xs font-bold">Ver Tudo</span>
+</div>
+<p class="text-sm text-slate-500">Alertas críticos pendentes</p>
+</div>
+<div class="flex-1 divide-y divide-slate-50 overflow-y-auto">
+<!-- Item 1 -->
+<div class="p-5 hover:bg-slate-50 transition-colors cursor-pointer group">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-xl bg-slate-100 flex-shrink-0 flex items-center justify-center overflow-hidden">
+<img alt="Building" class="w-full h-full object-cover" data-alt="Modern high-end condominium building architecture detail in sunny tropical setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBew9RfWBH5WLt4lgM7AqEMn7t39ZPuHkpsyp7gA-lA_MSki3pYVnvm-wTPzgZVWOuJKneOp5TUx32vUGfmlL8CXYz_8j7FYaOUpvW8aDRH8mBKB-U7U4W99CmXE9yVADWv-VEAX-mu55276s0jaV6HKxir7IV01x1wOp0FjQCtOsSdAUr-w4uvddoG-tvU-lV1YITQ_4HPIgbQANpGxvhsj3Rf4ckba7ffJeH5ItwQCSJLG47sHlE1HFJolHVRT8t-ABoU55nqIiLY"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-1">
+<h5 class="text-sm font-bold text-slate-900 truncate">Condomínio Palmarejo</h5>
+<span class="text-[10px] font-bold text-error uppercase px-1.5 py-0.5 bg-error/5 rounded">Grave</span>
+</div>
+<p class="text-xs text-slate-500 mb-2 truncate">Rua de Cidadela, Bloco A</p>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-bold text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">analytics</span> Bypass Detectado
+                                        </span>
+<span class="text-[11px] text-slate-400">2h atrás</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="p-5 hover:bg-slate-50 transition-colors cursor-pointer group">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-xl bg-slate-100 flex-shrink-0 flex items-center justify-center overflow-hidden">
+<img alt="Hotel" class="w-full h-full object-cover" data-alt="Luxury coastal hotel entrance with palm trees and ocean breeze aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHL2GlMbvsZC7zxiSail3dsGTyG-E46V-wIgPlSzjJIukmh1yDLUI3aziusSTd7jXxtkhYSJ3kNixzlknV0d29mY90h0a4XPjyEhLwm8JmS3_Aj-vytbiaq7i9k50WMgXcawy32CX2HZNfN1qezg9kTnaqGwlIchzWGR4BldtOzo4YS_FjetdRdZt8zKxn7ZD7tzwQYJNgTC8gzrgE6YFeRUskxD3LmfVj9beCxsiKFgfzzijMiGA1c32FmXVHDV5TqwPN6_ocoqPI"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-1">
+<h5 class="text-sm font-bold text-slate-900 truncate">Hotel Praia Mar</h5>
+<span class="text-[10px] font-bold text-secondary uppercase px-1.5 py-0.5 bg-secondary/5 rounded">Médio</span>
+</div>
+<p class="text-xs text-slate-500 mb-2 truncate">Prainha, Praia, CP 102</p>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-bold text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span> Queda Tensão
+                                        </span>
+<span class="text-[11px] text-slate-400">4h atrás</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="p-5 hover:bg-slate-50 transition-colors cursor-pointer group">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-xl bg-slate-100 flex-shrink-0 flex items-center justify-center overflow-hidden">
+<img alt="Commercial" class="w-full h-full object-cover" data-alt="Industrial commercial facility with power lines and transformer station" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXKLHcKIbV-WlkIQNlabZe0Q7cb1Dt2yOboeQHiig1sdBX-nS--Yxv6U_VDxsYTi4z-fDNRdL1xncZNM-PmkZp_w8ha71ohsrwl04vv7mzyNnC8LUWT7g9_DgNq4Ht6Yc9D602OMOlij6fZqYz_P7Ao73eCz97-iVPEaFzyOwlg_A73how8_C7PgfM_Nht710D60t21ECw55XCDSrh8mkjLiPTXHBcQlwJJhuDENqwkZb-R3K-WbWmapQkIEAQc61ACDscwBFeOtIk"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-1">
+<h5 class="text-sm font-bold text-slate-900 truncate">Oficina Mindelo</h5>
+<span class="text-[10px] font-bold text-slate-400 uppercase px-1.5 py-0.5 bg-slate-100 rounded">Info</span>
+</div>
+<p class="text-xs text-slate-500 mb-2 truncate">Porto Grande, São Vicente</p>
+<div class="flex items-center gap-3">
+<span class="text-[11px] font-bold text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">info</span> Inconsistência
+                                        </span>
+<span class="text-[11px] text-slate-400">6h atrás</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 border-t border-slate-50">
+<button class="w-full py-2.5 bg-surface-container-low text-on-surface text-sm font-bold rounded-xl hover:bg-surface-container-high transition-colors">
+                            Processar Todos os Alertas
+                        </button>
+</div>
+</div>
+</div>
+<!-- Bottom Analytical Charts -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Bar Chart Section -->
+<div class="bg-surface-container-lowest p-8 rounded-xxl shadow-sm border border-outline-variant/10">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h4 class="font-bold text-xl tracking-tight">Perdas por Ilha</h4>
+<p class="text-sm text-slate-500">Comparativo Mensal (GWh)</p>
+</div>
+<span class="material-symbols-outlined text-slate-400">more_horiz</span>
+</div>
+<div class="h-64 flex items-end justify-between gap-4">
+<div class="flex-1 flex flex-col items-center gap-4">
+<div class="w-full bg-primary/10 rounded-t-xl relative group" style="height: 85%">
+<div class="absolute inset-x-0 bottom-0 bg-primary rounded-t-xl group-hover:opacity-90 transition-opacity" style="height: 100%"></div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-on-surface text-white text-[10px] px-2 py-1 rounded whitespace-nowrap">4.2 GWh</div>
+</div>
+<span class="text-[11px] font-bold text-slate-500">Santiago</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4">
+<div class="w-full bg-primary/10 rounded-t-xl relative group" style="height: 60%">
+<div class="absolute inset-x-0 bottom-0 bg-primary/60 rounded-t-xl group-hover:opacity-90 transition-opacity" style="height: 100%"></div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-on-surface text-white text-[10px] px-2 py-1 rounded whitespace-nowrap">2.8 GWh</div>
+</div>
+<span class="text-[11px] font-bold text-slate-500">São Vicente</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4">
+<div class="w-full bg-primary/10 rounded-t-xl relative group" style="height: 40%">
+<div class="absolute inset-x-0 bottom-0 bg-primary/40 rounded-t-xl group-hover:opacity-90 transition-opacity" style="height: 100%"></div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-on-surface text-white text-[10px] px-2 py-1 rounded whitespace-nowrap">1.4 GWh</div>
+</div>
+<span class="text-[11px] font-bold text-slate-500">Sal</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4">
+<div class="w-full bg-primary/10 rounded-t-xl relative group" style="height: 30%">
+<div class="absolute inset-x-0 bottom-0 bg-primary/30 rounded-t-xl group-hover:opacity-90 transition-opacity" style="height: 100%"></div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-on-surface text-white text-[10px] px-2 py-1 rounded whitespace-nowrap">0.9 GWh</div>
+</div>
+<span class="text-[11px] font-bold text-slate-500">Fogo</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-4">
+<div class="w-full bg-primary/10 rounded-t-xl relative group" style="height: 15%">
+<div class="absolute inset-x-0 bottom-0 bg-primary/20 rounded-t-xl group-hover:opacity-90 transition-opacity" style="height: 100%"></div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-on-surface text-white text-[10px] px-2 py-1 rounded whitespace-nowrap">0.3 GWh</div>
+</div>
+<span class="text-[11px] font-bold text-slate-500">Maio</span>
+</div>
+</div>
+</div>
+<!-- Live Stream Performance -->
+<div class="bg-surface-container-lowest p-8 rounded-xxl shadow-sm border border-outline-variant/10">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h4 class="font-bold text-xl tracking-tight">Performance das Equipes</h4>
+<p class="text-sm text-slate-500">Eficiência de Regularização (Top 4)</p>
+</div>
+<div class="text-xs text-slate-400 italic">Atualizado agora</div>
+</div>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-sm font-bold">Equipe A - Praia Sul</span>
+<span class="text-sm font-bold text-primary">94%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 94%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-sm font-bold">Equipe D - Mindelo Centro</span>
+<span class="text-sm font-bold text-primary">82%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary/80 rounded-full" style="width: 82%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-sm font-bold">Equipe B - Assomada</span>
+<span class="text-sm font-bold text-primary">76%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary/60 rounded-full" style="width: 76%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-sm font-bold">Equipe C - Sal Rei</span>
+<span class="text-sm font-bold text-primary">61%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary/40 rounded-full" style="width: 61%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual FAB (Only for Dashboard/Home) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-on-surface text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-transform z-50">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</body></html>

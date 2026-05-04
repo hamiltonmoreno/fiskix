@@ -1,5 +1,15 @@
 {
   "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/scoring",
+      "schedule": "0 2 1 * *"
+    },
+    {
+      "path": "/api/cron/ml",
+      "schedule": "0 3 2 * *"
+    }
+  ],
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",

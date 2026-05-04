@@ -1,0 +1,130 @@
+<h2>Secção 2 — Layout do Dashboard</h2>
+<p class="subtitle">Como organizar KPIs, mapa, gráficos e tabela de alertas. Paleta Slate & Indigo aplicada.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Actual (KPIs → mapa+gráfico → tabela)</h3>
+      <p>Layout em coluna única. Simples mas usa mal o espaço em widescreen.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>KPIs topo → 2 colunas (mapa | alertas urgentes) → gráfico largo</h3>
+      <p>Mapa e alertas críticos lado a lado. Gestor vê tudo acima do fold.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Sidebar direita fixa (alertas) + conteúdo principal à esquerda</h3>
+      <p>Alertas sempre visíveis. Maior complexidade mas ótimo para monitorização contínua.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:28px">
+
+  <!-- Layout A preview -->
+  <div class="mockup" style="margin-bottom:20px">
+    <div class="mockup-header">Preview A — Stack vertical (actual)</div>
+    <div class="mockup-body" style="background:#f8fafc;padding:12px;font-family:system-ui">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:10px;flex:1;border-top:3px solid #ef4444">
+          <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Perda Estimada</div>
+          <div style="font-size:18px;font-weight:700;color:#0f172a;margin-top:2px">1.2M CVE</div>
+        </div>
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:10px;flex:1;border-top:3px solid #f59e0b">
+          <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Risco Crítico</div>
+          <div style="font-size:18px;font-weight:700;color:#0f172a;margin-top:2px">23 clientes</div>
+        </div>
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:10px;flex:1;border-top:3px solid #4f46e5">
+          <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Ordens Pendentes</div>
+          <div style="font-size:18px;font-weight:700;color:#0f172a;margin-top:2px">8 ordens</div>
+        </div>
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:10px;flex:1;border-top:3px solid #10b981">
+          <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Receita Recuperada</div>
+          <div style="font-size:18px;font-weight:700;color:#0f172a;margin-top:2px">340K CVE</div>
+        </div>
+      </div>
+      <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;height:80px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px">🗺 Mapa (100% largura)</div>
+      <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;height:60px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px">📈 Gráfico tendência (100% largura)</div>
+    </div>
+  </div>
+
+  <!-- Layout B preview -->
+  <div class="mockup" style="margin-bottom:20px">
+    <div class="mockup-header" style="background:#4f46e5;color:white">Preview B — 2 colunas (recomendado) ★</div>
+    <div class="mockup-body" style="background:#f8fafc;padding:12px;font-family:system-ui">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:10px;flex:1">
+          <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase">Perda Estimada</div>
+          <div style="font-size:18px;font-weight:700;color:#0f172a">1.2M CVE</div>
+          <div style="font-size:10px;color:#ef4444;margin-top:2px">↑ +12% vs mês anterior</div>
+        </div>
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:10px;flex:1">
+          <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase">Risco Crítico</div>
+          <div style="font-size:18px;font-weight:700;color:#0f172a">23 clientes</div>
+          <div style="font-size:10px;color:#f59e0b;margin-top:2px">3 novos este mês</div>
+        </div>
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:10px;flex:1">
+          <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase">Ordens Pendentes</div>
+          <div style="font-size:18px;font-weight:700;color:#0f172a">8 ordens</div>
+          <div style="font-size:10px;color:#64748b;margin-top:2px">aguardam inspeção</div>
+        </div>
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:10px;flex:1">
+          <div style="font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase">Receita Recuperada</div>
+          <div style="font-size:18px;font-weight:700;color:#0f172a">340K CVE</div>
+          <div style="font-size:10px;color:#10b981;margin-top:2px">↑ YTD 2026</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px">
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;height:100px;flex:3;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px">🗺 Mapa interativo</div>
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;height:100px;flex:2;padding:10px;overflow:hidden">
+          <div style="font-size:10px;font-weight:700;color:#0f172a;margin-bottom:6px">⚠ Alertas Críticos</div>
+          <div style="font-size:11px;color:#ef4444;padding:4px 0;border-bottom:1px solid #f1f5f9">Cliente #4821 — Score 91</div>
+          <div style="font-size:11px;color:#ef4444;padding:4px 0;border-bottom:1px solid #f1f5f9">Cliente #3302 — Score 87</div>
+          <div style="font-size:11px;color:#f59e0b;padding:4px 0">Cliente #5510 — Score 76</div>
+        </div>
+      </div>
+      <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;height:50px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px">📈 Tendência 12 meses (largura completa)</div>
+    </div>
+  </div>
+
+  <!-- Layout C preview -->
+  <div class="mockup">
+    <div class="mockup-header">Preview C — Sidebar de alertas fixa</div>
+    <div class="mockup-body" style="background:#f8fafc;padding:12px;font-family:system-ui">
+      <div style="display:flex;gap:10px">
+        <div style="flex:1">
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <div style="background:white;border:1px solid #e2e8f0;border-radius:6px;padding:8px;flex:1;font-size:10px">
+              <div style="color:#64748b;font-weight:600">PERDA</div>
+              <div style="font-weight:700;color:#0f172a">1.2M CVE</div>
+            </div>
+            <div style="background:white;border:1px solid #e2e8f0;border-radius:6px;padding:8px;flex:1;font-size:10px">
+              <div style="color:#64748b;font-weight:600">CRÍTICO</div>
+              <div style="font-weight:700;color:#0f172a">23</div>
+            </div>
+            <div style="background:white;border:1px solid #e2e8f0;border-radius:6px;padding:8px;flex:1;font-size:10px">
+              <div style="color:#64748b;font-weight:600">ORDENS</div>
+              <div style="font-weight:700;color:#0f172a">8</div>
+            </div>
+          </div>
+          <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;height:80px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px;margin-bottom:8px">🗺 Mapa</div>
+          <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;height:50px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px">📈 Gráfico</div>
+        </div>
+        <div style="width:160px;background:white;border:1px solid #e2e8f0;border-radius:8px;padding:10px;flex-shrink:0">
+          <div style="font-size:10px;font-weight:700;color:#0f172a;margin-bottom:8px;border-bottom:2px solid #4f46e5;padding-bottom:4px">ALERTAS ACTIVOS</div>
+          <div style="font-size:10px;background:#fee2e2;color:#ef4444;padding:5px 6px;border-radius:5px;margin-bottom:4px">● #4821 — 91pts</div>
+          <div style="font-size:10px;background:#fee2e2;color:#ef4444;padding:5px 6px;border-radius:5px;margin-bottom:4px">● #3302 — 87pts</div>
+          <div style="font-size:10px;background:#fef3c7;color:#d97706;padding:5px 6px;border-radius:5px;margin-bottom:4px">● #5510 — 76pts</div>
+          <div style="font-size:10px;background:#fef3c7;color:#d97706;padding:5px 6px;border-radius:5px;margin-bottom:4px">● #2290 — 68pts</div>
+          <div style="font-size:10px;color:#94a3b8;text-align:center;margin-top:8px">ver todos →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight, Home } from "lucide-react";
+import { Icon } from "@/components/Icon";
 
 const SEGMENT_LABELS: Record<string, string> = {
   dashboard: "Dashboard",
+  alertas: "Alertas",
   admin: "Administração",
   importar: "Importar Dados",
   scoring: "Motor de Scoring",
   utilizadores: "Utilizadores",
   configuracao: "Configuração",
+  "api-keys": "API Keys",
   perfil: "O Meu Perfil",
   relatorios: "Relatórios",
   mobile: "Mobile",
@@ -21,7 +23,6 @@ export function Breadcrumb() {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
 
-  // Don't render on homepage
   if (segments.length < 1) return null;
 
   const crumbs = segments.map((seg, i) => ({
@@ -34,20 +35,22 @@ export function Breadcrumb() {
     <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm">
       <Link
         href="/dashboard"
-        className="text-slate-400 hover:text-slate-600 transition-colors p-0.5 rounded"
+        className="text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded-lg"
         aria-label="Início"
       >
-        <Home className="w-3.5 h-3.5" />
+        <Icon name="home" size="xs" />
       </Link>
       {crumbs.map((crumb) => (
         <span key={crumb.href} className="flex items-center gap-1">
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <Icon name="chevron_right" size="xs" className="text-border" />
           {crumb.isLast ? (
-            <span className="text-slate-700 font-medium">{crumb.label}</span>
+            <span className="text-foreground font-semibold" aria-current="page">
+              {crumb.label}
+            </span>
           ) : (
             <Link
               href={crumb.href}
-              className="text-slate-400 hover:text-slate-600 transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               {crumb.label}
             </Link>

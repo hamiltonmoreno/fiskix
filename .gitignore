@@ -6,6 +6,9 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
+/blob-report
 
 # next.js
 /.next/
@@ -22,6 +25,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+twilio_2FA_recovery_code.txt
 
 # local env files
 .env*.local
@@ -39,3 +43,14 @@ supabase/.branches
 supabase/.temp
 
 .vercel
+
+# claude code — personal overrides (not shared with team)
+CLAUDE.local.md
+.claude/CLAUDE.local.md
+.claude/settings.local.json
+
+# Python cache (gerado pelos scripts do ui-ux-pro-max)
+__pycache__/
+*.pyc
+*.pyo
+design-system/

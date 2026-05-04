@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { createClient } from "@/lib/supabase/client";
 import { formatCVE } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Top5Props {
   mesAno: string;
@@ -24,23 +25,25 @@ interface ChartDatum {
   faturado: number;
   perda_pct: number;
   cve_recuperavel: number;
+  tarifa_media: number;
 }
 
 const CustomTooltip = ({ active, payload, label }: {
   active?: boolean;
-  payload?: Array<{ name: string; value: number; color: string }>;
+  payload?: Array<{ name: string; value: number; color: string; payload: ChartDatum }>;
   label?: string;
 }) => {
   if (!active || !payload?.length) return null;
 
   const inj = payload.find((p) => p.name === "Injetado")?.value ?? 0;
   const fat = payload.find((p) => p.name === "Faturado")?.value ?? 0;
+  const tarifaMedia = payload[0]?.payload?.tarifa_media ?? 15;
   const perdaKwh = inj - fat;
-  const perdaCVE = perdaKwh * 15;
+  const perdaCVE = perdaKwh * tarifaMedia;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm text-sm">
-      <p className="font-semibold text-slate-900 mb-2">{label}</p>
+    <div className="bg-card border border-border rounded-lg p-3 shadow-sm text-sm">
+      <p className="font-semibold text-foreground mb-2">{label}</p>
       <p className="text-blue-600">Injetado: {inj.toLocaleString("pt-CV")} kWh</p>
       <p className="text-green-600">Faturado: {fat.toLocaleString("pt-CV")} kWh</p>
       <p className="text-red-600 font-medium">
@@ -58,18 +61,18 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
   useEffect(() => {
     async function load() {
       setLoading(true);
-
-      const { data: injecoes } = await supabase
+      try {
+        const { data: injecoes } = await supabase
         .from("injecao_energia")
         .select("id_subestacao, total_kwh_injetado, subestacoes(nome)")
         .eq("mes_ano", mesAno)
         .order("total_kwh_injetado", { ascending: false })
         .limit(5);
 
-      if (!injecoes?.length) {
-        setLoading(false);
-        return;
-      }
+        if (!injecoes?.length) {
+          setData([]);
+          return;
+        }
 
       const subIds = injecoes.map((i) => i.id_subestacao);
 
@@ -82,26 +85,30 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
 
       const { data: faturacao } = await supabase
         .from("faturacao_clientes")
-        .select("id_cliente, kwh_faturado")
+        .select("id_cliente, kwh_faturado, valor_cve")
         .eq("mes_ano", mesAno)
         .in("id_cliente", clienteIds);
 
-      const faturacaoPorCliente: Record<string, number> = {};
+      const faturacaoPorCliente: Record<string, { kwh: number; cve: number }> = {};
       for (const f of faturacao ?? []) {
-        faturacaoPorCliente[f.id_cliente] = f.kwh_faturado;
+        faturacaoPorCliente[f.id_cliente] = { kwh: f.kwh_faturado, cve: f.valor_cve };
       }
 
-      const faturacaoPorSub: Record<string, number> = {};
+      const faturacaoPorSub: Record<string, { kwh: number; cve: number }> = {};
       for (const c of clientes ?? []) {
-        faturacaoPorSub[c.id_subestacao] =
-          (faturacaoPorSub[c.id_subestacao] ?? 0) +
-          (faturacaoPorCliente[c.id] ?? 0);
+        const prev = faturacaoPorSub[c.id_subestacao] ?? { kwh: 0, cve: 0 };
+        const fat = faturacaoPorCliente[c.id] ?? { kwh: 0, cve: 0 };
+        faturacaoPorSub[c.id_subestacao] = {
+          kwh: prev.kwh + fat.kwh,
+          cve: prev.cve + fat.cve,
+        };
       }
 
       const chartData: ChartDatum[] = injecoes.map((inj) => {
         const sub = inj.subestacoes as unknown as { nome: string } | null;
         const kwh_injetado = inj.total_kwh_injetado;
-        const kwh_faturado = faturacaoPorSub[inj.id_subestacao] ?? 0;
+        const { kwh: kwh_faturado, cve: cve_faturado } = faturacaoPorSub[inj.id_subestacao] ?? { kwh: 0, cve: 0 };
+        const tarifaMedia = kwh_faturado > 0 ? cve_faturado / kwh_faturado : 15;
         const perda_pct =
           kwh_injetado > 0
             ? ((kwh_injetado - kwh_faturado) / kwh_injetado) * 100
@@ -112,42 +119,46 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
           injetado: Math.round(kwh_injetado),
           faturado: Math.round(kwh_faturado),
           perda_pct: parseFloat(perda_pct.toFixed(1)),
-          cve_recuperavel: Math.max(0, (kwh_injetado - kwh_faturado) * 15),
+          cve_recuperavel: Math.max(0, (kwh_injetado - kwh_faturado) * tarifaMedia),
+          tarifa_media: tarifaMedia,
         };
       });
 
       setData(chartData);
-      setLoading(false);
+      } finally {
+        setLoading(false);
+      }
     }
 
     load();
-  }, [mesAno]);
+  }, [mesAno, supabase]);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4">
-      <h3 className="font-semibold text-slate-700 mb-4">
-        Top 5 Transformadores — Energia Injetada vs Faturada
-      </h3>
+    <div className="bg-surface-container-lowest rounded-[1.5rem] p-8 shadow-sm border border-outline-variant/10">
+      <div className="mb-6">
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Análise</p>
+        <p className="font-bold text-on-surface text-lg">Top 5 Transformadores</p>
+      </div>
       {loading ? (
-        <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+        <Skeleton className="h-64 w-full rounded-lg" />
       ) : data.length === 0 ? (
-        <div className="h-64 flex items-center justify-center text-slate-400 text-sm">
+        <div className="h-64 flex items-center justify-center text-muted-foreground text-sm">
           Sem dados de injeção para {mesAno}
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis
               dataKey="nome"
-              tick={{ fontSize: 11, fill: "#64748b" }}
+              tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: "#64748b" }}
+              tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+              tickFormatter={(v) => `${(v / 1000).toFixed(0)}k kWh`}
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend

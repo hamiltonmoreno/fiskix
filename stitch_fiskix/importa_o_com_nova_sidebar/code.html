@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-high": "#e8e8ed",
+                    "on-error-container": "#93000a",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "surface-dim": "#d9dade",
+                    "surface-container": "#ededf2",
+                    "surface-container-low": "#f3f3f8",
+                    "on-tertiary-fixed": "#351000",
+                    "tertiary": "#9e3d00",
+                    "secondary-container": "#a1befd",
+                    "surface-container-highest": "#e2e2e7",
+                    "on-primary": "#ffffff",
+                    "tertiary-container": "#c64f00",
+                    "surface-variant": "#e2e2e7",
+                    "background": "#f9f9fe",
+                    "inverse-on-surface": "#f0f0f5",
+                    "on-tertiary": "#ffffff",
+                    "inverse-surface": "#2e3034",
+                    "on-primary-container": "#fefcff",
+                    "on-surface": "#1a1c1f",
+                    "on-primary-fixed": "#001a41",
+                    "on-tertiary-fixed-variant": "#7c2e00",
+                    "on-background": "#1a1c1f",
+                    "secondary": "#405e96",
+                    "on-secondary-fixed": "#001a41",
+                    "tertiary-fixed": "#ffdbcc",
+                    "on-tertiary-container": "#fffbff",
+                    "primary-container": "#0070eb",
+                    "on-secondary-container": "#2d4c83",
+                    "outline": "#717786",
+                    "on-surface-variant": "#414755",
+                    "tertiary-fixed-dim": "#ffb595",
+                    "primary": "#0058bc",
+                    "surface-tint": "#005bc1",
+                    "inverse-primary": "#adc6ff",
+                    "primary-fixed": "#d8e2ff",
+                    "secondary-fixed": "#d8e2ff",
+                    "primary-fixed-dim": "#adc6ff",
+                    "error": "#ba1a1a",
+                    "surface-bright": "#f9f9fe",
+                    "on-secondary-fixed-variant": "#26467d",
+                    "surface-container-lowest": "#ffffff",
+                    "outline-variant": "#c1c6d7",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed-variant": "#004493",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface": "#f9f9fe"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "1rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e2e7; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface flex min-h-screen">
+<!-- Sidebar Navigation -->
+<aside class="flex flex-col h-full py-6 px-4 gap-y-2 sticky top-0 left-0 h-screen w-72 rounded-r-none border-r border-slate-200/20 dark:border-slate-800/20 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xl shadow-[4px_0_24px_rgba(0,0,0,0.04)]">
+<!-- Brand Header -->
+<div class="flex items-center gap-3 px-2 mb-8">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" data-icon="database_upload">database_upload</span>
+</div>
+<div>
+<h1 class="font-bold text-lg text-slate-900 dark:text-slate-50 leading-tight">Project Alpha</h1>
+<p class="text-xs text-slate-500 font-medium">Operational Monitor</p>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-y-6">
+<!-- Monitoramento Section -->
+<div>
+<p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Monitoramento</p>
+<div class="flex flex-col gap-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-200/50 transition-colors duration-200 Inter font-sans font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                        Dashboard
+                    </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-200/50 transition-colors duration-200 Inter font-sans font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+                        Analytics
+                    </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-200/50 transition-colors duration-200 Inter font-sans font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+                        Live Map
+                    </a>
+</div>
+</div>
+<!-- Operações Section -->
+<div>
+<p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Operações</p>
+<div class="flex flex-col gap-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-200/50 transition-colors duration-200 Inter font-sans font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="assignment_ind">assignment_ind</span>
+                        Supervisor
+                    </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-200/50 transition-colors duration-200 Inter font-sans font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="engineering">engineering</span>
+                        Field Ops
+                    </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-200/50 transition-colors duration-200 Inter font-sans font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="rule">rule</span>
+                        Validation Queue
+                    </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-600/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400 font-semibold Inter font-sans tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="database_upload">database_upload</span>
+                        Data Import
+                    </a>
+</div>
+</div>
+<!-- Configurações Section -->
+<div>
+<p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Configurações</p>
+<div class="flex flex-col gap-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-200/50 transition-colors duration-200 Inter font-sans font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                        Users
+                    </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-200/50 transition-colors duration-200 Inter font-sans font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                        Settings
+                    </a>
+</div>
+</div>
+</nav>
+<!-- Footer Actions -->
+<div class="mt-auto flex flex-col gap-y-1 pt-4 border-t border-slate-200/20">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-200/50 transition-colors duration-200 Inter font-sans font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+                Profile
+            </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-200/50 transition-colors duration-200 Inter font-sans font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+                Support
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 p-8 lg:p-12 overflow-y-auto">
+<header class="flex justify-between items-end mb-12">
+<div class="max-w-2xl">
+<h2 class="text-[3.5rem] font-bold tracking-tighter leading-none mb-4 text-on-surface">Importação de Dados</h2>
+<p class="text-on-surface-variant text-lg font-normal">Sincronize e mapeie conjuntos de dados externos com a arquitetura Fiskix através de nossa interface de curadoria inteligente.</p>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-3 rounded-xl bg-surface-container-high text-primary font-semibold text-sm transition-all hover:bg-surface-container-highest">
+                    Histórico de Importação
+                </button>
+</div>
+</header>
+<!-- Bento Layout -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Drag & Drop Zone -->
+<section class="col-span-12 lg:col-span-5 bg-surface-container-low rounded-xl p-8 flex flex-col items-center justify-center border-2 border-dashed border-outline-variant/30 min-h-[400px] transition-all hover:border-primary/40 group">
+<div class="w-20 h-20 rounded-full bg-surface-container-highest flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl text-primary" data-icon="upload_file">upload_file</span>
+</div>
+<h3 class="text-xl font-semibold mb-2">Arraste seu arquivo aqui</h3>
+<p class="text-on-surface-variant text-center mb-8 max-w-xs">Suporte para arquivos CSV, JSON ou XLSX de até 500MB.</p>
+<button class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-3 rounded-xl font-semibold shadow-xl shadow-primary/10 hover:shadow-primary/20 transition-all active:scale-95">
+                    Selecionar Arquivo
+                </button>
+<p class="mt-6 text-xs font-semibold uppercase tracking-widest text-outline">Ou cole uma URL pública de dados</p>
+</section>
+<!-- Real-time Ingestion Logs -->
+<section class="col-span-12 lg:col-span-7 bg-surface-container-low rounded-xl p-8 flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-xl font-semibold">Logs de Processamento</h3>
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container-highest rounded-full">
+<div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+<span class="text-xs font-bold uppercase">Live stream</span>
+</div>
+</div>
+<div class="flex-1 bg-surface-container-lowest rounded-lg p-6 custom-scrollbar overflow-y-auto max-h-[300px] font-mono text-sm space-y-3">
+<div class="flex gap-4">
+<span class="text-outline">14:22:01</span>
+<span class="text-primary">[System]</span>
+<span class="text-on-surface-variant">Iniciando handshake com bucket regional-sa-east...</span>
+</div>
+<div class="flex gap-4">
+<span class="text-outline">14:22:05</span>
+<span class="text-green-600">[Success]</span>
+<span class="text-on-surface-variant">Conexão estabelecida. Detectado esquema UTF-8.</span>
+</div>
+<div class="flex gap-4">
+<span class="text-outline">14:22:12</span>
+<span class="text-primary">[Worker]</span>
+<span class="text-on-surface-variant">Analizando 4.200 linhas de 'sales_report_q3.csv'...</span>
+</div>
+<div class="flex gap-4">
+<span class="text-outline">14:22:45</span>
+<span class="text-tertiary">[Warning]</span>
+<span class="text-on-surface-variant">Coluna 'discount_rate' contém valores nulos. Aplicando fallback.</span>
+</div>
+<div class="flex gap-4">
+<span class="text-outline">14:23:01</span>
+<span class="text-primary">[Worker]</span>
+<span class="text-on-surface-variant">Aguardando confirmação de mapeamento de esquema.</span>
+</div>
+</div>
+</section>
+<!-- Schema Mapping Table -->
+<section class="col-span-12 bg-surface-container-low rounded-xl p-8">
+<header class="flex justify-between items-center mb-8">
+<div>
+<h3 class="text-xl font-semibold">Mapeamento de Esquema</h3>
+<p class="text-on-surface-variant text-sm mt-1">Defina como as colunas do arquivo se conectam ao modelo Fiskix.</p>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-sm font-medium text-outline">Smart Suggestion</span>
+<div class="w-12 h-6 bg-primary rounded-full relative p-1 cursor-pointer">
+<div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+</div>
+</div>
+</header>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="border-b border-outline-variant/10">
+<th class="pb-4 font-bold text-xs uppercase tracking-wider text-outline px-4">Campo Fiskix (Destino)</th>
+<th class="pb-4 font-bold text-xs uppercase tracking-wider text-outline px-4">Coluna CSV (Origem)</th>
+<th class="pb-4 font-bold text-xs uppercase tracking-wider text-outline px-4">Tipo de Dado</th>
+<th class="pb-4 font-bold text-xs uppercase tracking-wider text-outline px-4">Transformação</th>
+<th class="pb-4 font-bold text-xs uppercase tracking-wider text-outline px-4">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<tr class="group hover:bg-surface-container-lowest transition-colors">
+<td class="py-5 px-4 font-semibold text-primary">client_id</td>
+<td class="py-5 px-4">
+<select class="bg-surface-container border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20 transition-all">
+<option>ID_CLIENTE</option>
+<option>customer_hash</option>
+</select>
+</td>
+<td class="py-5 px-4 text-sm text-on-surface-variant">String (UUID)</td>
+<td class="py-5 px-4">
+<span class="px-3 py-1 bg-surface-container-high rounded-full text-[10px] font-bold uppercase text-outline">Nenhuma</span>
+</td>
+<td class="py-5 px-4">
+<span class="material-symbols-outlined text-green-500" data-icon="check_circle">check_circle</span>
+</td>
+</tr>
+<tr class="group hover:bg-surface-container-lowest transition-colors">
+<td class="py-5 px-4 font-semibold text-primary">transaction_val</td>
+<td class="py-5 px-4">
+<select class="bg-surface-container border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20 transition-all">
+<option>VALOR_TOTAL</option>
+<option>price</option>
+</select>
+</td>
+<td class="py-5 px-4 text-sm text-on-surface-variant">Decimal (10,2)</td>
+<td class="py-5 px-4">
+<span class="px-3 py-1 bg-primary/10 rounded-full text-[10px] font-bold uppercase text-primary">Currency Normalize</span>
+</td>
+<td class="py-5 px-4">
+<span class="material-symbols-outlined text-green-500" data-icon="check_circle">check_circle</span>
+</td>
+</tr>
+<tr class="group hover:bg-surface-container-lowest transition-colors">
+<td class="py-5 px-4 font-semibold text-primary">event_timestamp</td>
+<td class="py-5 px-4">
+<select class="bg-surface-container border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20 transition-all">
+<option>DATA_HORA</option>
+<option>created_at</option>
+</select>
+</td>
+<td class="py-5 px-4 text-sm text-on-surface-variant">ISO 8601</td>
+<td class="py-5 px-4">
+<span class="px-3 py-1 bg-surface-container-high rounded-full text-[10px] font-bold uppercase text-outline">Timezone Ajust.</span>
+</td>
+<td class="py-5 px-4">
+<span class="material-symbols-outlined text-tertiary" data-icon="pending">pending</span>
+</td>
+</tr>
+<tr class="group hover:bg-surface-container-lowest transition-colors">
+<td class="py-5 px-4 font-semibold text-primary">branch_location</td>
+<td class="py-5 px-4">
+<select class="bg-surface-container border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20 transition-all">
+<option>UNIDADE</option>
+<option>store_id</option>
+</select>
+</td>
+<td class="py-5 px-4 text-sm text-on-surface-variant">String</td>
+<td class="py-5 px-4">
+<span class="px-3 py-1 bg-surface-container-high rounded-full text-[10px] font-bold uppercase text-outline">Nenhuma</span>
+</td>
+<td class="py-5 px-4">
+<span class="material-symbols-outlined text-outline-variant" data-icon="help">help</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="mt-8 flex justify-end gap-4">
+<button class="px-6 py-3 rounded-xl text-on-surface-variant font-semibold text-sm hover:bg-surface-container-high transition-all">
+                        Resetar Mapeamento
+                    </button>
+<button class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-10 py-3 rounded-xl font-bold shadow-xl shadow-primary/20 hover:scale-105 transition-all">
+                        Iniciar Ingestão
+                    </button>
+</div>
+</section>
+</div>
+</main>
+<!-- Contextual FAB (Only for major actions) -->
+<!-- Suppressed on detailed screens as per instructions -->
+</body></html>

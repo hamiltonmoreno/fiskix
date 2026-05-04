@@ -1,25 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { SubestacaoMapa } from "../types";
 import { createClient } from "@/lib/supabase/client";
-import { formatCVE } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface HeatMapProps {
   mesAno: string;
   zona?: string;
 }
 
-function getMarkerColor(perdaPct: number): string {
-  if (perdaPct >= 15) return "#DC2626"; // vermelho
-  if (perdaPct >= 10) return "#D97706"; // âmbar
-  return "#16A34A"; // verde
-}
 
 export function HeatMap({ mesAno, zona }: HeatMapProps) {
   const [subestacoes, setSubestacoes] = useState<SubestacaoMapa[]>([]);
   const [Map, setMap] = useState<React.ComponentType<{ subestacoes: SubestacaoMapa[]; mesAno: string }> | null>(null);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     // Carregar Leaflet apenas no cliente (SSR não suporta)
@@ -87,36 +82,38 @@ export function HeatMap({ mesAno, zona }: HeatMapProps) {
     }
 
     load();
-  }, [mesAno, zona]);
+  }, [mesAno, zona, supabase]);
 
   if (!Map) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 p-4">
-        <h3 className="font-semibold text-slate-700 mb-3">Mapa de Calor — Subestações</h3>
-        <div className="h-80 bg-slate-100 animate-pulse rounded-lg flex items-center justify-center">
-          <span className="text-slate-400 text-sm">A carregar mapa...</span>
-        </div>
+      <div className="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-outline-variant/10">
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Subestações</p>
+        <p className="font-bold text-on-surface mb-4">Mapa de Calor — Perdas por Zona</p>
+        <Skeleton className="h-80 w-full rounded-xl" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-slate-700">Mapa de Calor — Subestações</h3>
-        <div className="flex items-center gap-4 text-xs text-slate-500">
-          <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-green-600 inline-block" /> &lt;10% perda
+    <div className="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-outline-variant/10">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Subestações</p>
+          <p className="font-bold text-on-surface">Mapa de Calor — Perdas por Zona</p>
+        </div>
+        <div className="flex items-center gap-3 text-[11px] text-on-surface-variant">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> &lt;10%
           </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" /> 10-15%
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> 10–15%
           </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-600 inline-block" /> &gt;15%
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-red-600 inline-block" /> &gt;15%
           </span>
         </div>
       </div>
-      <div className="h-80 rounded-lg overflow-hidden">
+      <div className="h-[22rem] rounded-xl [overflow:clip]">
         <Map subestacoes={subestacoes} mesAno={mesAno} />
       </div>
     </div>

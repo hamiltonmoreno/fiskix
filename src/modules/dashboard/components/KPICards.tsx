@@ -1,44 +1,106 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatCVE } from "@/lib/utils";
+import { Icon } from "@/components/Icon";
 import type { KPIData } from "../types";
-import { TrendingDown, AlertTriangle, ClipboardList, TrendingUp } from "lucide-react";
 
 interface KPICardsProps {
   data: KPIData | null;
   loading: boolean;
 }
 
+function DeltaBadge({ pct }: { pct: number }) {
+  if (pct === 0) return null;
+  const isWorse = pct > 0;
+  return (
+    <span className={cn(
+      "inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold",
+      isWorse
+        ? "text-[#ba1a1a] bg-[#ffdad6]"
+        : "text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-950/40"
+    )}>
+      <Icon name={isWorse ? "trending_up" : "trending_down"} size="xs" />
+      {Math.abs(pct).toFixed(1)}% vs mês ant.
+    </span>
+  );
+}
+
+type Severity = "danger" | "warning" | "neutral" | "success";
+
+const SEVERITY_STYLES: Record<Severity, {
+  iconBg: string;
+  iconColor: string;
+  valueColor: string;
+  dot: string;
+}> = {
+  danger: {
+    iconBg: "bg-red-100 dark:bg-red-950/40",
+    iconColor: "text-red-500",
+    valueColor: "text-red-700 dark:text-red-400",
+    dot: "bg-red-400",
+  },
+  warning: {
+    iconBg: "bg-amber-100 dark:bg-amber-950/40",
+    iconColor: "text-amber-500",
+    valueColor: "text-amber-700 dark:text-amber-400",
+    dot: "bg-amber-400",
+  },
+  neutral: {
+    iconBg: "bg-primary/10",
+    iconColor: "text-primary",
+    valueColor: "text-foreground",
+    dot: "bg-primary",
+  },
+  success: {
+    iconBg: "bg-emerald-100 dark:bg-emerald-950/40",
+    iconColor: "text-emerald-600",
+    valueColor: "text-emerald-700 dark:text-emerald-400",
+    dot: "bg-emerald-400",
+  },
+};
+
 function KPICard({
   title,
   value,
-  icon: Icon,
-  color,
+  iconName,
+  severity,
   sub,
+  delta,
   loading,
 }: {
   title: string;
   value: string;
-  icon: React.ElementType;
-  color: string;
-  sub?: string;
+  iconName: string;
+  severity: Severity;
+  sub?: React.ReactNode;
+  delta?: React.ReactNode;
   loading: boolean;
 }) {
+  const styles = SEVERITY_STYLES[severity];
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-slate-500">{title}</span>
-        <div className={`p-2 rounded-lg ${color}`}>
-          <Icon className="w-4 h-4" />
+    <div className="kpi-card bg-surface-container-lowest rounded-[1.5rem] border border-outline-variant/10 shadow-sm px-6 py-5 flex flex-col gap-3 hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", styles.dot)} />
+          <span className="text-sm font-medium text-on-surface-variant truncate">{title}</span>
+        </div>
+        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0", styles.iconBg)}>
+          <Icon name={iconName} size="sm" className={styles.iconColor} />
         </div>
       </div>
+
       {loading ? (
-        <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" />
+        <Skeleton className="h-9 w-3/4 rounded-xl" />
       ) : (
-        <div className="text-2xl font-bold text-slate-900">{value}</div>
+        <div className={cn("text-[2rem] font-bold leading-none tracking-tighter tabular-nums text-on-surface", styles.valueColor)}>
+          {value}
+        </div>
       )}
-      {sub && (
-        <p className="text-xs text-slate-400 mt-1">{sub}</p>
+
+      {!loading && (delta || sub) && (
+        <div className="text-xs text-muted-foreground">{delta ?? sub}</div>
       )}
     </div>
   );
@@ -50,33 +112,33 @@ export function KPICards({ data, loading }: KPICardsProps) {
       <KPICard
         title="Perda Estimada"
         value={data ? formatCVE(data.perda_cve_total) : "—"}
-        icon={TrendingDown}
-        color="bg-red-100 text-red-600"
-        sub="mês atual vs energia injetada"
+        iconName="trending_down"
+        severity="danger"
+        delta={data ? <DeltaBadge pct={data.variacao_perda_pct} /> : undefined}
         loading={loading}
       />
       <KPICard
         title="Risco Crítico"
-        value={data ? `${data.clientes_risco_critico} clientes` : "—"}
-        icon={AlertTriangle}
-        color="bg-amber-100 text-amber-600"
-        sub="score ≥ 75 este mês"
+        value={data ? `${data.clientes_risco_critico}` : "—"}
+        iconName="warning"
+        severity="warning"
+        sub="clientes · score ≥ 75"
         loading={loading}
       />
       <KPICard
         title="Ordens Pendentes"
         value={data ? `${data.ordens_pendentes}` : "—"}
-        icon={ClipboardList}
-        color="bg-blue-100 text-blue-600"
+        iconName="assignment"
+        severity="neutral"
         sub="aguardam inspeção física"
         loading={loading}
       />
       <KPICard
         title="Receita Recuperada"
         value={data ? formatCVE(data.receita_recuperada_ytd) : "—"}
-        icon={TrendingUp}
-        color="bg-green-100 text-green-600"
-        sub="fraudes confirmadas este ano"
+        iconName="savings"
+        severity="success"
+        sub="fraudes confirmadas YTD"
         loading={loading}
       />
     </div>

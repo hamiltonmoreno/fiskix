@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+
+<html lang="pt"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Fiskix Analytics | Electra Cape Verde</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-primary-fixed-variant": "#004493",
+                        "on-background": "#1a1c1f",
+                        "surface-tint": "#005bc1",
+                        "surface-dim": "#d9dade",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#a1befd",
+                        "on-surface-variant": "#414755",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#ffb595",
+                        "outline": "#717786",
+                        "on-secondary-container": "#2d4c83",
+                        "surface-container-low": "#f3f3f8",
+                        "on-error-container": "#93000a",
+                        "surface-container-highest": "#e2e2e7",
+                        "on-tertiary-fixed-variant": "#7c2e00",
+                        "on-tertiary-fixed": "#351000",
+                        "primary-container": "#0070eb",
+                        "on-surface": "#1a1c1f",
+                        "on-primary-container": "#fefcff",
+                        "secondary": "#405e96",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "outline-variant": "#c1c6d7",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-high": "#e8e8ed",
+                        "on-secondary-fixed-variant": "#26467d",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#001a41",
+                        "secondary-fixed": "#d8e2ff",
+                        "background": "#f9f9fe",
+                        "inverse-on-surface": "#f0f0f5",
+                        "primary-fixed": "#d8e2ff",
+                        "primary": "#0058bc",
+                        "tertiary-container": "#c64f00",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffdbcc",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2e3034",
+                        "surface": "#f9f9fe",
+                        "tertiary": "#9e3d00",
+                        "surface-container": "#ededf2",
+                        "surface-bright": "#f9f9fe",
+                        "on-tertiary-container": "#fffbff",
+                        "surface-variant": "#e2e2e7",
+                        "on-secondary-fixed": "#001a41",
+                        "inverse-primary": "#adc6ff",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["JetBrains Mono"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-fixed-dim">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 bottom-0 w-64 z-50 flex flex-col h-full py-6 border-r border-slate-100 dark:border-slate-800 bg-[#f9f9fe] dark:bg-slate-950">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-lg">bolt</span>
+</div>
+<div>
+<h1 class="text-lg font-bold text-slate-900 dark:text-white leading-tight">Fiskix Energy</h1>
+<p class="text-[10px] uppercase tracking-[0.1em] text-slate-500 font-semibold">Cabo Verde Operations</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-6 overflow-y-auto px-4">
+<!-- Monitoramento Section -->
+<div>
+<p class="px-4 mb-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Monitoramento</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all scale-100 active:scale-98" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="font-medium text-[13px] tracking-wide">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-slate-900 text-[#007AFF] shadow-sm rounded-lg mx-0 font-medium text-[13px] tracking-wide" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">insights</span>
+<span class="font-medium text-[13px] tracking-wide">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all scale-100 active:scale-98" href="#">
+<span class="material-symbols-outlined text-[20px]">map</span>
+<span class="font-medium text-[13px] tracking-wide">Live Map</span>
+</a>
+</div>
+</div>
+<!-- Operações Section -->
+<div>
+<p class="px-4 mb-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Operações</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all scale-100 active:scale-98" href="#">
+<span class="material-symbols-outlined text-[20px]">assignment_ind</span>
+<span class="font-medium text-[13px] tracking-wide">Supervisor</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all scale-100 active:scale-98" href="#">
+<span class="material-symbols-outlined text-[20px]">engineering</span>
+<span class="font-medium text-[13px] tracking-wide">Field Ops</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all scale-100 active:scale-98" href="#">
+<span class="material-symbols-outlined text-[20px]">rule</span>
+<span class="font-medium text-[13px] tracking-wide">Validation Queue</span>
+</a>
+</div>
+</div>
+<!-- Configurações Section -->
+<div>
+<p class="px-4 mb-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Configurações</p>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all scale-100 active:scale-98" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="font-medium text-[13px] tracking-wide">Users</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg transition-all scale-100 active:scale-98" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="font-medium text-[13px] tracking-wide">Settings</span>
+</a>
+</div>
+</div>
+</nav>
+<div class="mt-auto px-4 border-t border-slate-100 dark:border-slate-800 pt-6">
+<button class="w-full bg-primary-container text-white py-2.5 px-4 rounded-xl font-medium text-[13px] shadow-lg shadow-blue-500/20 active:scale-95 transition-transform flex items-center justify-center gap-2 mb-6">
+<span class="material-symbols-outlined text-sm">summarize</span>
+                Relatório Diário
+            </button>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-[13px] font-medium" href="#">
+<span class="material-symbols-outlined text-[18px]">support</span> Ajuda
+                </a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-[13px] font-medium" href="#">
+<span class="material-symbols-outlined text-[18px]">logout</span> Sair
+                </a>
+</div>
+</div>
+</aside>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl flex justify-between items-center w-full px-8 py-4 ml-64 shadow-sm shadow-blue-900/5">
+<div class="flex items-center gap-8">
+<h2 class="text-xl font-bold tracking-tighter text-[#007AFF]">Analytics &amp; Reports</h2>
+<div class="hidden lg:flex items-center bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/10">
+<span class="material-symbols-outlined text-slate-400 text-lg mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-64 p-0 placeholder:text-slate-400" placeholder="Search substations..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full transition-colors active:scale-95 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+</button>
+<div class="h-6 w-[1px] bg-slate-200 mx-2"></div>
+<button class="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-slate-50 transition-colors">
+<span class="text-sm font-medium text-slate-700">Electra Operations</span>
+<img alt="User profile" class="w-8 h-8 rounded-full border border-primary/10" data-alt="Close up of a professional operations manager portrait with clean background, modern and trustworthy appearance" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhZ9x6FlNXYTJ0nDEFptiSWRjQ8Y59bXMtJlbN21Hssl5tPMtA9T89yJV6mIqB9J4JRFmA7XDZc_RKfd_Z5YQnlWrSBd6vZfmS1ciXgiU3cX6hIyhTng6nPwxjRhiL2N90vpgRyR_IWksa759_ec35xDhO-vK6zWPJEkY4HoWqu52SKkGkFLxlflxJ3Y-CMJBtM5_LEzcCHEQFw_ezSnaSkQQr3oSu0a-KHPsKP6HtWZzx4ANUOSnjgx77ByoqRIig9hrM09lO0OLA"/>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-64 pt-24 px-8 pb-12 min-h-screen">
+<!-- Dashboard Header & Filters -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+<div>
+<p class="text-sm font-medium text-primary uppercase tracking-[0.15em] mb-1">Electra Cape Verde</p>
+<h3 class="text-3xl font-bold text-on-background tracking-tight">Regional Performance Data</h3>
+</div>
+<div class="flex items-center gap-3 bg-surface-container-low p-1.5 rounded-2xl">
+<div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm">
+<span class="material-symbols-outlined text-sm text-primary">calendar_today</span>
+<span class="text-sm font-medium">Últimos 30 Dias</span>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-primary transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                    Filtros
+                </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-medium active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm">download</span>
+                    Exportar PDF
+                </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Regional Deviation Card (Santiago) -->
+<div class="col-span-12 lg:col-span-4 bg-white rounded-3xl p-6 shadow-sm border border-slate-50">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Regional Deviation</h4>
+<p class="text-xl font-bold">Santiago Island</p>
+</div>
+<span class="px-2.5 py-1 bg-error-container text-error rounded-lg text-xs font-bold uppercase tracking-wider">High Alert</span>
+</div>
+<div class="flex items-baseline gap-2 mb-4">
+<span class="text-4xl font-mono font-bold tracking-tight">14.2%</span>
+<span class="text-error text-sm font-bold flex items-center">
+<span class="material-symbols-outlined text-sm">trending_up</span> +2.4%
+                    </span>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Substation: Palmarejo</span>
+<span class="font-mono font-medium">8.4% dev</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[85%] rounded-full"></div>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Substation: Achada</span>
+<span class="font-mono font-medium">5.8% dev</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-[60%] rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Regional Deviation Card (São Vicente) -->
+<div class="col-span-12 lg:col-span-4 bg-white rounded-3xl p-6 shadow-sm border border-slate-50">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Regional Deviation</h4>
+<p class="text-xl font-bold">São Vicente</p>
+</div>
+<span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-bold uppercase tracking-wider">Stable</span>
+</div>
+<div class="flex items-baseline gap-2 mb-4">
+<span class="text-4xl font-mono font-bold tracking-tight">4.8%</span>
+<span class="text-green-600 text-sm font-bold flex items-center">
+<span class="material-symbols-outlined text-sm">trending_down</span> -1.1%
+                    </span>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Substation: Mindelo</span>
+<span class="font-mono font-medium">3.2% dev</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[35%] rounded-full"></div>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Substation: Lazareto</span>
+<span class="font-mono font-medium">1.6% dev</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-[20%] rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Regional Deviation Card (Sal) -->
+<div class="col-span-12 lg:col-span-4 bg-white rounded-3xl p-6 shadow-sm border border-slate-50">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Regional Deviation</h4>
+<p class="text-xl font-bold">Sal Island</p>
+</div>
+<span class="px-2.5 py-1 bg-surface-container-highest text-slate-600 rounded-lg text-xs font-bold uppercase tracking-wider">Warning</span>
+</div>
+<div class="flex items-baseline gap-2 mb-4">
+<span class="text-4xl font-mono font-bold tracking-tight">8.1%</span>
+<span class="text-slate-400 text-sm font-bold flex items-center">
+<span class="material-symbols-outlined text-sm">horizontal_rule</span> 0.0%
+                    </span>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Substation: Espargos</span>
+<span class="font-mono font-medium">4.5% dev</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[55%] rounded-full"></div>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Substation: Santa Maria</span>
+<span class="font-mono font-medium">3.6% dev</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-[45%] rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Historical Trends (Main Visualization) -->
+<div class="col-span-12 lg:col-span-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-50">
+<div class="flex justify-between items-center mb-10">
+<div>
+<h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">Historical Trends</h4>
+<p class="text-2xl font-bold">Load vs Efficiency Matrix</p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-1.5 text-xs font-bold rounded-lg border border-slate-200 hover:bg-slate-50">Week</button>
+<button class="px-4 py-1.5 text-xs font-bold rounded-lg bg-slate-900 text-white">Month</button>
+<button class="px-4 py-1.5 text-xs font-bold rounded-lg border border-slate-200 hover:bg-slate-50">Year</button>
+</div>
+</div>
+<div class="h-64 flex items-end justify-between gap-4 relative">
+<!-- Grid Lines Mock -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+<div class="border-b border-slate-400 w-full h-[1px]"></div>
+<div class="border-b border-slate-400 w-full h-[1px]"></div>
+<div class="border-b border-slate-400 w-full h-[1px]"></div>
+<div class="border-b border-slate-400 w-full h-[1px]"></div>
+</div>
+<!-- Bars -->
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full max-w-[40px] bg-slate-100 rounded-t-lg h-[60%] group-hover:bg-primary/20 transition-colors relative overflow-hidden">
+<div class="absolute bottom-0 w-full bg-primary h-[80%] rounded-t-lg"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 mt-3">JAN</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full max-w-[40px] bg-slate-100 rounded-t-lg h-[75%] group-hover:bg-primary/20 transition-colors relative overflow-hidden">
+<div class="absolute bottom-0 w-full bg-primary h-[60%] rounded-t-lg"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 mt-3">FEB</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full max-w-[40px] bg-slate-100 rounded-t-lg h-[90%] group-hover:bg-primary/20 transition-colors relative overflow-hidden">
+<div class="absolute bottom-0 w-full bg-primary h-[85%] rounded-t-lg"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 mt-3 text-primary">MAR</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full max-w-[40px] bg-slate-100 rounded-t-lg h-[65%] group-hover:bg-primary/20 transition-colors relative overflow-hidden">
+<div class="absolute bottom-0 w-full bg-primary h-[40%] rounded-t-lg"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 mt-3">APR</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full max-w-[40px] bg-slate-100 rounded-t-lg h-[80%] group-hover:bg-primary/20 transition-colors relative overflow-hidden">
+<div class="absolute bottom-0 w-full bg-primary h-[55%] rounded-t-lg"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 mt-3">MAY</span>
+</div>
+<div class="flex-1 flex flex-col items-center group">
+<div class="w-full max-w-[40px] bg-slate-100 rounded-t-lg h-[50%] group-hover:bg-primary/20 transition-colors relative overflow-hidden">
+<div class="absolute bottom-0 w-full bg-primary h-[45%] rounded-t-lg"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 mt-3">JUN</span>
+</div>
+</div>
+<div class="mt-8 pt-8 border-t border-slate-100 flex items-center justify-around">
+<div class="text-center">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Peak Demand</p>
+<p class="text-xl font-mono font-bold">142.5 <span class="text-xs font-body font-normal text-slate-500">MW</span></p>
+</div>
+<div class="w-[1px] h-10 bg-slate-100"></div>
+<div class="text-center">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Grid Loss</p>
+<p class="text-xl font-mono font-bold">12.1 <span class="text-xs font-body font-normal text-slate-500">%</span></p>
+</div>
+<div class="w-[1px] h-10 bg-slate-100"></div>
+<div class="text-center">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Uptime Rate</p>
+<p class="text-xl font-mono font-bold">99.82 <span class="text-xs font-body font-normal text-slate-500">%</span></p>
+</div>
+</div>
+</div>
+<!-- Error Distribution Card -->
+<div class="col-span-12 lg:col-span-4 bg-[#1a1c1f] rounded-3xl p-8 text-white relative overflow-hidden">
+<!-- Abstract pattern background -->
+<div class="absolute top-0 right-0 w-48 h-48 bg-primary/20 rounded-full blur-[80px]"></div>
+<h4 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6 relative z-10">Error Distribution</h4>
+<div class="space-y-6 relative z-10">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-baseline mb-1">
+<p class="text-sm font-semibold">Load Imbalance</p>
+<p class="text-sm font-mono text-slate-400">42%</p>
+</div>
+<div class="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+<div class="bg-error h-full w-[42%] rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">sync_problem</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-baseline mb-1">
+<p class="text-sm font-semibold">Phase Loss</p>
+<p class="text-sm font-mono text-slate-400">28%</p>
+</div>
+<div class="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[28%] rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-baseline mb-1">
+<p class="text-sm font-semibold">Voltage Spike</p>
+<p class="text-sm font-mono text-slate-400">18%</p>
+</div>
+<div class="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+<div class="bg-tertiary-fixed-dim h-full w-[18%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-12 bg-white/5 rounded-2xl p-4 border border-white/5">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5">info</span>
+<p class="text-xs text-slate-400 leading-relaxed">
+                            A concentração de erros em <span class="text-white font-semibold">Santiago</span> deve-se ao aumento de carga no Subestação Palmarejo durante horários de pico.
+                        </p>
+</div>
+</div>
+</div>
+<!-- Recent Station Reports Table -->
+<div class="col-span-12 bg-white rounded-3xl shadow-sm border border-slate-50 overflow-hidden">
+<div class="px-8 py-6 border-b border-slate-50 flex justify-between items-center">
+<h4 class="text-lg font-bold">Substation Operational Logs</h4>
+<button class="text-primary text-sm font-semibold flex items-center gap-1 hover:underline">
+                        Ver Todos <span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50/50">
+<th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estação</th>
+<th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Zona</th>
+<th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+<th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Carga Atual</th>
+<th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Última Validação</th>
+<th class="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ação</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-50">
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="px-8 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">P</div>
+<span class="font-semibold text-sm">Palmarejo Sub</span>
+</div>
+</td>
+<td class="px-8 py-4 text-sm text-slate-500">Praia, Santiago</td>
+<td class="px-8 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-error-container text-error text-[11px] font-bold">
+<span class="w-1 h-1 rounded-full bg-error"></span> CRÍTICO
+                                    </span>
+</td>
+<td class="px-8 py-4 font-mono text-sm">84.2%</td>
+<td class="px-8 py-4 text-sm text-slate-500">12:45 PM</td>
+<td class="px-8 py-4">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">open_in_new</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="px-8 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-green-100 text-green-700 flex items-center justify-center font-bold text-xs">M</div>
+<span class="font-semibold text-sm">Mindelo Central</span>
+</div>
+</td>
+<td class="px-8 py-4 text-sm text-slate-500">Mindelo, S. Vicente</td>
+<td class="px-8 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[11px] font-bold">
+<span class="w-1 h-1 rounded-full bg-green-700"></span> ESTÁVEL
+                                    </span>
+</td>
+<td class="px-8 py-4 font-mono text-sm">45.8%</td>
+<td class="px-8 py-4 text-sm text-slate-500">11:30 AM</td>
+<td class="px-8 py-4">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">open_in_new</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="px-8 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-primary-container/10 text-primary-container flex items-center justify-center font-bold text-xs">E</div>
+<span class="font-semibold text-sm">Espargos Main</span>
+</div>
+</td>
+<td class="px-8 py-4 text-sm text-slate-500">Espargos, Sal</td>
+<td class="px-8 py-4">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-surface-container-highest text-slate-600 text-[11px] font-bold">
+<span class="w-1 h-1 rounded-full bg-slate-600"></span> MANUTENÇÃO
+                                    </span>
+</td>
+<td class="px-8 py-4 font-mono text-sm">12.0%</td>
+<td class="px-8 py-4 text-sm text-slate-500">Ontem, 16:20</td>
+<td class="px-8 py-4">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">open_in_new</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual FAB (Only for main analytics screen) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center active:scale-90 transition-transform z-50">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+</body></html>

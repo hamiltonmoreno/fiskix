@@ -1,233 +1,226 @@
 /**
- * Fiskix Balanço Energético — Edge Function
+ * Fiskix — Edge Function: balanço-energetico
  * Deno / Supabase Edge Functions
  *
- * Computes injected vs invoiced energy per substation for a given month
- * (or month range), classifying losses as technical or commercial.
+ * Calcula o balanço energético agregado por subestação (ou todas) para um mês,
+ * retornando perdas %, kWh injetado, kWh faturado e valor estimado da perda em CVE.
  *
- * GET  /balanco-energetico?mes=YYYY-MM&meses=12&zona=xxx&tarifa=xxx
- * POST /balanco-energetico  body: { mes_ano: string, meses?: number, zona?, tipo_tarifa? }
+ * GET  /balanco-energetico?mes_ano=YYYY-MM
+ * GET  /balanco-energetico?mes_ano=YYYY-MM&subestacao_id=UUID
+ * POST /balanco-energetico  { mes_ano, subestacao_id? }
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import {
-  buildMesesRange,
-  computeBalanco,
-  DEFAULT_PRICE_CVE_PER_KWH,
-  DEFAULT_TECH_LOSS_PCT,
-  shiftMesAno,
-  type FaturacaoRow,
-  type InjecaoRow,
-} from "./helpers.ts";
+
+type UserRole = "admin_fiskix" | "diretor" | "gestor_perdas" | "supervisor" | "fiscal";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
-const ALLOWED_ROLES = new Set([
+interface BalancoSubestacao {
+  subestacao_id: string;
+  nome: string;
+  zona_bairro: string;
+  mes_ano: string;
+  kwh_injetado: number;
+  kwh_faturado: number;
+  perda_kwh: number;
+  perda_pct: number;
+  zona_vermelha: boolean;
+  cve_perdido_estimado: number;
+  num_clientes: number;
+}
+
+const BALANCO_ALLOWED_ROLES: UserRole[] = [
   "admin_fiskix",
   "diretor",
   "gestor_perdas",
   "supervisor",
-]);
-const ZONA_RESTRICTED_ROLES = new Set(["supervisor"]);
+  "fiscal",
+];
+
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const start = Date.now();
-
   try {
-    // Authn/Authz first — the function uses the service role key below to
-    // bypass RLS, so any caller without an explicit role check would be able
-    // to read cross-zone aggregates. Mirror the pattern used in send-sms.
-    const authHeader = req.headers.get("Authorization");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !serviceRoleKey || !anonKey) {
+      return jsonResponse({ error: "Configuração de ambiente incompleta" }, 500);
+    }
+
+    const authHeader = req.headers.get("Authorization") ?? req.headers.get("authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Não autenticado" }, 401);
     }
-    const supabaseAuth = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
-    );
-    const { data: userData } = await supabaseAuth.auth.getUser();
-    if (!userData?.user) {
-      return new Response(JSON.stringify({ error: "Sessão inválida" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const { data: profile } = await supabaseAuth
-      .from("perfis")
-      .select("role, id_zona")
-      .eq("id", userData.user.id)
-      .single();
-    if (!profile || !ALLOWED_ROLES.has(profile.role)) {
-      return new Response(JSON.stringify({ error: "Sem permissão para consultar balanço" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+
+    const isServiceRequest = authHeader === `Bearer ${serviceRoleKey}`;
 
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      supabaseUrl,
+      serviceRoleKey
     );
 
-    let mesAno: string | undefined;
-    let nMeses = 12;
-    let zona: string | undefined;
-    let tipoTarifa: string | undefined;
+    if (!isServiceRequest) {
+      const authClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const {
+        data: { user },
+        error: authError,
+      } = await authClient.auth.getUser();
+      if (authError || !user) {
+        return jsonResponse({ error: "Token inválido" }, 401);
+      }
+
+      const { data: perfil } = await supabase
+        .from("perfis")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      if (!perfil?.role || !BALANCO_ALLOWED_ROLES.includes(perfil.role as UserRole)) {
+        return jsonResponse({ error: "Sem permissão para consultar balanço energético" }, 403);
+      }
+    }
+
+    // Suportar GET (query params) e POST (body)
+    let mes_ano: string | null = null;
+    let subestacao_id: string | null = null;
 
     if (req.method === "GET") {
       const url = new URL(req.url);
-      mesAno = url.searchParams.get("mes") ?? undefined;
-      nMeses = parseInt(url.searchParams.get("meses") ?? "12", 10) || 12;
-      zona = url.searchParams.get("zona") ?? undefined;
-      tipoTarifa = url.searchParams.get("tarifa") ?? undefined;
-    } else if (req.method === "POST") {
-      const body = await req.json().catch(() => ({}));
-      mesAno = body.mes_ano;
-      nMeses = body.meses ?? 12;
-      zona = body.zona;
-      tipoTarifa = body.tipo_tarifa;
+      mes_ano = url.searchParams.get("mes_ano");
+      subestacao_id = url.searchParams.get("subestacao_id");
     } else {
-      return new Response(JSON.stringify({ error: "Método não suportado" }), {
-        status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const body = await req.json().catch(() => ({}));
+      mes_ano = body.mes_ano ?? null;
+      subestacao_id = body.subestacao_id ?? null;
     }
 
-    // Zone-restricted roles (supervisor) cannot query other zones.
-    // Force their own id_zona regardless of the input parameter.
-    if (ZONA_RESTRICTED_ROLES.has(profile.role)) {
-      if (!profile.id_zona) {
-        return new Response(JSON.stringify({ error: "Perfil sem zona atribuída" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      zona = profile.id_zona;
+    if (!mes_ano || !/^\d{4}-\d{2}$/.test(mes_ano)) {
+      return jsonResponse({ error: "mes_ano é obrigatório no formato YYYY-MM" }, 400);
     }
 
-    if (!mesAno || !/^\d{4}-\d{2}$/.test(mesAno)) {
-      return new Response(JSON.stringify({ error: "mes_ano (YYYY-MM) é obrigatório" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Carregar config
+    // Limiar de zona vermelha das configurações
     const { data: configRows } = await supabase
       .from("configuracoes")
-      .select("chave, valor");
-    const config: Record<string, number> = {};
-    for (const row of configRows ?? []) config[row.chave] = parseFloat(row.valor);
+      .select("chave, valor")
+      .eq("chave", "limiar_perda_zona_pct")
+      .single();
 
-    const tecnicoMaxPct = config.limiar_perda_tecnica_pct ?? DEFAULT_TECH_LOSS_PCT;
-    const precoCvePorKwh = config.preco_cve_por_kwh ?? DEFAULT_PRICE_CVE_PER_KWH;
+    const limiarPerda = configRows ? parseFloat(configRows.valor) : 15;
 
-    const meses = buildMesesRange(mesAno, nMeses);
-    const yoyMes = shiftMesAno(mesAno, -12);
-    const allMeses = Array.from(new Set([...meses, yoyMes]));
+    // Obter subestações (uma ou todas)
+    let subQuery = supabase
+      .from("subestacoes")
+      .select("id, nome, zona_bairro")
+      .eq("ativo", true);
 
-    const [injecaoRes, faturacaoRes] = await Promise.all([
-      supabase
+    if (subestacao_id) {
+      subQuery = subQuery.eq("id", subestacao_id);
+    }
+
+    const { data: subestacoes, error: subError } = await subQuery;
+
+    if (subError || !subestacoes?.length) {
+      return jsonResponse({ error: "Subestações não encontradas" }, 404);
+    }
+
+    const resultados: BalancoSubestacao[] = [];
+
+    for (const sub of subestacoes) {
+      // kWh injetado na subestação
+      const { data: injecao } = await supabase
         .from("injecao_energia")
-        .select("id_subestacao, mes_ano, total_kwh_injetado, subestacoes!inner(nome, ilha, zona_bairro)")
-        .in("mes_ano", allMeses),
-      supabase
+        .select("total_kwh_injetado")
+        .eq("id_subestacao", sub.id)
+        .eq("mes_ano", mes_ano)
+        .single();
+
+      const kwh_injetado = injecao?.total_kwh_injetado ?? 0;
+
+      // kWh faturado + valor CVE agregado dos clientes da subestação
+      const { data: faturacao } = await supabase
         .from("faturacao_clientes")
-        .select("mes_ano, kwh_faturado, clientes!inner(id_subestacao, tipo_tarifa)")
-        .in("mes_ano", allMeses),
-    ]);
+        .select("kwh_faturado, valor_cve, clientes!inner(id_subestacao)")
+        .eq("mes_ano", mes_ano)
+        .eq("clientes.id_subestacao", sub.id);
 
-    const injecoes = (injecaoRes.data ?? []) as InjecaoRow[];
-    const faturacoes = (faturacaoRes.data ?? []) as FaturacaoRow[];
+      const rows = (faturacao ?? []) as Array<{
+        kwh_faturado: number;
+        valor_cve: number;
+      }>;
 
-    const porSubestacao = computeBalanco(
-      injecoes.filter((r) => r.mes_ano === mesAno),
-      faturacoes.filter((r) => r.mes_ano === mesAno),
-      { tipoTarifa, zona, tecnicoMaxPct, precoCvePorKwh },
-    );
+      const kwh_faturado = rows.reduce((s, r) => s + (r.kwh_faturado ?? 0), 0);
+      const cve_faturado = rows.reduce((s, r) => s + (r.valor_cve ?? 0), 0);
+      const num_clientes = rows.length;
 
-    const totalInjetado = porSubestacao.reduce((s, r) => s + r.kwh_injetado, 0);
-    const totalFaturado = porSubestacao.reduce((s, r) => s + r.kwh_faturado, 0);
-    const perdaKwh = Math.max(0, totalInjetado - totalFaturado);
-    const perdaPct = totalInjetado > 0 ? (perdaKwh / totalInjetado) * 100 : 0;
-    const perdaTecnicaKwh = porSubestacao.reduce((s, r) => s + r.perda_tecnica_kwh, 0);
-    const perdaComercialKwh = porSubestacao.reduce((s, r) => s + r.perda_comercial_kwh, 0);
+      const perda_kwh = Math.max(0, kwh_injetado - kwh_faturado);
+      const perda_pct =
+        kwh_injetado > 0 ? (perda_kwh / kwh_injetado) * 100 : 0;
 
-    // Evolução
-    const evolucao = meses.map((m) => {
-      const injMes = injecoes.filter((r) => r.mes_ano === m && (!zona || r.subestacoes?.zona_bairro === zona));
-      const fatMes = faturacoes.filter((r) => r.mes_ano === m && (!tipoTarifa || r.clientes?.tipo_tarifa === tipoTarifa));
-      const inj = injMes.reduce((s, r) => s + r.total_kwh_injetado, 0);
-      const fat = fatMes.reduce((s, r) => s + r.kwh_faturado, 0);
-      const perda = Math.max(0, inj - fat);
-      return {
-        mes_ano: m,
-        kwh_injetado: Math.round(inj),
-        kwh_faturado: Math.round(fat),
-        perda_kwh: Math.round(perda),
-        perda_pct: inj > 0 ? Math.round((perda / inj) * 10000) / 100 : 0,
-      };
-    });
+      // Tarifa média como proxy do custo unitário das perdas
+      const tarifa_media =
+        kwh_faturado > 0 ? cve_faturado / kwh_faturado : 15;
+      const cve_perdido_estimado = Math.round(perda_kwh * tarifa_media);
 
-    // YoY
-    const porSubYoY = computeBalanco(
-      injecoes.filter((r) => r.mes_ano === yoyMes),
-      faturacoes.filter((r) => r.mes_ano === yoyMes),
-      { tipoTarifa, zona, tecnicoMaxPct, precoCvePorKwh },
-    );
-    const totalInjYoY = porSubYoY.reduce((s, r) => s + r.kwh_injetado, 0);
-    const totalFatYoY = porSubYoY.reduce((s, r) => s + r.kwh_faturado, 0);
-    const perdaPctYoY = totalInjYoY > 0 ? ((totalInjYoY - totalFatYoY) / totalInjYoY) * 100 : 0;
+      resultados.push({
+        subestacao_id: sub.id,
+        nome: sub.nome,
+        zona_bairro: sub.zona_bairro,
+        mes_ano,
+        kwh_injetado: Math.round(kwh_injetado),
+        kwh_faturado: Math.round(kwh_faturado),
+        perda_kwh: Math.round(perda_kwh),
+        perda_pct: parseFloat(perda_pct.toFixed(2)),
+        zona_vermelha: perda_pct > limiarPerda,
+        cve_perdido_estimado,
+        num_clientes,
+      });
+    }
 
-    return new Response(
-      JSON.stringify({
-        mes_ano: mesAno,
-        filtros: { zona: zona ?? null, tipo_tarifa: tipoTarifa ?? null, n_meses: nMeses },
-        kpis: {
-          total_injetado_kwh: totalInjetado,
-          total_faturado_kwh: totalFaturado,
-          perda_kwh: perdaKwh,
-          perda_pct: Math.round(perdaPct * 10) / 10,
-          perda_tecnica_kwh: perdaTecnicaKwh,
-          perda_comercial_kwh: perdaComercialKwh,
-          cve_estimado: Math.round(perdaKwh * precoCvePorKwh),
-          subestacoes_criticas: porSubestacao.filter((r) => r.classificacao === "critico").length,
-        },
-        yoy: {
-          mes_ano: yoyMes,
-          perda_pct: Math.round(perdaPctYoY * 10) / 10,
-          delta_pp: Math.round((perdaPct - perdaPctYoY) * 10) / 10,
-        },
-        por_subestacao: porSubestacao,
-        evolucao,
-        meta: {
-          tecnico_max_pct: tecnicoMaxPct,
-          preco_cve_por_kwh: precoCvePorKwh,
-          duracao_ms: Date.now() - start,
-        },
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
-  } catch (error) {
-    return new Response(
-      JSON.stringify({
-        error: "Erro ao calcular balanço",
-        detalhe: error instanceof Error ? error.message : String(error),
-      }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    // Totais agregados
+    const totais = {
+      kwh_injetado: resultados.reduce((s, r) => s + r.kwh_injetado, 0),
+      kwh_faturado: resultados.reduce((s, r) => s + r.kwh_faturado, 0),
+      perda_kwh: resultados.reduce((s, r) => s + r.perda_kwh, 0),
+      cve_perdido_estimado: resultados.reduce(
+        (s, r) => s + r.cve_perdido_estimado,
+        0
+      ),
+      zonas_vermelhas: resultados.filter((r) => r.zona_vermelha).length,
+      total_subestacoes: resultados.length,
+    };
+
+    totais.perda_pct =
+      totais.kwh_injetado > 0
+        ? parseFloat(
+            ((totais.perda_kwh / totais.kwh_injetado) * 100).toFixed(2)
+          )
+        : 0;
+
+    return jsonResponse({ mes_ano, totais, subestacoes: resultados }, 200);
+  } catch (err) {
+    console.error("[balanco-energetico]", err);
+    return jsonResponse(
+      {
+        error: "Erro interno",
+        detail: err instanceof Error ? err.message : String(err),
+      },
+      500
     );
   }
 });

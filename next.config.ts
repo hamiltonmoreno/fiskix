@@ -1,9 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    // turbopack is now stable via --turbopack flag in dev
-  },
   images: {
     remotePatterns: [
       {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AreaChart,
   Area,
@@ -57,76 +58,76 @@ export function TabExecutivo({ filtros, active, onExportReady }: Props) {
     <div className="space-y-6">
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Total Alertas</span>
+            <span className="text-sm font-medium text-muted-foreground">Total Alertas</span>
             <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
           {loading ? (
-            <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" />
+            <Skeleton className="h-8 w-3/4" />
           ) : (
-            <div className="text-2xl font-bold text-slate-900">{data?.kpis.totalAlertas ?? "—"}</div>
+            <div className="text-2xl font-bold text-foreground">{data?.kpis.totalAlertas ?? "—"}</div>
           )}
-          <p className="text-xs text-slate-400 mt-1">no período selecionado</p>
+          <p className="text-xs text-muted-foreground mt-1">no período selecionado</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Fraudes Confirmadas</span>
+            <span className="text-sm font-medium text-muted-foreground">Fraudes Confirmadas</span>
             <div className="p-2 rounded-lg bg-red-100 text-red-600">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
           {loading ? (
-            <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" />
+            <Skeleton className="h-8 w-3/4" />
           ) : (
-            <div className="text-2xl font-bold text-slate-900">{data?.kpis.fraudesConfirmadas ?? "—"}</div>
+            <div className="text-2xl font-bold text-foreground">{data?.kpis.fraudesConfirmadas ?? "—"}</div>
           )}
-          <p className="text-xs text-slate-400 mt-1">em campo confirmadas</p>
+          <p className="text-xs text-muted-foreground mt-1">em campo confirmadas</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Receita Recuperada</span>
+            <span className="text-sm font-medium text-muted-foreground">Receita Recuperada</span>
             <div className="p-2 rounded-lg bg-green-100 text-green-600">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           {loading ? (
-            <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" />
+            <Skeleton className="h-8 w-3/4" />
           ) : (
-            <div className="text-2xl font-bold text-slate-900">{data ? formatCVE(data.kpis.receitaRecuperada) : "—"}</div>
+            <div className="text-2xl font-bold text-foreground">{data ? formatCVE(data.kpis.receitaRecuperada) : "—"}</div>
           )}
-          <p className="text-xs text-slate-400 mt-1">fraudes confirmadas YTD</p>
+          <p className="text-xs text-muted-foreground mt-1">fraudes confirmadas YTD</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-slate-500">Taxa de Deteção</span>
+            <span className="text-sm font-medium text-muted-foreground">Taxa de Deteção</span>
             <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
               <Target className="w-4 h-4" />
             </div>
           </div>
           {loading ? (
-            <div className="h-8 bg-slate-100 animate-pulse rounded w-3/4" />
+            <Skeleton className="h-8 w-3/4" />
           ) : (
-            <div className="text-2xl font-bold text-slate-900">
+            <div className="text-2xl font-bold text-foreground">
               {data ? `${data.kpis.taxaDetecao.toFixed(1)}%` : "—"}
             </div>
           )}
-          <p className="text-xs text-slate-400 mt-1">alertas confirmados / total</p>
+          <p className="text-xs text-muted-foreground mt-1">alertas confirmados / total</p>
         </div>
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Perdas vs Recuperado */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-700 mb-4">Perdas vs Receita Recuperada</h3>
+        <div className="bg-card rounded-xl border border-border p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Perdas vs Receita Recuperada</h3>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={data?.serie} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
@@ -140,9 +141,9 @@ export function TabExecutivo({ filtros, active, onExportReady }: Props) {
                     <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(v: number) => formatCVE(v)} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Area type="monotone" dataKey="perda" name="Perda (CVE)" stroke="#EF4444" fill="url(#gradPerdaExec)" strokeWidth={2} dot={false} />
@@ -153,11 +154,11 @@ export function TabExecutivo({ filtros, active, onExportReady }: Props) {
         </div>
 
         {/* ROI Acumulado */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-semibold text-slate-700 mb-4">ROI Acumulado do Sistema</h3>
-          <p className="text-xs text-slate-400 mb-3">Custo plataforma: 500 000 CVE/mês. Break-even = linha vermelha.</p>
+        <div className="bg-card rounded-xl border border-border p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4">ROI Acumulado do Sistema</h3>
+          <p className="text-xs text-muted-foreground mb-3">Custo plataforma: 500 000 CVE/mês. Break-even = linha vermelha.</p>
           {loading ? (
-            <div className="h-64 bg-slate-100 animate-pulse rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={data?.serie} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
@@ -167,9 +168,9 @@ export function TabExecutivo({ filtros, active, onExportReady }: Props) {
                     <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(v: number) => formatCVE(v)} />
                 <ReferenceLine y={0} stroke="#EF4444" strokeDasharray="4 4" label={{ value: "Break-even", position: "insideTopRight", fontSize: 11, fill: "#EF4444" }} />
                 <Area type="monotone" dataKey="roiAcumulado" name="ROI Acumulado (CVE)" stroke="#3B82F6" fill="url(#gradROIExec)" strokeWidth={2} dot={false} />
@@ -180,14 +181,14 @@ export function TabExecutivo({ filtros, active, onExportReady }: Props) {
       </div>
 
       {/* Histórico de relatórios */}
-      <div className="bg-white rounded-xl border border-slate-200">
-        <div className="px-5 py-4 border-b border-slate-100">
-          <h3 className="text-sm font-semibold text-slate-700">Histórico de Relatórios Gerados</h3>
+      <div className="bg-card rounded-xl border border-border">
+        <div className="px-5 py-4 border-b border-border">
+          <h3 className="text-sm font-semibold text-foreground">Histórico de Relatórios Gerados</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100 text-xs text-slate-500 uppercase tracking-wide">
+              <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
                 <th className="px-5 py-3 text-left font-medium">ID</th>
                 <th className="px-5 py-3 text-left font-medium">Tipo</th>
                 <th className="px-5 py-3 text-left font-medium">Período</th>
@@ -198,18 +199,18 @@ export function TabExecutivo({ filtros, active, onExportReady }: Props) {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {HISTORICO_MOCK.map((r) => (
-                <tr key={r.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-5 py-3 font-mono text-xs text-slate-600">{r.id}</td>
+                <tr key={r.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="px-5 py-3 font-mono text-xs text-foreground">{r.id}</td>
                   <td className="px-5 py-3">
                     <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
                       {r.tipo}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-slate-700">{r.periodo}</td>
-                  <td className="px-5 py-3 text-slate-500">{r.gerado_em}</td>
-                  <td className="px-5 py-3 text-slate-500">{r.gerado_por}</td>
+                  <td className="px-5 py-3 text-foreground">{r.periodo}</td>
+                  <td className="px-5 py-3 text-muted-foreground">{r.gerado_em}</td>
+                  <td className="px-5 py-3 text-muted-foreground">{r.gerado_por}</td>
                   <td className="px-5 py-3 text-right">
-                    <button className="p-1.5 rounded-lg hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors" title="Descarregar">
+                    <button className="p-1.5 rounded-lg hover:bg-blue-50 text-muted-foreground hover:text-blue-600 transition-colors" title="Descarregar">
                       <Download className="w-3.5 h-3.5" />
                     </button>
                   </td>

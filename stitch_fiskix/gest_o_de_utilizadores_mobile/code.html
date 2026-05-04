@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html lang="pt"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestão de Utilizadores - Fiskix</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#e2e2e7",
+                    "on-surface-variant": "#414755",
+                    "secondary-fixed": "#d8e2ff",
+                    "on-secondary": "#ffffff",
+                    "tertiary": "#9e3d00",
+                    "on-tertiary-container": "#fffbff",
+                    "inverse-surface": "#2e3034",
+                    "on-error": "#ffffff",
+                    "surface": "#f9f9fe",
+                    "on-background": "#1a1c1f",
+                    "tertiary-fixed-dim": "#ffb595",
+                    "on-primary-container": "#fefcff",
+                    "inverse-primary": "#adc6ff",
+                    "secondary": "#405e96",
+                    "surface-container": "#ededf2",
+                    "secondary-container": "#a1befd",
+                    "primary-fixed": "#d8e2ff",
+                    "on-primary": "#ffffff",
+                    "surface-tint": "#005bc1",
+                    "on-secondary-container": "#2d4c83",
+                    "background": "#f9f9fe",
+                    "on-surface": "#1a1c1f",
+                    "inverse-on-surface": "#f0f0f5",
+                    "tertiary-container": "#c64f00",
+                    "primary-container": "#0070eb",
+                    "on-secondary-fixed-variant": "#26467d",
+                    "surface-container-high": "#e8e8ed",
+                    "on-secondary-fixed": "#001a41",
+                    "on-primary-fixed": "#001a41",
+                    "surface-container-low": "#f3f3f8",
+                    "error": "#ba1a1a",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#004493",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#f9f9fe",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "primary": "#0058bc",
+                    "tertiary-fixed": "#ffdbcc",
+                    "surface-dim": "#d9dade",
+                    "outline-variant": "#c1c6d7",
+                    "primary-fixed-dim": "#adc6ff",
+                    "outline": "#717786",
+                    "on-tertiary-fixed": "#351000",
+                    "surface-container-highest": "#e2e2e7",
+                    "on-error-container": "#93000a",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed-variant": "#7c2e00"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .glass-nav {
+            background: rgba(249, 249, 254, 0.8);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 glass-nav shadow-sm">
+<div class="flex items-center justify-between px-6 h-[56px]">
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-on-surface">menu</span>
+</button>
+<h1 class="font-['Inter'] font-semibold text-lg tracking-tight text-on-surface">Gestão de Utilizadores</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary">search</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200/50 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary">person_add</span>
+</button>
+</div>
+</div>
+</header>
+<main class="pt-20 px-6 max-w-2xl mx-auto">
+<!-- Search/Filter Placeholder for Editorial Feel -->
+<div class="mb-8 mt-4">
+<h2 class="text-3xl font-bold tracking-tight text-on-background mb-2">Membros da Equipa</h2>
+<p class="text-on-surface-variant body-md">Administre as permissões e acessos dos utilizadores do sistema Fiskix em Cabo Verde.</p>
+</div>
+<!-- User Cards List -->
+<div class="space-y-4">
+<!-- User 1: Admin -->
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full overflow-hidden bg-primary-fixed flex items-center justify-center">
+<img alt="Ricardo Gomes" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional African man in a light blue shirt smiling confidently against a soft office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDw4JVAU-nwrylPte8xW1t_ZtD2POvFbx9uMg07VFMIgYli8kZwV4AVlAcwRksuEfN1EInUE0uNv3t8q2zh0pFRruvfa0DTmt39c1O3QCvfWLGWtZmMcyt7qjmNy_FmlIHIH0JDMykfs298Nd69NAi72InIF2DF2YyixxCYOtJfj3IvbllrdfneZWU-P-_G3wPKWSHtuVaSn2BQonqt1cd6Un_crACtfvnM4g6M1gDz7-3IlfL0DTb8_AJE9CC8-CIUtzZ_my-zBILq"/>
+</div>
+<div>
+<h3 class="font-semibold text-on-surface text-lg">Ricardo Gomes</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary">Admin</span>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="text-xs text-on-surface-variant">Ativo</span>
+</div>
+</div>
+</div>
+</div>
+<button class="h-12 px-6 rounded-lg bg-surface-container-high text-primary font-medium hover:bg-surface-container transition-colors active:scale-95 text-sm">
+                    Gerir
+                </button>
+</div>
+<!-- User 2: Supervisor -->
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full overflow-hidden bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-xl">
+                        ML
+                    </div>
+<div>
+<h3 class="font-semibold text-on-surface text-lg">Maria Lima</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700">Supervisor</span>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="text-xs text-on-surface-variant">Ativo</span>
+</div>
+</div>
+</div>
+</div>
+<button class="h-12 px-6 rounded-lg bg-surface-container-high text-primary font-medium hover:bg-surface-container transition-colors active:scale-95 text-sm">
+                    Gerir
+                </button>
+</div>
+<!-- User 3: Técnico -->
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
+<img alt="João Varela" class="w-full h-full object-cover" data-alt="Profile of a young African technician wearing a clean grey polo shirt, outdoor setting with warm morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfJ2YUHlfFa9apbEq7k48OX4b_dPCwqMX7GkGoBhftxjHUnv8LVuuFEj8jb__X6R6zBclqt8tvN4SoJqlMVrDOQgpYiwY9YrfVpWoiYLNjWTLtlFqrtBBSuHP8DG9w-uq7w3uabrs7T4KkXg-n_qefiQnkJdhaRB5rOUE0p35q7r1Eylralk0lGuvdiZSmf3OEFoLo4Tj5Y3oziz6u8J8HHcIpa99d-5DV5nap2-d1el3V3rPzoe4d-eBgzjUAn8-2L6UZdlaPh_KT"/>
+</div>
+<div>
+<h3 class="font-semibold text-on-surface text-lg">João Varela</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-700">Técnico</span>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-slate-300"></span>
+<span class="text-xs text-on-surface-variant">Inativo</span>
+</div>
+</div>
+</div>
+</div>
+<button class="h-12 px-6 rounded-lg bg-surface-container-high text-primary font-medium hover:bg-surface-container transition-colors active:scale-95 text-sm">
+                    Gerir
+                </button>
+</div>
+<!-- User 4: Técnico -->
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xl">
+                        ES
+                    </div>
+<div>
+<h3 class="font-semibold text-on-surface text-lg">Edna Silva</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-700">Técnico</span>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="text-xs text-on-surface-variant">Ativo</span>
+</div>
+</div>
+</div>
+</div>
+<button class="h-12 px-6 rounded-lg bg-surface-container-high text-primary font-medium hover:bg-surface-container transition-colors active:scale-95 text-sm">
+                    Gerir
+                </button>
+</div>
+<!-- User 5: Supervisor -->
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
+<img alt="Arlindo Semedo" class="w-full h-full object-cover" data-alt="Friendly middle-aged man with short hair wearing a white shirt, professional lighting, clean white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALjRM_6JPE2FQ2ur_gpI6gAUGZlo6OVIrDcxKvncA0dpa8kRVjq0iy2MolshQc_HP35UjhwV_hOj8ljCv_q7g_ttzKpBRnanhGcLlT2BpD0b8Fz1kCDzS0ISuZcaT4TmZNAfiHBLVQLu3dQFE-G4yE4SFtG_lBxxmYhitfYxT0AKI_pEQ3sYWQnMm4BdPWR0OXRt0F4t4MoEZlD4eUfStIwdjindYKnKkhQftc-g7CX1pbSLcUbKRw6Aqyey3pHxJ8XvmRdyPeadQH"/>
+</div>
+<div>
+<h3 class="font-semibold text-on-surface text-lg">Arlindo Semedo</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700">Supervisor</span>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="text-xs text-on-surface-variant">Ativo</span>
+</div>
+</div>
+</div>
+</div>
+<button class="h-12 px-6 rounded-lg bg-surface-container-high text-primary font-medium hover:bg-surface-container transition-colors active:scale-95 text-sm">
+                    Gerir
+                </button>
+</div>
+</div>
+</main>
+<!-- FAB / Primary Action -->
+<button class="fixed bottom-28 right-6 w-16 h-16 bg-gradient-to-br from-primary to-primary-container text-white rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-all duration-300 z-50">
+<span class="material-symbols-outlined text-3xl">person_add</span>
+</button>
+<!-- Bottom Action Bar (Contextual Primary) -->
+<div class="fixed bottom-10 left-1/2 -translate-x-1/2 w-[90%] z-50">
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary py-4 rounded-xl font-bold text-lg shadow-xl active:scale-[0.98] transition-transform">
+            Adicionar Utilizador
+        </button>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full glass-nav px-4 h-[72px] flex justify-around items-center z-40 border-t border-outline-variant/10">
+<div class="flex flex-col items-center justify-center text-slate-400 w-14 h-14 hover:text-blue-500 transition-all active:scale-90 duration-300">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-semibold uppercase tracking-wider mt-1">Dashboard</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 w-14 h-14 hover:text-blue-500 transition-all active:scale-90 duration-300">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-[10px] font-semibold uppercase tracking-wider mt-1">Recovery</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-primary text-white rounded-full w-14 h-14 shadow-lg active:scale-90 duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="text-[10px] font-semibold uppercase tracking-wider mt-1">Users</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 w-14 h-14 hover:text-blue-500 transition-all active:scale-90 duration-300">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-semibold uppercase tracking-wider mt-1">Settings</span>
+</div>
+</nav>
+</body></html>

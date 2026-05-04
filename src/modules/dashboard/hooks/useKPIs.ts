@@ -12,9 +12,9 @@ export function useKPIs(mesAno: string, zona?: string) {
   useEffect(() => {
     async function load() {
       setLoading(true);
-
+      try {
       // Query de alertas do mês atual
-      let query = supabase
+      let alertasQuery = supabase
         .from("alertas_fraude")
         .select(
           `score_risco, status, resultado,
@@ -24,40 +24,66 @@ export function useKPIs(mesAno: string, zona?: string) {
         )
         .eq("mes_ano", mesAno);
 
-      const { data: alertas } = await query;
+      if (zona) {
+        alertasQuery = (alertasQuery as typeof alertasQuery).eq(
+          "clientes.subestacoes.zona_bairro",
+          zona
+        );
+      }
 
-      const alertasArr = (alertas ?? []) as Array<{
+      const { data: alertas } = await alertasQuery;
+
+      const filtrados = (alertas ?? []) as Array<{
         score_risco: number;
         status: string;
         resultado: string | null;
         clientes: { subestacoes: { zona_bairro: string } };
       }>;
 
-      const filtrados = zona
-        ? alertasArr.filter(
-            (a) => a.clientes?.subestacoes?.zona_bairro === zona
-          )
-        : alertasArr;
-
       const criticos = filtrados.filter((a) => a.score_risco >= 75).length;
       const pendentes = filtrados.filter(
         (a) => a.status === "Pendente_Inspecao"
       ).length;
+
+      // Query alertas críticos (top 5, score >= 75)
+      let criticosQuery = supabase
+        .from("alertas_fraude")
+        .select(`id, score_risco, status,
+          clientes!inner(nome_titular, numero_contador,
+            subestacoes!inner(zona_bairro))`)
+        .eq("mes_ano", mesAno)
+        .gte("score_risco", 75)
+        .order("score_risco", { ascending: false })
+        .limit(5);
+
+      if (zona) {
+        criticosQuery = (criticosQuery as typeof criticosQuery).eq("clientes.subestacoes.zona_bairro", zona);
+      }
+
+      const { data: criticosData } = await criticosQuery;
+
+      const alertas_criticos = (criticosData ?? []).map((r) => {
+        const c = r.clientes as { nome_titular: string; numero_contador: string; subestacoes: { zona_bairro: string } };
+        return {
+          id: r.id,
+          score_risco: r.score_risco,
+          status: r.status,
+          cliente: { nome_titular: c.nome_titular, numero_contador: c.numero_contador },
+          subestacao: { zona_bairro: c.subestacoes.zona_bairro },
+        };
+      });
 
       // Receita recuperada YTD (fraudes confirmadas no ano corrente)
       const ano = mesAno.split("-")[0];
       let recQuery = supabase
         .from("relatorios_inspecao")
         .select(
-          zona
-            ? `alertas_fraude!inner(mes_ano, id_cliente,
-                clientes!inner(id_subestacao, faturacao_clientes(valor_cve, mes_ano),
-                  subestacoes!inner(zona_bairro)
-                )
-              )`
-            : `alertas_fraude!inner(mes_ano, id_cliente,
-                clientes!inner(faturacao_clientes(valor_cve, mes_ano))
-              )`
+          `alertas_fraude!inner(mes_ano, id_cliente,
+            clientes!inner(
+              faturacao_clientes(valor_cve, mes_ano),
+              subestacoes!inner(zona_bairro)
+            )
+          )`
         )
         .eq("resultado", "Fraude_Confirmada");
       if (zona) {
@@ -77,14 +103,19 @@ export function useKPIs(mesAno: string, zona?: string) {
         clientes: { faturacao_clientes: FatRow[] } | { faturacao_clientes: FatRow[] }[];
       };
       const receitaYTD = (recuperada ?? []).reduce((sum: number, r: unknown) => {
-        const item = r as { alertas_fraude: AlertaJoined | AlertaJoined[] };
-        const alerta = Array.isArray(item.alertas_fraude)
-          ? item.alertas_fraude[0]
-          : item.alertas_fraude;
-        const mesAlerta = alerta?.mes_ano;
+        const item = r as {
+          alertas_fraude: {
+            mes_ano: string;
+            clientes: {
+              faturacao_clientes: Array<{ valor_cve: number; mes_ano: string }>;
+              subestacoes: { zona_bairro: string };
+            };
+          };
+        };
+        const mesAlerta = item.alertas_fraude?.mes_ano;
         if (!mesAlerta?.startsWith(ano)) return sum;
-        const cliente = Array.isArray(alerta.clientes) ? alerta.clientes[0] : alerta.clientes;
-        const faturacao = cliente?.faturacao_clientes ?? [];
+        if (zona && item.alertas_fraude?.clientes?.subestacoes?.zona_bairro !== zona) return sum;
+        const faturacao = item.alertas_fraude?.clientes?.faturacao_clientes ?? [];
         const fatMes = faturacao.find((f) => f.mes_ano === mesAlerta);
         return sum + (fatMes?.valor_cve ?? 0);
       }, 0);
@@ -111,7 +142,7 @@ export function useKPIs(mesAno: string, zona?: string) {
         .eq("mes_ano", mesAno);
       let fatAntQuery = supabase
         .from("faturacao_clientes")
-        .select(zona ? "kwh_faturado, clientes!inner(subestacoes!inner(zona_bairro))" : "kwh_faturado")
+        .select(zona ? "kwh_faturado, valor_cve, clientes!inner(subestacoes!inner(zona_bairro))" : "kwh_faturado, valor_cve")
         .eq("mes_ano", mesAnterior);
 
       if (zona) {
@@ -141,9 +172,11 @@ export function useKPIs(mesAno: string, zona?: string) {
 
       // Variação vs mês anterior
       const totalInjetadoAnt = ((injecoesAnt ?? []) as unknown as Array<{ total_kwh_injetado: number }>).reduce((s, i) => s + i.total_kwh_injetado, 0);
-      const totalFaturadoAnt = ((faturacaoAnt ?? []) as unknown as Array<{ kwh_faturado: number }>).reduce((s, f) => s + f.kwh_faturado, 0);
+      const totalFaturadoAnt = ((faturacaoAnt ?? []) as unknown as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.kwh_faturado, 0);
+      const totalCVEFaturadoAnt = ((faturacaoAnt ?? []) as unknown as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.valor_cve, 0);
+      const tarifaMediaAnt = totalFaturadoAnt > 0 ? totalCVEFaturadoAnt / totalFaturadoAnt : tarifaMedia;
       const perdaKwhAnt = totalInjetadoAnt - totalFaturadoAnt;
-      const perdaCVEAnt = tarifaMedia > 0 ? perdaKwhAnt * tarifaMedia : 0;
+      const perdaCVEAnt = perdaKwhAnt * tarifaMediaAnt;
       const variacaoPerda =
         perdaCVEAnt > 0 ? ((perdaCVE - perdaCVEAnt) / perdaCVEAnt) * 100 : 0;
 
@@ -153,13 +186,15 @@ export function useKPIs(mesAno: string, zona?: string) {
         ordens_pendentes: pendentes,
         receita_recuperada_ytd: receitaYTD,
         variacao_perda_pct: Math.round(variacaoPerda * 10) / 10,
+        alertas_criticos,
       });
-
-      setLoading(false);
+      } finally {
+        setLoading(false);
+      }
     }
 
     load();
-  }, [mesAno, zona]);
+  }, [mesAno, zona, supabase]);
 
   return { data, loading };
 }

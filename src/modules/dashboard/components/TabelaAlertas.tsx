@@ -2,29 +2,34 @@
 
 import { useState } from "react";
 import { useAlertas } from "../hooks/useAlertas";
-import { getScoreColor, getScoreLabel, formatMesAno } from "@/lib/utils";
+import { formatMesAno } from "@/lib/utils";
 import { exportToExcel } from "@/lib/export";
-import { MessageSquare, ClipboardList, ChevronLeft, ChevronRight, RefreshCw, Eye, FileDown } from "lucide-react";
-import { AlertaDetalheModal } from "./AlertaDetalheModal";
-import type { AlertaTabela } from "../types";
+import { MessageSquare, ClipboardList, ChevronLeft, ChevronRight, RefreshCw, FileDown } from "lucide-react";
+import { AlertaSheet, type AlertaSheetData } from "@/modules/alertas/components/AlertaSheet";
+import { ScoreBadge } from "@/components/ui/score-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 interface TabelaAlertasProps {
   mesAno: string;
   zona?: string;
 }
 
-const STATUS_LABELS: Record<string, { label: string; class: string }> = {
-  Pendente: { label: "Pendente", class: "bg-slate-100 text-slate-700" },
-  Notificado_SMS: { label: "SMS Enviado", class: "bg-blue-100 text-blue-700" },
-  Pendente_Inspecao: { label: "Em Inspeção", class: "bg-amber-100 text-amber-700" },
-  Inspecionado: { label: "Inspecionado", class: "bg-green-100 text-green-700" },
-};
-
 export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [page, setPage] = useState(0);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [alertaDetalhe, setAlertaDetalhe] = useState<AlertaTabela | null>(null);
+  const [alertaDetalhe, setAlertaDetalhe] = useState<AlertaSheetData | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const pageSize = 10;
 
   const { data, total, loading, reload, enviarSMS, gerarOrdem } = useAlertas({
@@ -51,62 +56,73 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
     exportToExcel(`alertas_${mesAno}`, headers, rows);
   }
 
-  async function handleEnviarSMS(alertaId: string, score: number) {
+  async function handleEnviarSMS(alertaId: string) {
+    const alerta = data.find((a) => a.id === alertaId);
+    if (!alerta) return;
     setActionLoading(alertaId);
-    const tipo = score >= 75 ? "vermelho" : "amarelo";
-    const res = await enviarSMS(alertaId, tipo);
-    if (res.mensagem_enviada) {
+    const tipo = alerta.score_risco >= 75 ? "vermelho" : "amarelo";
+    try {
+      await enviarSMS(alertaId, tipo);
       await reload();
-    } else {
-      alert(`Erro ao enviar SMS: ${res.erro ?? "Desconhecido"}`);
+    } finally {
+      setActionLoading(null);
     }
-    setActionLoading(null);
   }
 
   async function handleGerarOrdem(alertaId: string) {
     setActionLoading(alertaId);
-    await gerarOrdem(alertaId);
-    setActionLoading(null);
+    try {
+      await gerarOrdem(alertaId);
+      await reload();
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   const totalPages = Math.ceil(total / pageSize);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200">
+    <div className="bg-surface-container-lowest rounded-[1.5rem] shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+      <div className="px-8 py-6 flex items-center justify-between border-b border-surface-container-low">
         <div>
-          <h3 className="font-semibold text-slate-700">Alertas de Risco</h3>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <h3 className="font-bold text-lg text-on-surface">Alertas de Risco</h3>
+          <p className="text-xs text-on-surface-variant mt-0.5">
             {total} alertas · {formatMesAno(mesAno)}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <select
+          <Select
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(0);
-            }}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onValueChange={(v) => { setStatusFilter(v); setPage(0); }}
           >
-            <option value="todos">Todos os estados</option>
-            <option value="Pendente">Pendente</option>
-            <option value="Notificado_SMS">SMS Enviado</option>
-            <option value="Pendente_Inspecao">Em Inspeção</option>
-            <option value="Inspecionado">Inspecionado</option>
-          </select>
+            <SelectTrigger className="flex items-center gap-2 px-4 py-2 bg-surface-container-low text-on-surface-variant rounded-full text-xs font-bold h-auto border-none ring-0 focus:ring-0 hover:bg-surface-container transition-colors [&>svg]:hidden">
+              <SelectValue placeholder="Todos os estados" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os estados</SelectItem>
+              <SelectItem value="Pendente">Pendente</SelectItem>
+              <SelectItem value="Notificado_SMS">SMS Enviado</SelectItem>
+              <SelectItem value="Pendente_Inspecao">Em Inspeção</SelectItem>
+              <SelectItem value="Inspecionado">Inspecionado</SelectItem>
+              <SelectItem value="Fraude_Confirmada">Fraude Confirmada</SelectItem>
+              <SelectItem value="Anomalia_Tecnica">Anomalia Técnica</SelectItem>
+              <SelectItem value="Falso_Positivo">Falso Positivo</SelectItem>
+            </SelectContent>
+          </Select>
           <button
             onClick={handleExportExcel}
             disabled={data.length === 0}
-            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 disabled:opacity-40"
+            aria-label="Exportar alertas para Excel"
+            className="p-2 text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-container-low disabled:opacity-40 cursor-pointer touch-manipulation transition-colors"
             title="Exportar Excel"
           >
             <FileDown className="w-4 h-4" />
           </button>
           <button
             onClick={reload}
-            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+            aria-label="Atualizar alertas"
+            className="p-2 text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-container-low cursor-pointer touch-manipulation transition-colors"
             title="Atualizar"
           >
             <RefreshCw className="w-4 h-4" />
@@ -116,41 +132,42 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
 
       {/* Tabela */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full border-collapse">
           <thead>
-            <tr className="border-b border-slate-100">
-              <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Score</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Contador</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Titular</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Zona</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Tarifa</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Regras</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Estado</th>
-              <th className="text-right px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Ações</th>
+            <tr className="bg-surface-container-low/50 text-left border-b border-surface-container-low">
+              <th className="px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Score</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Contador</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Titular</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Zona</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tarifa</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Regras</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Estado</th>
+              <th className="px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-surface-container-low">
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="border-b border-slate-50">
+                <tr key={i}>
                   {Array.from({ length: 8 }).map((_, j) => (
-                    <td key={j} className="px-4 py-3">
-                      <div className="h-4 bg-slate-100 animate-pulse rounded" />
+                    <td key={j} className="px-6 py-5">
+                      <Skeleton className="h-4 w-full rounded" />
                     </td>
                   ))}
                 </tr>
               ))
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
-                  Nenhum alerta encontrado para os filtros selecionados
+                <td colSpan={8}>
+                  <EmptyState
+                    icon={ClipboardList}
+                    title="Nenhum alerta encontrado"
+                    description="Tente ajustar os filtros selecionados"
+                  />
                 </td>
               </tr>
             ) : (
               data.map((alerta) => {
-                const scoreClass = getScoreColor(alerta.score_risco);
-                const scoreLabel = getScoreLabel(alerta.score_risco);
-                const statusInfo = STATUS_LABELS[alerta.status] ?? STATUS_LABELS.Pendente;
                 const regrasPontuadas = alerta.motivo.filter((r) => r.pontos > 0);
                 const isLoading = actionLoading === alerta.id;
                 const podeEnviarSMS = alerta.status === "Pendente";
@@ -161,74 +178,65 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
                 return (
                   <tr
                     key={alerta.id}
-                    className="border-b border-slate-50 hover:bg-blue-50/40 transition-colors cursor-pointer"
-                    onClick={() => setAlertaDetalhe(alerta)}
+                    className="hover:bg-surface-container-low/30 transition-colors cursor-pointer"
+                    onClick={() => { setAlertaDetalhe(alerta); setSheetOpen(true); }}
                   >
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${scoreClass}`}
-                      >
-                        {alerta.score_risco} · {scoreLabel}
-                      </span>
+                    <td className="px-8 py-5">
+                      <ScoreBadge score={alerta.score_risco} showScore />
                     </td>
-                    <td className="px-4 py-3 font-mono text-slate-700 text-xs">
+                    <td className="px-6 py-5 font-mono text-xs font-bold text-primary">
                       {alerta.cliente.numero_contador}
                     </td>
-                    <td className="px-4 py-3 text-slate-700">
-                      {alerta.cliente.nome_titular}
+                    <td className="px-6 py-5">
+                      <p className="text-xs font-bold text-on-surface">{alerta.cliente.nome_titular}</p>
                     </td>
-                    <td className="px-4 py-3 text-slate-500 text-xs">
-                      {alerta.subestacao.zona_bairro}
+                    <td className="px-6 py-5">
+                      <p className="text-xs text-on-surface-variant">{alerta.subestacao.zona_bairro.replace(/_/g, " ")}</p>
                     </td>
-                    <td className="px-4 py-3 text-slate-500 text-xs">
-                      {alerta.cliente.tipo_tarifa}
+                    <td className="px-6 py-5">
+                      <p className="text-xs text-on-surface-variant">{alerta.cliente.tipo_tarifa}</p>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-5">
                       <div className="flex flex-wrap gap-1">
                         {regrasPontuadas.slice(0, 3).map((r) => (
                           <span
                             key={r.regra}
-                            className="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-mono"
+                            className="px-2 py-0.5 bg-surface-container-high text-on-surface-variant rounded text-[10px] font-mono font-bold"
                             title={r.descricao}
                           >
                             {r.regra}
                           </span>
                         ))}
                         {regrasPontuadas.length > 3 && (
-                          <span className="px-1.5 py-0.5 bg-slate-100 text-slate-400 rounded text-xs">
+                          <span className="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px]">
                             +{regrasPontuadas.length - 3}
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.class}`}
-                      >
-                        {statusInfo.label}
-                      </span>
+                    <td className="px-6 py-5">
+                      <StatusBadge status={(alerta.status === "Inspecionado" && alerta.resultado) ? alerta.resultado : alerta.status} />
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-8 py-5">
                       <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={() => setAlertaDetalhe(alerta)}
-                          className="p-1.5 rounded-lg hover:bg-blue-100 text-slate-400 hover:text-blue-600 transition-colors"
+                          onClick={() => { setAlertaDetalhe(alerta); setSheetOpen(true); }}
+                          aria-label="Ver detalhes do alerta"
+                          className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
                           title="Ver detalhes"
                         >
-                          <Eye className="w-3.5 h-3.5" />
+                          Ver
                         </button>
                         {podeEnviarSMS && (
                           <button
-                            onClick={() =>
-                              handleEnviarSMS(alerta.id, alerta.score_risco)
-                            }
+                            onClick={() => handleEnviarSMS(alerta.id)}
                             disabled={isLoading || !alerta.cliente.telemovel}
                             title={
                               alerta.cliente.telemovel
                                 ? "Enviar SMS"
                                 : "Sem telemóvel registado"
                             }
-                            className="flex items-center gap-1 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-lg text-xs transition-colors"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-primary-container text-white rounded-full text-[10px] font-bold hover:opacity-90 disabled:opacity-40 transition-opacity"
                           >
                             <MessageSquare className="w-3 h-3" />
                             SMS
@@ -238,7 +246,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
                           <button
                             onClick={() => handleGerarOrdem(alerta.id)}
                             disabled={isLoading}
-                            className="flex items-center gap-1 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-300 text-white rounded-lg text-xs transition-colors"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-surface-container-high text-on-surface-variant rounded-full text-[10px] font-bold hover:bg-surface-container-highest disabled:opacity-40 transition-colors"
                           >
                             <ClipboardList className="w-3 h-3" />
                             Ordem
@@ -264,14 +272,16 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50"
+              aria-label="Página anterior"
+              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50 cursor-pointer touch-manipulation"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50"
+              aria-label="Página seguinte"
+              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-50 cursor-pointer touch-manipulation"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -279,12 +289,13 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
         </div>
       )}
 
-      {/* Modal de detalhe */}
-      <AlertaDetalheModal
+      <AlertaSheet
         alerta={alertaDetalhe}
-        open={alertaDetalhe !== null}
-        onClose={() => setAlertaDetalhe(null)}
-        onAction={() => { reload(); }}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onEnviarSMS={handleEnviarSMS}
+        onGerarOrdem={handleGerarOrdem}
+        actionLoading={actionLoading}
       />
     </div>
   );

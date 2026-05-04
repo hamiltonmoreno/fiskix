@@ -12,6 +12,7 @@ const mockKPIData: KPIData = {
   ordens_pendentes: 7,
   receita_recuperada_ytd: 320_000,
   variacao_perda_pct: -5.2,
+  alertas_criticos: [],
 };
 
 describe("KPICards", () => {
@@ -38,12 +39,14 @@ describe("KPICards", () => {
 
   it("exibe o número de clientes em risco crítico", () => {
     render(<KPICards data={mockKPIData} loading={false} />);
-    expect(screen.getByText("42 clientes")).toBeInTheDocument();
+    expect(screen.getByText("42")).toBeInTheDocument();
+    expect(screen.getByText(/score ≥ 75/)).toBeInTheDocument();
   });
 
   it("exibe as ordens pendentes", () => {
     render(<KPICards data={mockKPIData} loading={false} />);
     expect(screen.getByText("7")).toBeInTheDocument();
+    expect(screen.getByText(/aguardam inspeção/)).toBeInTheDocument();
   });
 
   it("exibe os subtítulos descritivos", () => {

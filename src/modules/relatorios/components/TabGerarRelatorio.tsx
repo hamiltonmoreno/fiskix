@@ -37,7 +37,7 @@ const TIPOS: { value: TipoRelatorio; label: string; desc: string; icon: React.El
   { value: "personalizado", label: "Relatório Personalizado", desc: "Escolher secções à medida", icon: Settings2 },
 ];
 
-export function TabGerarRelatorio({ filtros, active: _active, onExportReady: _onExportReady }: Props) {
+export function TabGerarRelatorio({ filtros }: Props) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [tipo, setTipo] = useState<TipoRelatorio | "">("");
   const [periodoInicio, setPeriodoInicio] = useState(filtros.mesAno);
@@ -72,12 +72,12 @@ export function TabGerarRelatorio({ filtros, active: _active, onExportReady: _on
                   ? "bg-blue-600 text-white"
                   : step === s
                   ? "bg-blue-600 text-white"
-                  : "bg-slate-100 text-slate-400"
+                  : "bg-slate-100 text-muted-foreground"
               }`}
             >
               {step > s ? <Check className="w-4 h-4" /> : s}
             </div>
-            <span className={`text-sm hidden sm:inline ${step === s ? "font-medium text-slate-900" : "text-slate-400"}`}>
+            <span className={`text-sm hidden sm:inline ${step === s ? "font-medium text-foreground" : "text-muted-foreground"}`}>
               {s === 1 ? "Tipo" : s === 2 ? "Parâmetros" : "Confirmação"}
             </span>
             {s < 3 && <ChevronRight className="w-4 h-4 text-slate-300" />}
@@ -87,9 +87,9 @@ export function TabGerarRelatorio({ filtros, active: _active, onExportReady: _on
 
       {/* Step 1 — Tipo */}
       {step === 1 && (
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
-          <h2 className="text-base font-semibold text-slate-900 mb-1">Tipo de Relatório</h2>
-          <p className="text-sm text-slate-500 mb-5">Selecione o tipo de análise que pretende gerar.</p>
+        <div className="bg-card rounded-xl border border-border p-6">
+          <h2 className="text-base font-semibold text-foreground mb-1">Tipo de Relatório</h2>
+          <p className="text-sm text-muted-foreground mb-5">Selecione o tipo de análise que pretende gerar.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {TIPOS.map((t) => {
               const Icon = t.icon;
@@ -97,18 +97,18 @@ export function TabGerarRelatorio({ filtros, active: _active, onExportReady: _on
                 <button
                   key={t.value}
                   onClick={() => setTipo(t.value)}
-                  className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${
+                  className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-[border-color,background-color] touch-manipulation ${
                     tipo === t.value
                       ? "border-blue-600 bg-blue-50"
-                      : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                      : "border-border hover:border-slate-300 hover:bg-muted/30"
                   }`}
                 >
-                  <div className={`p-2 rounded-lg flex-shrink-0 ${tipo === t.value ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"}`}>
+                  <div className={`p-2 rounded-lg flex-shrink-0 ${tipo === t.value ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-muted-foreground"}`}>
                     <Icon className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">{t.label}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{t.desc}</p>
+                    <p className="text-sm font-medium text-foreground">{t.label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t.desc}</p>
                   </div>
                 </button>
               );
@@ -128,35 +128,35 @@ export function TabGerarRelatorio({ filtros, active: _active, onExportReady: _on
 
       {/* Step 2 — Parâmetros */}
       {step === 2 && (
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
-          <h2 className="text-base font-semibold text-slate-900 mb-1">Parâmetros</h2>
-          <p className="text-sm text-slate-500 mb-5">Configure o período e conteúdo do relatório.</p>
+        <div className="bg-card rounded-xl border border-border p-6">
+          <h2 className="text-base font-semibold text-foreground mb-1">Parâmetros</h2>
+          <p className="text-sm text-muted-foreground mb-5">Configure o período e conteúdo do relatório.</p>
 
           <div className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Período — Início</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Período — Início</label>
                 <input
                   type="month"
                   value={periodoInicio}
                   onChange={(e) => setPeriodoInicio(e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Período — Fim</label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Período — Fim</label>
                 <input
                   type="month"
                   value={periodoFim}
                   min={periodoInicio}
                   onChange={(e) => setPeriodoFim(e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Secções a incluir</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Secções a incluir</label>
               <div className="space-y-2">
                 {[
                   { label: "KPI Cards", value: incluirKPIs, set: setIncluirKPIs },
@@ -170,14 +170,14 @@ export function TabGerarRelatorio({ filtros, active: _active, onExportReady: _on
                       onChange={(e) => opt.set(e.target.checked)}
                       className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-sm text-slate-700">{opt.label}</span>
+                    <span className="text-sm text-foreground">{opt.label}</span>
                   </label>
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Formato de saída</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Formato de saída</label>
               <div className="flex gap-3">
                 {(["PDF", "Excel", "Ambos"] as const).map((f) => (
                   <label key={f} className="flex items-center gap-2 cursor-pointer">
@@ -189,7 +189,7 @@ export function TabGerarRelatorio({ filtros, active: _active, onExportReady: _on
                       onChange={() => setFormato(f)}
                       className="text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-sm text-slate-700">{f}</span>
+                    <span className="text-sm text-foreground">{f}</span>
                   </label>
                 ))}
               </div>
@@ -199,7 +199,7 @@ export function TabGerarRelatorio({ filtros, active: _active, onExportReady: _on
           <div className="mt-6 flex justify-between">
             <button
               onClick={() => setStep(1)}
-              className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+              className="px-4 py-2 text-sm font-medium border border-border rounded-lg hover:bg-muted/30 transition-colors"
             >
               ← Voltar
             </button>
@@ -215,9 +215,9 @@ export function TabGerarRelatorio({ filtros, active: _active, onExportReady: _on
 
       {/* Step 3 — Confirmação */}
       {step === 3 && (
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
-          <h2 className="text-base font-semibold text-slate-900 mb-1">Confirmação</h2>
-          <p className="text-sm text-slate-500 mb-5">Reveja os parâmetros antes de gerar.</p>
+        <div className="bg-card rounded-xl border border-border p-6">
+          <h2 className="text-base font-semibold text-foreground mb-1">Confirmação</h2>
+          <p className="text-sm text-muted-foreground mb-5">Reveja os parâmetros antes de gerar.</p>
 
           {gerado ? (
             <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 flex items-start gap-3">
@@ -229,7 +229,7 @@ export function TabGerarRelatorio({ filtros, active: _active, onExportReady: _on
             </div>
           ) : (
             <>
-              <div className="divide-y divide-slate-100 border border-slate-200 rounded-lg mb-6">
+              <div className="divide-y divide-border border border-border rounded-lg mb-6">
                 {[
                   { label: "Tipo", value: tipoLabel },
                   { label: "Período", value: `${periodoInicio} → ${periodoFim}` },
@@ -237,8 +237,8 @@ export function TabGerarRelatorio({ filtros, active: _active, onExportReady: _on
                   { label: "Formato", value: formato },
                 ].map((row) => (
                   <div key={row.label} className="flex justify-between px-4 py-3 text-sm">
-                    <span className="text-slate-500">{row.label}</span>
-                    <span className="font-medium text-slate-800">{row.value}</span>
+                    <span className="text-muted-foreground">{row.label}</span>
+                    <span className="font-medium text-foreground">{row.value}</span>
                   </div>
                 ))}
               </div>
@@ -246,7 +246,7 @@ export function TabGerarRelatorio({ filtros, active: _active, onExportReady: _on
               <div className="flex justify-between">
                 <button
                   onClick={() => setStep(2)}
-                  className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="px-4 py-2 text-sm font-medium border border-border rounded-lg hover:bg-muted/30 transition-colors"
                 >
                   ← Voltar
                 </button>

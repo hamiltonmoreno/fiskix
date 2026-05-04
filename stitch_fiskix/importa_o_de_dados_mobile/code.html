@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-container": "#a1befd",
+                    "inverse-surface": "#2e3034",
+                    "surface-dim": "#d9dade",
+                    "primary-fixed-dim": "#adc6ff",
+                    "primary-container": "#0070eb",
+                    "on-primary-fixed-variant": "#004493",
+                    "on-tertiary-fixed-variant": "#7c2e00",
+                    "tertiary-fixed-dim": "#ffb595",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#e8e8ed",
+                    "primary-fixed": "#d8e2ff",
+                    "on-error-container": "#93000a",
+                    "error-container": "#ffdad6",
+                    "tertiary-container": "#c64f00",
+                    "error": "#ba1a1a",
+                    "outline": "#717786",
+                    "on-primary-container": "#fefcff",
+                    "surface-bright": "#f9f9fe",
+                    "background": "#f9f9fe",
+                    "surface-container": "#ededf2",
+                    "secondary": "#405e96",
+                    "on-secondary-container": "#2d4c83",
+                    "on-error": "#ffffff",
+                    "surface-container-highest": "#e2e2e7",
+                    "outline-variant": "#c1c6d7",
+                    "on-surface": "#1a1c1f",
+                    "tertiary": "#9e3d00",
+                    "surface-tint": "#005bc1",
+                    "on-tertiary-fixed": "#351000",
+                    "tertiary-fixed": "#ffdbcc",
+                    "surface": "#f9f9fe",
+                    "secondary-fixed": "#d8e2ff",
+                    "inverse-on-surface": "#f0f0f5",
+                    "on-primary-fixed": "#001a41",
+                    "on-secondary": "#ffffff",
+                    "primary": "#0058bc",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-container": "#fffbff",
+                    "on-secondary-fixed-variant": "#26467d",
+                    "on-surface-variant": "#414755",
+                    "surface-container-low": "#f3f3f8",
+                    "on-background": "#1a1c1f",
+                    "inverse-primary": "#adc6ff",
+                    "surface-variant": "#e2e2e7",
+                    "on-secondary-fixed": "#001a41",
+                    "secondary-fixed-dim": "#adc6ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "1rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass {
+            background: rgba(249, 249, 254, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body antialiased min-h-screen pb-40">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#f9f9fe]/80 backdrop-blur-xl transition-all shadow-[0_32px_64px_rgba(26,28,31,0.06)]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#007AFF]">signal_cellular_alt</span>
+<h1 class="font-['Inter'] text-lg font-semibold tracking-tight text-[#1a1c1f]">Import Management</h1>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="professional corporate headshot of a data scientist with a neutral expression in a bright modern office" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6uHPKQPgqHWah7ODOGVK0fEAwSEgrNzUoceBR9cWy8FfVbSlrmA9JW8JwEo4OyFH1_uorHeNxu9cjZh3jizbtUq5NcjlY14EnNetqVs31Wrc9Cv_ZVjlQTYn2bgD404nTet7gbXC-L3OQIyXhNKvbSKaBy7G0aUvnQVas8BgSbjMT3tiOls6RpjtyR4C03jxizQEaQWaQfTlHplRIVwfdXPB0a0TFMAadzVMQ5nxKATpDQaVq_7QwMqMcDqQyG86ga3JkKat7ouHy"/>
+</div>
+</header>
+<main class="pt-24 px-6 space-y-8">
+<!-- Header Section -->
+<section class="space-y-4">
+<div class="flex flex-col gap-1">
+<h2 class="text-3xl font-bold tracking-tight text-on-surface">Importação de Dados</h2>
+<div class="flex items-center gap-2 mt-2">
+<span class="flex h-2 w-2 rounded-full bg-primary"></span>
+<span class="text-sm font-semibold text-primary">Cluster Operacional</span>
+<span class="text-sm text-on-surface-variant ml-auto font-mono">98.2 GB/s</span>
+</div>
+</div>
+</section>
+<!-- Main Action: Drop Zone -->
+<section>
+<div class="bg-surface-container-lowest p-8 rounded-xl border-2 border-dashed border-outline-variant flex flex-col items-center text-center space-y-6">
+<div class="w-16 h-16 bg-primary-container/10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-4xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">cloud_upload</span>
+</div>
+<div>
+<p class="text-xl font-semibold">Drop source files</p>
+<p class="text-sm text-on-surface-variant mt-1">Arraste seus conjuntos de dados para iniciar</p>
+</div>
+<div class="grid grid-cols-1 w-full gap-3">
+<button class="h-14 bg-gradient-to-br from-[#007AFF] to-[#0070eb] text-white rounded-lg font-semibold shadow-lg active:scale-95 duration-200">
+                        Procurar Arquivos
+                    </button>
+<button class="h-14 bg-surface-container-high text-primary rounded-lg font-semibold active:scale-95 duration-200">
+                        S3 Bucket
+                    </button>
+</div>
+<div class="flex gap-4 text-[10px] font-bold text-on-surface-variant tracking-widest uppercase opacity-60">
+<span>CSV</span>
+<span>JSON</span>
+<span>XLSX</span>
+</div>
+</div>
+</section>
+<!-- Live Analysis: Terminal -->
+<section class="space-y-3">
+<div class="flex items-center justify-between">
+<h3 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Live Ingestion Logs</h3>
+<span class="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded-full font-bold">LIVE</span>
+</div>
+<div class="bg-inverse-surface rounded-xl p-5 font-mono text-xs leading-relaxed overflow-hidden shadow-xl border border-white/10">
+<div class="text-green-400 opacity-90">[info] Connected to Electra-API...</div>
+<div class="text-white/70">[auth] Handshake successful (0.4ms)</div>
+<div class="text-white/70">[sync] Mapping 42 input fields</div>
+<div class="text-yellow-400">[warn] Type mismatch detected in 'user_rating'</div>
+<div class="text-white/70">[sync] Processing stream_buffer_alpha...</div>
+<div class="text-white/30 mt-2 animate-pulse">_</div>
+</div>
+</section>
+<!-- Schema Preview: Mapping List -->
+<section class="space-y-4">
+<h3 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Field Mapping</h3>
+<div class="space-y-3">
+<!-- Row 1: Valid -->
+<div class="bg-surface-container-low p-5 rounded-xl flex items-center justify-between transition-all active:bg-surface-container-high">
+<div class="flex flex-col gap-1">
+<span class="text-xs font-mono text-on-surface-variant">uuid_v4</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-on-surface-variant">arrow_forward</span>
+<span class="font-semibold">entity_id</span>
+</div>
+</div>
+<div class="flex items-center gap-2 bg-green-500/10 text-green-600 px-3 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-[10px] font-bold tracking-wider">VALID</span>
+</div>
+</div>
+<!-- Row 2: Error -->
+<div class="bg-surface-container-low p-5 rounded-xl border-l-4 border-error flex items-center justify-between shadow-sm transition-all active:bg-surface-container-high">
+<div class="flex flex-col gap-1">
+<span class="text-xs font-mono text-on-surface-variant">user_rating</span>
+<div class="flex items-center gap-2 text-error">
+<span class="material-symbols-outlined text-xs">arrow_forward</span>
+<span class="font-semibold">review_score</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<div class="flex items-center gap-2 bg-error/10 text-error px-3 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">error</span>
+<span class="text-[10px] font-bold tracking-wider">ERROR</span>
+</div>
+<span class="text-[9px] text-error font-medium">FIX MAPPING</span>
+</div>
+</div>
+<!-- Row 3: Generic -->
+<div class="bg-surface-container-low p-5 rounded-xl flex items-center justify-between opacity-80">
+<div class="flex flex-col gap-1">
+<span class="text-xs font-mono text-on-surface-variant">created_at</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-on-surface-variant">arrow_forward</span>
+<span class="font-semibold">timestamp</span>
+</div>
+</div>
+<div class="flex items-center gap-2 bg-on-surface/5 text-on-surface-variant px-3 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-[10px] font-bold tracking-wider">AUTO</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Actions & Navigation -->
+<div class="fixed bottom-0 left-0 w-full z-50">
+<!-- Action Footer -->
+<div class="bg-[#f9f9fe]/90 backdrop-blur-2xl p-6 pb-4 space-y-3">
+<button class="w-full h-14 bg-[#0058bc] text-white rounded-xl font-bold text-base shadow-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+<span>Executar Ingestão Final</span>
+<span class="material-symbols-outlined text-lg">bolt</span>
+</button>
+<button class="w-full h-14 bg-surface-container-highest text-on-surface font-semibold rounded-xl active:scale-[0.98] transition-transform">
+                Salvar Rascunho
+            </button>
+</div>
+<!-- BottomNavBar -->
+<nav class="bg-[#f9f9fe]/80 backdrop-blur-[30px] flex justify-around items-center px-4 pb-8 h-24 shadow-[0_-16px_40px_rgba(26,28,31,0.04)]">
+<div class="flex flex-col items-center justify-center text-[#1a1c1f]/50 px-5 py-2.5 hover:text-[#007AFF] transition-colors active:scale-90 duration-300">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Monitoramento</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-gradient-to-br from-[#007AFF] to-[#0070eb] text-white rounded-2xl px-5 py-2.5 shadow-lg active:scale-90 duration-300">
+<span class="material-symbols-outlined" data-icon="dataset">dataset</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Operações</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#1a1c1f]/50 px-5 py-2.5 hover:text-[#007AFF] transition-colors active:scale-90 duration-300">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Configurações</span>
+</div>
+</nav>
+</div>
+</body></html>

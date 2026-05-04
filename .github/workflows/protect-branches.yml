@@ -7,8 +7,7 @@ on:
       - main
       - master
 
-permissions:
-  administration: write
+permissions: write-all
 
 jobs:
   protect:
@@ -40,7 +39,10 @@ jobs:
                 owner,
                 repo,
                 branch,
-                required_status_checks: null,
+                required_status_checks: {
+                  strict: true,
+                  contexts: ["Quality Gate"],
+                },
                 enforce_admins: true,
                 required_pull_request_reviews: {
                   dismiss_stale_reviews: true,

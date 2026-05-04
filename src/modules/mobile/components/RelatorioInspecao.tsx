@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Camera, Upload, CheckCircle, Loader2, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -62,6 +63,7 @@ export function RelatorioInspecao({
   const [camAtiva, setCamAtiva] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [sucesso, setSucesso] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "error" | "info"; message: string } | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -74,6 +76,7 @@ export function RelatorioInspecao({
   const iniciarCamera = useCallback(async () => {
     try {
       setGpsError(null);
+      setFeedback(null);
       // Obter GPS antes da câmara
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -104,7 +107,7 @@ export function RelatorioInspecao({
       }
       setCamAtiva(true);
     } catch {
-      alert("Não foi possível aceder à câmara. Verifique as permissões.");
+      setFeedback({ type: "error", message: "Não foi possível aceder à câmara. Verifique as permissões." });
     }
   }, []);
 
@@ -163,9 +166,10 @@ export function RelatorioInspecao({
 
   async function handleSubmit() {
     if (!resultado) {
-      alert("Selecione o resultado da inspeção.");
+      setFeedback({ type: "error", message: "Selecione o resultado da inspeção." });
       return;
     }
+    setFeedback(null);
 
     // If we have a photo but no GPS, the photo isn't legally usable as proof.
     // Make the fiscal explicitly confirm before submitting.
@@ -192,6 +196,7 @@ export function RelatorioInspecao({
     if (!online) {
       // Guardar offline
       await salvarOffline(relatorioData);
+      setFeedback({ type: "info", message: "Sem ligação. Relatório guardado localmente para sincronização." });
       setSucesso(true);
       setSubmitting(false);
       return;
@@ -248,6 +253,7 @@ export function RelatorioInspecao({
       // Fallback offline — keep the photo data URL so syncPendingReports can
       // re-upload it later (otherwise the legal evidence would be lost).
       await salvarOffline(relatorioData);
+      setFeedback({ type: "info", message: "Falha de rede. Relatório guardado localmente para sincronização." });
       setSucesso(true);
     }
 
@@ -265,7 +271,7 @@ export function RelatorioInspecao({
           <h2 className="text-xl font-bold text-slate-900 mb-2">
             Relatório Submetido
           </h2>
-          <p className="text-slate-500 text-sm mb-6">
+          <p className="text-slate-600 text-sm mb-6">
             {online
               ? "Sincronizado com sucesso."
               : "Guardado localmente. Será sincronizado quando houver ligação."}
@@ -292,18 +298,33 @@ export function RelatorioInspecao({
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
+            aria-label="Voltar"
             className="p-2 rounded-xl bg-slate-100"
           >
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
           <div>
             <p className="font-semibold text-slate-900">Relatório de Inspeção</p>
-            <p className="text-xs text-slate-400">{nomeCliente}</p>
+            <p className="text-xs text-slate-500">{nomeCliente}</p>
           </div>
         </div>
       </header>
 
       <div className="p-4 space-y-4">
+        <div aria-live="polite" role="status">
+          {feedback && (
+            <div
+              className={`rounded-xl border px-3 py-2 text-sm ${
+                feedback.type === "error"
+                  ? "bg-red-50 border-red-200 text-red-700"
+                  : "bg-blue-50 border-blue-200 text-blue-700"
+              }`}
+            >
+              {feedback.message}
+            </div>
+          )}
+        </div>
+
         {/* Resultado */}
         <div className="bg-white rounded-2xl p-5">
           <p className="font-semibold text-slate-700 mb-3">Resultado da Inspeção *</p>
@@ -416,10 +437,13 @@ export function RelatorioInspecao({
 
           {fotoUrl && (
             <div className="space-y-3">
-              <img
+              <Image
                 src={fotoUrl}
                 alt="Foto da inspeção"
-                className="w-full rounded-xl"
+                width={1280}
+                height={720}
+                unoptimized
+                className="w-full h-auto rounded-xl"
               />
               {gps ? (
                 <p className="text-xs text-slate-400 text-center">

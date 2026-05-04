@@ -7,7 +7,6 @@ import "leaflet/dist/leaflet.css";
 
 interface LeafletMapProps {
   subestacoes: SubestacaoMapa[];
-  mesAno: string;
 }
 
 function getColor(perdaPct: number): string {
@@ -22,7 +21,7 @@ function getRadius(kwh: number): number {
   return Math.min(35, Math.max(10, base));
 }
 
-export function LeafletMap({ subestacoes, mesAno }: LeafletMapProps) {
+export function LeafletMap({ subestacoes }: LeafletMapProps) {
   // Centrar em Cabo Verde (Santiago)
   const center: [number, number] = [14.93, -23.51];
 
@@ -74,8 +73,12 @@ export function LeafletMap({ subestacoes, mesAno }: LeafletMapProps) {
                     <span>Perda:</span>
                     <span>{sub.perda_pct.toFixed(1)}%</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Perda kWh:</span>
+                    <span className="font-medium">{Math.max(0, perdaKwh).toLocaleString("pt-CV")} kWh</span>
+                  </div>
                   <div className="flex justify-between text-red-600">
-                    <span>Perda CVE est.:</span>
+                    <span>Perda CVE (est.):</span>
                     <span>{formatCVE(Math.max(0, perdaCVE))}</span>
                   </div>
                   {sub.alertas_criticos > 0 && (

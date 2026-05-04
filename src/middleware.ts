@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
@@ -14,6 +14,6 @@ export const config = {
      * - favicon.ico, manifest.json, sw.js (PWA files)
      * - public folder files
      */
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|icons/).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|icons/|api/cron/).*)",
   ],
 };

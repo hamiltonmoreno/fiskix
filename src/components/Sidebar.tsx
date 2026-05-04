@@ -1,25 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Zap,
-  LayoutDashboard,
-  Upload,
-  Users,
-  Settings,
-  BarChart3,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  Menu,
-  X,
-  Bell,
-  FileBarChart2,
-  Activity,
-} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
+import { haptics } from "@/lib/haptics";
+import { Icon } from "@/components/Icon";
+import { SidebarNav } from "@/components/sidebar/SidebarNav";
 
 interface SidebarProps {
   profile: {
@@ -29,376 +16,127 @@ interface SidebarProps {
   };
 }
 
-interface NavItem {
-  label: string;
-  href: string;
-  icon: React.ElementType;
-  adminOnly?: boolean;
-  superAdminOnly?: boolean;
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Alertas", href: "/dashboard#alertas", icon: Bell },
-];
-
-const ADMIN_ITEMS: NavItem[] = [
-  { label: "Importar Dados", href: "/admin/importar", icon: Upload },
-  { label: "Motor de Scoring", href: "/admin/scoring", icon: BarChart3 },
-  { label: "Utilizadores", href: "/admin/utilizadores", icon: Users, superAdminOnly: true },
-  { label: "Configuração", href: "/admin/configuracao", icon: Settings, superAdminOnly: true },
-];
-
-const ROLE_LABELS: Record<string, string> = {
-  admin_fiskix: "Administrador",
-  gestor_perdas: "Gestor de Perdas",
-  supervisor: "Supervisor",
-  fiscal: "Fiscal",
-  diretor: "Diretor",
-};
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
-
 export function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const supabase = createClient();
+  const router   = useRouter();
+  const supabase = useMemo(() => createClient(), []);
 
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed,  setCollapsed]  = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isAdmin = ["admin_fiskix", "gestor_perdas"].includes(profile.role);
-  const isSuperAdmin = profile.role === "admin_fiskix";
-  const isRelatorios = ["admin_fiskix", "diretor", "gestor_perdas"].includes(profile.role);
-
-  // Persist collapse state
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-collapsed");
     if (saved !== null) setCollapsed(saved === "true");
   }, []);
 
-  function toggleCollapsed() {
+  useEffect(() => {
+    if (mobileOpen) setMobileOpen(false);
+  }, [pathname]);
+
+  const toggleCollapsed = useCallback(() => {
+    haptics.light();
     const next = !collapsed;
     setCollapsed(next);
     localStorage.setItem("sidebar-collapsed", String(next));
-  }
+  }, [collapsed]);
 
-  // Close mobile sidebar on navigation
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
+  const handleSignOut = useCallback(async () => {
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      router.push("/login");
+    }
+  }, [supabase, router]);
 
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
-
-  function isActive(href: string) {
-    if (href.includes("#")) return pathname === href.split("#")[0];
-    return pathname === href || pathname.startsWith(href + "/");
-  }
-
-  const sidebarContent = (
-    <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div
-        className={`flex items-center h-16 px-4 border-b border-slate-100 ${
-          collapsed ? "justify-center" : "justify-between"
-        }`}
-      >
-        <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Zap className="w-4 h-4 text-white" />
-          </div>
-          <div
-            className={`overflow-hidden transition-all duration-300 ${
-              collapsed ? "w-0 opacity-0" : "w-36 opacity-100"
-            }`}
-          >
-            <p className="font-bold text-slate-900 leading-tight whitespace-nowrap">Fiskix</p>
-            <p className="text-[10px] text-slate-400 leading-tight whitespace-nowrap">
-              Electra Cabo Verde
-            </p>
-          </div>
-        </Link>
-        {!collapsed && (
-          <button
-            onClick={toggleCollapsed}
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors hidden lg:flex"
-            title="Recolher menu"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-        )}
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
-        {/* Main nav */}
-        {NAV_ITEMS.map((item) => (
-          <NavLink key={item.href} item={item} collapsed={collapsed} active={isActive(item.href)} />
-        ))}
-
-        {/* Relatórios + Balanço — visível para diretor, gestor_perdas, admin_fiskix */}
-        {isRelatorios && (
-          <>
-            <NavLink
-              item={{ label: "Balanço Energético", href: "/balanco", icon: Activity }}
-              collapsed={collapsed}
-              active={isActive("/balanco")}
-            />
-            <NavLink
-              item={{ label: "Relatórios", href: "/relatorios", icon: FileBarChart2 }}
-              collapsed={collapsed}
-              active={isActive("/relatorios")}
-            />
-          </>
-        )}
-
-        {/* Admin section */}
-        {isAdmin && (
-          <>
-            <div
-              className={`overflow-hidden transition-all duration-300 ${
-                collapsed ? "max-h-0 opacity-0" : "max-h-10 opacity-100"
-              }`}
-            >
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 pt-5 pb-1">
-                Administração
-              </p>
-            </div>
-            {collapsed && <div className="my-3 border-t border-slate-100" />}
-            {ADMIN_ITEMS.filter((i) => !i.superAdminOnly || isSuperAdmin).map((item) => (
-              <NavLink
-                key={item.href}
-                item={item}
-                collapsed={collapsed}
-                active={isActive(item.href)}
-              />
-            ))}
-          </>
-        )}
-      </nav>
-
-      {/* Expand button when collapsed */}
-      {collapsed && (
-        <div className="px-2 pb-2 hidden lg:block">
-          <button
-            onClick={toggleCollapsed}
-            className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
-            title="Expandir menu"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* User footer */}
-      <div className={`border-t border-slate-100 p-3 ${collapsed ? "flex flex-col items-center gap-2" : ""}`}>
-        {!collapsed ? (
-          <div className="flex items-center gap-2">
-            <Link
-              href="/perfil"
-              className="flex items-center gap-3 flex-1 min-w-0 rounded-lg p-1 hover:bg-slate-50 transition-colors"
-              title="Meu perfil"
-            >
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-semibold text-blue-700">
-                  {getInitials(profile.nome_completo)}
-                </span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-slate-900 truncate leading-tight">
-                  {profile.nome_completo}
-                </p>
-                <p className="text-xs text-slate-400 leading-tight">
-                  {ROLE_LABELS[profile.role] ?? profile.role}
-                </p>
-              </div>
-            </Link>
-            <button
-              onClick={handleSignOut}
-              className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
-              title="Terminar sessão"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="relative group">
-              <Link
-                href="/perfil"
-                className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center hover:ring-2 hover:ring-blue-300 transition-all"
-                title="Meu perfil"
-              >
-                <span className="text-xs font-semibold text-blue-700">
-                  {getInitials(profile.nome_completo)}
-                </span>
-              </Link>
-              {/* Tooltip */}
-              <div
-                className="
-                  pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50
-                  bg-slate-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-md
-                  whitespace-nowrap shadow-lg
-                  opacity-0 -translate-x-1 scale-95
-                  group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100
-                  transition-all duration-150 ease-out
-                "
-              >
-                Meu perfil
-                <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900" />
-              </div>
-            </div>
-            <button
-              onClick={handleSignOut}
-              className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-              title="Terminar sessão"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </>
-        )}
-      </div>
-    </div>
+  const isActive = useCallback(
+    (href: string) => pathname === href || pathname.startsWith(href + "/"),
+    [pathname]
   );
+
+  const navProps = { profile, collapsed, isActive, onToggleCollapsed: toggleCollapsed, onSignOut: handleSignOut };
 
   return (
     <>
-      {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-white border-b border-slate-200 flex items-center px-4 gap-3">
+      {/* ── Mobile top bar ── */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700/60 flex items-center px-4 gap-3 no-print">
         <button
-          onClick={() => setMobileOpen(true)}
-          className="p-2 rounded-lg hover:bg-slate-100 text-slate-500"
+          onClick={() => {
+            haptics.drawerOpen();
+            setMobileOpen(true);
+          }}
+          aria-label="Abrir menu"
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-sidebar-drawer"
+          className="p-2 rounded-lg text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 touch-manipulation cursor-pointer"
         >
-          <Menu className="w-5 h-5" />
+          <Icon name="menu" size="md" />
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-blue-700 rounded-lg flex items-center justify-center">
-            <Zap className="w-3.5 h-3.5 text-white" />
+          <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center shadow-sm">
+            <Icon name="bolt" size="xs" filled className="text-white" />
           </div>
-          <span className="font-bold text-slate-900">Fiskix</span>
+          <span className="font-bold text-gray-800 dark:text-gray-100">Fiskix</span>
         </div>
       </div>
 
-      {/* Mobile overlay */}
+      {/* ── Mobile overlay ── */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-opacity"
+          className="lg:hidden fixed inset-0 z-50 bg-gray-900/30 backdrop-blur-sm transition-opacity"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* Mobile sidebar drawer */}
+      {/* ── Mobile drawer ── */}
       <div
-        className={`lg:hidden fixed top-0 left-0 bottom-0 z-50 w-64 bg-white shadow-xl transition-transform duration-300 ease-in-out ${
+        id="mobile-sidebar-drawer"
+        className={cn(
+          "lg:hidden fixed top-0 left-0 bottom-0 z-50 w-64",
+          "bg-white dark:bg-gray-800",
+          "shadow-2xl",
+          "transition-transform duration-300 ease-in-out no-print",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        )}
       >
-        <div className="flex items-center justify-between h-14 px-4 border-b border-slate-100">
+        <div className="flex items-center justify-between h-16 px-5 border-b border-gray-200 dark:border-gray-700/60">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-blue-700 rounded-lg flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-white" />
+            <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
+              <Icon name="bolt" size="xs" filled className="text-white" />
             </div>
-            <span className="font-bold text-slate-900">Fiskix</span>
+            <span className="font-bold text-gray-800 dark:text-gray-100">Fiskix</span>
           </div>
           <button
-            onClick={() => setMobileOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"
+            onClick={() => {
+              haptics.light();
+              setMobileOpen(false);
+            }}
+            aria-label="Fechar menu"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 touch-manipulation cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <Icon name="close" size="sm" />
           </button>
         </div>
-        <div className="h-[calc(100%-3.5rem)]">{sidebarContent}</div>
+        <div className="h-[calc(100%-4rem)]">
+          <SidebarNav {...navProps} />
+        </div>
       </div>
 
-      {/* Desktop sidebar */}
-      <aside
-        className={`hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 bg-white border-r border-slate-200 transition-all duration-300 ease-in-out ${
-          collapsed ? "w-16" : "w-60"
-        }`}
-      >
-        {sidebarContent}
+      {/* ── Desktop sidebar ── */}
+      <aside className={cn(
+        "hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 no-print",
+        "bg-white dark:bg-gray-800",
+        "border-r border-gray-200 dark:border-gray-700/60",
+        "transition-[width] duration-300 ease-in-out",
+        collapsed ? "w-[4.5rem]" : "w-64"
+      )}>
+        <SidebarNav {...navProps} />
       </aside>
 
-      {/* Spacer to push content right on desktop */}
-      <div
-        className={`hidden lg:block flex-shrink-0 transition-all duration-300 ease-in-out ${
-          collapsed ? "w-16" : "w-60"
-        }`}
-      />
+      {/* ── Spacer (prevents content from going under fixed sidebar) ── */}
+      <div className={cn(
+        "hidden lg:block flex-shrink-0 transition-[width] duration-300 ease-in-out no-print",
+        collapsed ? "w-[4.5rem]" : "w-64"
+      )} />
     </>
-  );
-}
-
-function NavLink({
-  item,
-  collapsed,
-  active,
-}: {
-  item: NavItem;
-  collapsed: boolean;
-  active: boolean;
-}) {
-  const Icon = item.icon;
-  return (
-    <div className="relative group">
-      <Link
-        href={item.href}
-        className={`relative flex items-center gap-3 py-2.5 rounded-lg transition-all duration-150 text-sm font-medium overflow-hidden ${
-          collapsed ? "justify-center px-3" : "px-3"
-        } ${
-          active
-            ? "bg-blue-50 text-blue-700"
-            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-        }`}
-      >
-        {/* Active left bar indicator */}
-        <span
-          className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 rounded-full transition-all duration-200 ${
-            active ? "h-5 bg-blue-600 opacity-100" : "h-0 opacity-0"
-          }`}
-        />
-        <Icon
-          className={`w-4 h-4 flex-shrink-0 transition-colors ${
-            active ? "text-blue-700" : "text-slate-500 group-hover:text-slate-700"
-          }`}
-        />
-        {/* Label with smooth fade */}
-        <span
-          className={`overflow-hidden transition-all duration-300 whitespace-nowrap ${
-            collapsed ? "w-0 opacity-0" : "w-full opacity-100"
-          }`}
-        >
-          {item.label}
-        </span>
-      </Link>
-
-      {/* Tooltip when collapsed */}
-      {collapsed && (
-        <div
-          className="
-            pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50
-            bg-slate-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-md
-            whitespace-nowrap shadow-lg
-            opacity-0 -translate-x-1 scale-95
-            group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100
-            transition-all duration-150 ease-out
-          "
-        >
-          {item.label}
-          {/* Arrow */}
-          <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900" />
-        </div>
-      )}
-    </div>
   );
 }

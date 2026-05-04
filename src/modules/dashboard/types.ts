@@ -4,6 +4,13 @@ export interface KPIData {
   ordens_pendentes: number;
   receita_recuperada_ytd: number;
   variacao_perda_pct: number;   // vs mês anterior
+  alertas_criticos: Array<{
+    id: string;
+    score_risco: number;
+    status: string;
+    cliente: { nome_titular: string; numero_contador: string };
+    subestacao: { zona_bairro: string };
+  }>;
 }
 
 export interface SubestacaoMapa {

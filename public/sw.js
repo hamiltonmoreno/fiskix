@@ -4,10 +4,13 @@
  * Network-first para dados da API
  */
 
-const CACHE_NAME = "fiskix-v1";
+const CACHE_NAME = "fiskix-v2";
 const STATIC_ASSETS = [
   "/mobile",
   "/login",
+  "/manifest.json",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
 ];
 
 self.addEventListener("install", (event) => {
@@ -35,7 +38,10 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Network-first para API Supabase
+  // Só fazer cache de pedidos GET — nunca cachear POST/PUT/PATCH/DELETE
+  if (event.request.method !== "GET") return;
+
+  // Network-first para API Supabase (dados em tempo real)
   if (url.hostname.includes("supabase.co")) {
     event.respondWith(
       fetch(event.request).catch(() => {
@@ -48,34 +54,42 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Cache-first para assets estáticos (_next/static)
-  if (url.pathname.startsWith("/_next/static")) {
+  // Cache-first para assets estáticos (_next/static e ícones)
+  if (
+    url.pathname.startsWith("/_next/static") ||
+    url.pathname.startsWith("/icons/")
+  ) {
     event.respondWith(
       caches.match(event.request).then((cached) => {
-        return cached || fetch(event.request).then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return response;
-        });
+        return (
+          cached ||
+          fetch(event.request).then((response) => {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+            return response;
+          })
+        );
       })
     );
     return;
   }
 
-  // Network-first com fallback cache para páginas
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cached) => {
-          return cached || new Response("Offline", { status: 503 });
-        });
-      })
-  );
+  // Network-first com fallback cache para páginas /mobile
+  if (url.pathname.startsWith("/mobile") || url.pathname === "/login") {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request).then((cached) => {
+            return cached || new Response("Offline", { status: 503 });
+          });
+        })
+    );
+  }
 });

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#a1befd",
+                        "on-tertiary-fixed-variant": "#7c2e00",
+                        "surface-tint": "#005bc1",
+                        "secondary-fixed": "#d8e2ff",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#9e3d00",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#f9f9fe",
+                        "outline-variant": "#c1c6d7",
+                        "on-primary": "#ffffff",
+                        "surface": "#f9f9fe",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#004493",
+                        "tertiary-fixed-dim": "#ffb595",
+                        "secondary": "#405e96",
+                        "primary": "#0058bc",
+                        "on-background": "#1a1c1f",
+                        "on-surface-variant": "#414755",
+                        "on-primary-container": "#fefcff",
+                        "surface-variant": "#e2e2e7",
+                        "surface-container-low": "#f3f3f8",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-secondary-fixed": "#001a41",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#e2e2e7",
+                        "primary-container": "#0070eb",
+                        "error": "#ba1a1a",
+                        "background": "#f9f9fe",
+                        "surface-container": "#ededf2",
+                        "inverse-primary": "#adc6ff",
+                        "on-secondary-fixed-variant": "#26467d",
+                        "primary-fixed": "#d8e2ff",
+                        "on-surface": "#1a1c1f",
+                        "on-secondary-container": "#2d4c83",
+                        "on-secondary": "#ffffff",
+                        "outline": "#717786",
+                        "on-tertiary-fixed": "#351000",
+                        "on-primary-fixed": "#001a41",
+                        "surface-dim": "#d9dade",
+                        "surface-container-high": "#e8e8ed",
+                        "inverse-on-surface": "#f0f0f5",
+                        "tertiary-fixed": "#ffdbcc",
+                        "tertiary-container": "#c64f00",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2e3034",
+                        "secondary-fixed-dim": "#adc6ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-nav { backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-slate-50/80 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.04)]">
+<div class="flex items-center justify-between px-6 h-16">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden">
+<img alt="Supervisor" class="w-full h-full object-cover" data-alt="Professional headshot of a supervisor in a clean studio setting with soft lighting and neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgZfN-v8uS9qyX4R_eJxyADyy_nav_lXHFun_DDTLKxnSA05cm-SMEewX239GEtr_9l-WsTifpjU35WJ0B6ngE2DUvNr5p8HCJxvo3qYNiXCu5nP7eCjnp9QAD49VQd17iUMc53x3o0MYRM38dwljDMm9ZmQ2sIu3Q-BlHRf1AFuX6xDU553X5rMaWM0ySlDXC6LfkXKJybRoWlh5eBdQpBv97sbedxhTDXKuvqseMbgIP3njViVddRVtSz0gh0wGcWx7xIvYCH_I3"/>
+</div>
+<h1 class="text-lg font-bold text-slate-900 tracking-tight font-headline">Fleet Control</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-blue-600 hover:opacity-80 transition-opacity active:scale-95 duration-200 ease-out">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</div>
+</header>
+<main class="pt-20 pb-32 px-5 space-y-8">
+<!-- Active Agent Tracking Section -->
+<section class="space-y-4">
+<div class="flex justify-between items-end">
+<div>
+<h2 class="text-display-lg text-2xl font-bold tracking-tight text-on-surface">Monitoramento</h2>
+<p class="text-body-md text-on-surface-variant">Equipes em campo agora</p>
+</div>
+<span class="bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">12 Ativos</span>
+</div>
+<div class="relative h-56 rounded-xl overflow-hidden shadow-sm group">
+<img class="w-full h-full object-cover" data-alt="Modern satellite map view of an urban coastal city with blue ocean and geometric street patterns" data-location="Praia, Cape Verde" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_2m3eDUOE8HFHbSnHRVHA9sCaFRUvSxheGKM6GLSvKutk0sTDI3JD3S-5aGnMDEPFrpEnwfFixvxeUm5vAHxdf2N6NogwffMOl0_L52j1ErzgiyIkWpB_1wjy0gntZCnVPCInlH2smqlDFEz1RzZA1atX3Qzn7wEwqvIhxqUy5kLCFgDCnBr2PrhJnqj3xLmNC9-pG9VsGEyOJ13XrbqSpKvIRTOF98bkgT5EFB33I5YUxtS6-6TdYS6OByAIkwdvixw9NiURWF79"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+<!-- Agent Pins Overlay (Simulated) -->
+<div class="absolute top-1/4 left-1/3">
+<div class="relative">
+<div class="absolute -inset-2 bg-primary/30 rounded-full animate-pulse"></div>
+<div class="w-4 h-4 bg-primary border-2 border-white rounded-full shadow-lg"></div>
+</div>
+</div>
+<div class="absolute bottom-1/3 right-1/4">
+<div class="w-4 h-4 bg-primary border-2 border-white rounded-full shadow-lg"></div>
+</div>
+<div class="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md p-3 rounded-lg flex items-center justify-between border border-white/20 shadow-xl">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">location_on</span>
+<span class="text-xs font-semibold text-on-surface">Palmarejo, Praia</span>
+</div>
+<span class="text-[10px] text-on-surface-variant font-medium">Atualizado há 2m</span>
+</div>
+</div>
+</section>
+<!-- Fila de Validação (Horizontal) -->
+<section class="space-y-4">
+<div class="flex justify-between items-center">
+<h2 class="text-title-md font-semibold text-on-surface">Fila de Validação</h2>
+<button class="text-primary text-xs font-bold uppercase tracking-wider">Ver Tudo</button>
+</div>
+<div class="flex overflow-x-auto gap-4 pb-4 no-scrollbar -mx-5 px-5">
+<!-- Validation Card 1 -->
+<div class="min-w-[240px] bg-surface-container-low rounded-xl p-4 flex flex-col gap-3 shadow-sm border border-outline-variant/10">
+<div class="flex justify-between items-start">
+<div class="space-y-0.5">
+<h3 class="text-sm font-bold text-on-surface">Tampering #882</h3>
+<p class="text-[10px] text-on-surface-variant">Agente: Nelson Semedo</p>
+</div>
+<div class="w-10 h-10 rounded-lg overflow-hidden bg-surface-variant">
+<img alt="Thumbnail" class="w-full h-full object-cover" data-alt="Macro close-up of a damaged industrial electrical meter with visible tamper marks" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZs-KxU4hgj32PvY4Emgrrk35eRLhfcxyrx7dS1ULdHgE6ZN8k23CIzTywQ8KDZjbpnV1rK2XU-70VKoQcN0suxKSXG7gIy0p74F7ZWiCa9X8ufCfmjHC2SHV2kN4kI6fPLE4DNAX1mdZkAAXacl1MJl9I_fT-YAoYBZkVKDNU6jQItuiMgIn-JaC-Q8gFPcPO4y1C9SIScz14HNZbeGS99nz6PD3IpEgRXKoT_JI3jaUP-tZHUQ4sUaa9jZS4ENfzKX8YDahgJtbx"/>
+</div>
+</div>
+<button class="w-full py-2 bg-primary-container text-on-primary-container rounded-lg text-xs font-bold uppercase tracking-wider transition-transform active:scale-95">Validar</button>
+</div>
+<!-- Validation Card 2 -->
+<div class="min-w-[240px] bg-surface-container-low rounded-xl p-4 flex flex-col gap-3 shadow-sm border border-outline-variant/10">
+<div class="flex justify-between items-start">
+<div class="space-y-0.5">
+<h3 class="text-sm font-bold text-on-surface">Routine Check #901</h3>
+<p class="text-[10px] text-on-surface-variant">Agente: Maria Fortes</p>
+</div>
+<div class="w-10 h-10 rounded-lg overflow-hidden bg-surface-variant">
+<img alt="Thumbnail" class="w-full h-full object-cover" data-alt="Technical inspection of a clean solar panel installation on a rooftop in bright sunlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXyiQUfqTef0HQwOStCAb4i58caEtJsah2cywuk25pR1Ie9QjGd-EBJ72bU-vIOUUZSIUp2_BOdo5LjFIXR9zu2fbzzvYjb8hKmoFciRs_6vfoBWDyFtGlU6PVElZEvThJkNL2AP7Vt9aSf9600OQ8MuMm0im7Ha13QU_T_EoZ5jBKShMLuOUmCgY6jwgwVSeqCFbSXJuK4s5WWgRlSWJCh7ZzFd8LkhhyRjbXLeJD9kC37yreX1fqvgq42fg7IHyO3mD6qm6kFieo"/>
+</div>
+</div>
+<button class="w-full py-2 bg-primary-container text-on-primary-container rounded-lg text-xs font-bold uppercase tracking-wider transition-transform active:scale-95">Validar</button>
+</div>
+</div>
+</section>
+<!-- Ordens Não Atribuídas (Vertical List) -->
+<section class="space-y-4">
+<h2 class="text-title-md font-semibold text-on-surface">Ordens Não Atribuídas</h2>
+<div class="space-y-3">
+<!-- Task Card 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary">home_work</span>
+</div>
+<div class="space-y-1">
+<h4 class="text-sm font-bold text-on-surface">Residencial Palmarejo</h4>
+<div class="flex items-center gap-2">
+<span class="bg-error-container text-on-error-container text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase">High</span>
+<span class="text-[10px] text-on-surface-variant">Praia, Santiago</span>
+</div>
+</div>
+</div>
+<button class="px-4 py-2 bg-surface-container text-primary rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-surface-container-high transition-colors">Atribuir</button>
+</div>
+<!-- Task Card 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary">apartment</span>
+</div>
+<div class="space-y-1">
+<h4 class="text-sm font-bold text-on-surface">Hotel Mindelo Express</h4>
+<div class="flex items-center gap-2">
+<span class="bg-secondary-container text-on-secondary-container text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase">Normal</span>
+<span class="text-[10px] text-on-surface-variant">Mindelo, S. Vicente</span>
+</div>
+</div>
+</div>
+<button class="px-4 py-2 bg-surface-container text-primary rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-surface-container-high transition-colors">Atribuir</button>
+</div>
+<!-- Task Card 3 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">store</span>
+</div>
+<div class="space-y-1">
+<h4 class="text-sm font-bold text-on-surface">Mercado Municipal</h4>
+<div class="flex items-center gap-2">
+<span class="bg-secondary-container text-on-secondary-container text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase">Normal</span>
+<span class="text-[10px] text-on-surface-variant">Assomada, Santiago</span>
+</div>
+</div>
+</div>
+<button class="px-4 py-2 bg-surface-container text-primary rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-surface-container-high transition-colors">Atribuir</button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] z-50 glass-nav bg-slate-50/80 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex justify-around items-center px-2 py-3 border border-white/20">
+<!-- Fleet (Active) -->
+<a class="flex flex-col items-center justify-center text-blue-600 bg-blue-50/50 rounded-2xl px-4 py-2 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">local_shipping</span>
+<span class="font-['Inter'] text-[10px] font-semibold tracking-wide uppercase mt-1">Fleet</span>
+</a>
+<!-- Agents -->
+<a class="flex flex-col items-center justify-center text-slate-400 px-4 py-2 hover:text-blue-500 active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined">badge</span>
+<span class="font-['Inter'] text-[10px] font-semibold tracking-wide uppercase mt-1">Agents</span>
+</a>
+<!-- Tasks -->
+<a class="flex flex-col items-center justify-center text-slate-400 px-4 py-2 hover:text-blue-500 active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="font-['Inter'] text-[10px] font-semibold tracking-wide uppercase mt-1">Tasks</span>
+</a>
+<!-- Reports -->
+<a class="flex flex-col items-center justify-center text-slate-400 px-4 py-2 hover:text-blue-500 active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-['Inter'] text-[10px] font-semibold tracking-wide uppercase mt-1">Reports</span>
+</a>
+</nav>
+</body></html>

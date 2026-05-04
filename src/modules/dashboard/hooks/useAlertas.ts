@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { AlertaTabela } from "../types";
+import type { AlertaStatus, InspecaoResultado } from "@/types/database";
 
 interface UseAlertasOptions {
   mesAno: string;
@@ -26,7 +27,7 @@ export function useAlertas({
 
   const load = useCallback(async () => {
     setLoading(true);
-
+    try {
     let query = supabase
       .from("alertas_fraude")
       .select(
@@ -44,8 +45,20 @@ export function useAlertas({
       .order("score_risco", { ascending: false })
       .range(page * pageSize, (page + 1) * pageSize - 1);
 
+    const ESTADOS_FINAIS: InspecaoResultado[] = [
+      "Fraude_Confirmada",
+      "Anomalia_Tecnica",
+      "Falso_Positivo",
+    ];
+
     if (statusFilter && statusFilter !== "todos") {
-      query = query.eq("status", statusFilter as "Pendente" | "Notificado_SMS" | "Pendente_Inspecao" | "Inspecionado");
+      if (ESTADOS_FINAIS.includes(statusFilter as InspecaoResultado)) {
+        query = query
+          .eq("status", "Inspecionado" as AlertaStatus)
+          .eq("resultado", statusFilter as InspecaoResultado);
+      } else {
+        query = query.eq("status", statusFilter as AlertaStatus);
+      }
     }
 
     if (zona) {
@@ -88,11 +101,20 @@ export function useAlertas({
 
     setData(alertas);
     setTotal(count ?? 0);
-    setLoading(false);
-  }, [mesAno, zona, statusFilter, page, pageSize]);
+    } finally {
+      setLoading(false);
+    }
+  }, [mesAno, zona, statusFilter, page, pageSize, supabase]);
 
   useEffect(() => {
     load();
+  }, [load]);
+
+  // Manter ref sempre actualizada para o listener de realtime não capturar
+  // uma versão stale de load() quando os filtros mudam.
+  const loadRef = useRef(load);
+  useEffect(() => {
+    loadRef.current = load;
   }, [load]);
 
   useEffect(() => {
@@ -104,12 +126,12 @@ export function useAlertas({
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "alertas_fraude" },
-        () => { load(); }
+        () => { loadRef.current(); }
       )
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [load, supabase]);
+  }, [supabase]);
 
   async function enviarSMS(alertaId: string, tipo: "amarelo" | "vermelho") {
     const res = await fetch(
