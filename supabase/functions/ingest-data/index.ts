@@ -39,13 +39,46 @@ function validarMesAno(valor: string): boolean {
   return /^\d{4}-\d{2}$/.test(valor) && !isNaN(Date.parse(`${valor}-01`));
 }
 
+function parseCsvLine(line: string, delim: string): string[] {
+  // Minimal RFC-4180 parsing: handle quoted fields containing the delimiter
+  // and escaped quotes (`""` inside a quoted field).
+  const out: string[] = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"' && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else if (ch === '"') {
+        inQuotes = false;
+      } else {
+        cur += ch;
+      }
+    } else {
+      if (ch === '"') inQuotes = true;
+      else if (ch === delim) {
+        out.push(cur);
+        cur = "";
+      } else cur += ch;
+    }
+  }
+  out.push(cur);
+  return out.map((c) => c.trim());
+}
+
 function parseCsv(texto: string): string[][] {
-  return texto
-    .split("\n")
-    .map((linha) =>
-      linha.split(/[,;]/).map((c) => c.trim().replace(/^["']|["']$/g, ""))
-    )
-    .filter((row) => row.some((c) => c !== ""));
+  // Strip BOM and normalise CRLF/CR → LF before splitting.
+  const cleaned = texto.replace(/^﻿/, "").replace(/\r\n?/g, "\n");
+  const lines = cleaned.split("\n").filter((l) => l.trim() !== "");
+  if (lines.length === 0) return [];
+  // Detect the delimiter once from the header (whichever appears more often).
+  const header = lines[0];
+  const semis = (header.match(/;/g) ?? []).length;
+  const commas = (header.match(/,/g) ?? []).length;
+  const delim = semis > commas ? ";" : ",";
+  return lines.map((l) => parseCsvLine(l, delim));
 }
 
 function validarFaturacao(rows: string[][]): {

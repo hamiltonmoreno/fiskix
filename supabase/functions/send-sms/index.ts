@@ -60,6 +60,40 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate the caller using the anon-key client + the JWT they sent.
+    // Without this any anonymous request with a forged alerta_id could trigger
+    // an SMS to any client (Twilio bill + reputational risk).
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: userData } = await supabaseAuth.auth.getUser();
+    if (!userData?.user) {
+      return new Response(JSON.stringify({ error: "Sessão inválida" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: profile } = await supabaseAuth
+      .from("perfis")
+      .select("role")
+      .eq("id", userData.user.id)
+      .single();
+    if (!profile || !["admin_fiskix", "gestor_perdas"].includes(profile.role)) {
+      return new Response(JSON.stringify({ error: "Sem permissão para enviar SMS" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -161,9 +195,15 @@ Deno.serve(async (req) => {
         mensagem_enviada: resultado.ok,
         sid: resultado.ok ? resultado.sid : undefined,
         erro: resultado.ok ? undefined : resultado.error,
+        error: resultado.ok ? undefined : resultado.error,
         status_atualizado: resultado.ok ? "Notificado_SMS" : "Pendente",
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        // 502 when Twilio rejected: the caller (browser) typically only checks
+        // res.ok and would otherwise treat a failed send as success.
+        status: resultado.ok ? 200 : 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   } catch (error) {
     console.error("Erro ao enviar SMS:", error);
