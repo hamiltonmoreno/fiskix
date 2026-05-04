@@ -93,6 +93,150 @@ describe("attemptAutoPromote", () => {
     expect(result).toEqual({ promoted: false, reason: "no_logistic_weights" });
   });
 
+  // Codex P1: Validação granular dos pesos. Antes destes testes, `{}` ou
+  // pesos parciais promoviam silenciosamente para logistic_v1 e produziam
+  // NaN no scoring → upserts falham → ML pára.
+
+  it("não promove quando ml_pesos_v1_logistic é objecto vazio", async () => {
+    const writeModeloAtivo = vi.fn();
+    const deps = buildDeps({
+      readConfig: vi.fn(async (k) => {
+        if (k === "ml_modelo_ativo") return "heuristic_v1";
+        if (k === "ml_pesos_v1_logistic") return "{}";
+        return null;
+      }),
+      countInspecoesConfirmadas: vi.fn(async () => 200),
+      writeModeloAtivo,
+    });
+
+    const result = await attemptAutoPromote(deps);
+
+    expect(result.promoted).toBe(false);
+    if (!result.promoted && result.reason === "invalid_logistic_weights") {
+      expect(result.missing).toEqual(
+        expect.arrayContaining([
+          "queda_pct", "cv", "zscore", "slope", "ratio_pico", "alertas_12m", "perda_zona",
+        ])
+      );
+      expect(result.non_finite).toEqual([]);
+    } else {
+      throw new Error(`Expected reason="invalid_logistic_weights", got ${JSON.stringify(result)}`);
+    }
+    expect(writeModeloAtivo).not.toHaveBeenCalled();
+  });
+
+  it("não promove quando ml_pesos_v1_logistic tem apenas alguns dos keys requeridos", async () => {
+    const writeModeloAtivo = vi.fn();
+    const deps = buildDeps({
+      readConfig: vi.fn(async (k) => {
+        if (k === "ml_modelo_ativo") return "heuristic_v1";
+        if (k === "ml_pesos_v1_logistic")
+          return JSON.stringify({ queda_pct: 0.4, cv: 0.18 }); // 5 em falta
+        return null;
+      }),
+      countInspecoesConfirmadas: vi.fn(async () => 200),
+      writeModeloAtivo,
+    });
+
+    const result = await attemptAutoPromote(deps);
+
+    expect(result.promoted).toBe(false);
+    if (!result.promoted && result.reason === "invalid_logistic_weights") {
+      expect(result.missing).toEqual(
+        expect.arrayContaining(["zscore", "slope", "ratio_pico", "alertas_12m", "perda_zona"])
+      );
+      expect(result.missing).not.toContain("queda_pct");
+      expect(result.missing).not.toContain("cv");
+    }
+    expect(writeModeloAtivo).not.toHaveBeenCalled();
+  });
+
+  it("não promove quando algum peso é string em vez de número", async () => {
+    const deps = buildDeps({
+      readConfig: vi.fn(async (k) => {
+        if (k === "ml_modelo_ativo") return "heuristic_v1";
+        if (k === "ml_pesos_v1_logistic")
+          return JSON.stringify({
+            queda_pct: "x", // ← string
+            cv: 0.18,
+            zscore: 0.12,
+            slope: 0.1,
+            ratio_pico: 0.08,
+            alertas_12m: 0.07,
+            perda_zona: 0.05,
+          });
+        return null;
+      }),
+      countInspecoesConfirmadas: vi.fn(async () => 200),
+    });
+
+    const result = await attemptAutoPromote(deps);
+
+    expect(result.promoted).toBe(false);
+    if (!result.promoted && result.reason === "invalid_logistic_weights") {
+      expect(result.non_finite).toContain("queda_pct");
+      expect(result.missing).toEqual([]);
+    }
+  });
+
+  it("não promove quando peso é null (typeof !== 'number')", async () => {
+    const deps = buildDeps({
+      readConfig: vi.fn(async (k) => {
+        if (k === "ml_modelo_ativo") return "heuristic_v1";
+        if (k === "ml_pesos_v1_logistic")
+          return JSON.stringify({
+            queda_pct: null,
+            cv: 0.18,
+            zscore: 0.12,
+            slope: 0.1,
+            ratio_pico: 0.08,
+            alertas_12m: 0.07,
+            perda_zona: 0.05,
+          });
+        return null;
+      }),
+      countInspecoesConfirmadas: vi.fn(async () => 200),
+    });
+
+    const result = await attemptAutoPromote(deps);
+
+    expect(result.promoted).toBe(false);
+    if (!result.promoted && result.reason === "invalid_logistic_weights") {
+      expect(result.non_finite).toContain("queda_pct");
+    }
+  });
+
+  it("promove quando todos os keys são números finitos (mesmo com keys extra forward-compat)", async () => {
+    const writeModeloAtivo = vi.fn(async () => {});
+    const deps = buildDeps({
+      readConfig: vi.fn(async (k) => {
+        if (k === "ml_modelo_ativo") return "heuristic_v1";
+        if (k === "ml_pesos_v1_logistic")
+          return JSON.stringify({
+            queda_pct: 0.4,
+            cv: 0.18,
+            zscore: 0.12,
+            slope: 0.1,
+            ratio_pico: 0.08,
+            alertas_12m: 0.07,
+            perda_zona: 0.05,
+            // Keys extra são permitidos (forward-compat para v2 do modelo)
+            bias: -0.5,
+            modelo_treino_data: "2026-04-01",
+          });
+        if (k === "ml_inspecoes_promote_threshold") return "100";
+        return null;
+      }),
+      countInspecoesConfirmadas: vi.fn(async () => 100),
+      writeModeloAtivo,
+    });
+
+    const result = await attemptAutoPromote(deps);
+
+    expect(result).toMatchObject({ promoted: true, to: "logistic_v1" });
+    expect(writeModeloAtivo).toHaveBeenCalledWith("logistic_v1");
+  });
+
   it("não promove quando inspeções abaixo do threshold", async () => {
     const writeModeloAtivo = vi.fn();
     const deps = buildDeps({
