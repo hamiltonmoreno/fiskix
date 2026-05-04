@@ -29,7 +29,7 @@ const CONFIG_LIMITS: Record<string, { min: number; max: number; hint: string }> 
   limiar_queda_pct:      { min: 5,   max: 80,  hint: "Entre 5% e 80%" },
   limiar_cv_maximo:      { min: 0.01,max: 1,   hint: "Entre 0.01 e 1.00" },
   limiar_mu_minimo:      { min: 0,   max: 500, hint: "kWh ≥ 0" },
-  limiar_zscore_cluster: { min: 0.5, max: 5,   hint: "Entre 0.5 e 5.0" },
+  limiar_zscore_cluster: { min: -5,  max: -0.5,hint: "Valor negativo (entre -5.0 e -0.5)" },
   limiar_div_sazonal:    { min: 1,   max: 80,  hint: "Entre 1% e 80%" },
   limiar_slope_tendencia:{ min: -500,max: -0.1,hint: "Valor negativo (descida)" },
   limiar_ratio_racio:    { min: 0.5, max: 5,   hint: "Entre 0.5 e 5.0" },

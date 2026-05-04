@@ -46,25 +46,45 @@ export function useKPIs(mesAno: string, zona?: string) {
 
       // Receita recuperada YTD (fraudes confirmadas no ano corrente)
       const ano = mesAno.split("-")[0];
-      const { data: recuperada } = await supabase
+      let recQuery = supabase
         .from("relatorios_inspecao")
         .select(
-          `alertas_fraude!inner(mes_ano, id_cliente,
-            clientes!inner(faturacao_clientes(valor_cve, mes_ano))
-          )`
+          zona
+            ? `alertas_fraude!inner(mes_ano, id_cliente,
+                clientes!inner(id_subestacao, faturacao_clientes(valor_cve, mes_ano),
+                  subestacoes!inner(zona_bairro)
+                )
+              )`
+            : `alertas_fraude!inner(mes_ano, id_cliente,
+                clientes!inner(faturacao_clientes(valor_cve, mes_ano))
+              )`
         )
         .eq("resultado", "Fraude_Confirmada");
+      if (zona) {
+        recQuery = (recQuery as typeof recQuery).eq(
+          "alertas_fraude.clientes.subestacoes.zona_bairro",
+          zona,
+        );
+      }
+      const { data: recuperada } = await recQuery;
 
+      // PostgREST returns FK joins as arrays when the relationship is one-to-many,
+      // and as a single object when it's many-to-one. relatorios_inspecao→alertas_fraude
+      // is many-to-one, but defensively support both shapes.
+      type FatRow = { valor_cve: number; mes_ano: string };
+      type AlertaJoined = {
+        mes_ano: string;
+        clientes: { faturacao_clientes: FatRow[] } | { faturacao_clientes: FatRow[] }[];
+      };
       const receitaYTD = (recuperada ?? []).reduce((sum: number, r: unknown) => {
-        const item = r as {
-          alertas_fraude: {
-            mes_ano: string;
-            clientes: { faturacao_clientes: Array<{ valor_cve: number; mes_ano: string }> };
-          };
-        };
-        const mesAlerta = item.alertas_fraude?.mes_ano;
+        const item = r as { alertas_fraude: AlertaJoined | AlertaJoined[] };
+        const alerta = Array.isArray(item.alertas_fraude)
+          ? item.alertas_fraude[0]
+          : item.alertas_fraude;
+        const mesAlerta = alerta?.mes_ano;
         if (!mesAlerta?.startsWith(ano)) return sum;
-        const faturacao = item.alertas_fraude?.clientes?.faturacao_clientes ?? [];
+        const cliente = Array.isArray(alerta.clientes) ? alerta.clientes[0] : alerta.clientes;
+        const faturacao = cliente?.faturacao_clientes ?? [];
         const fatMes = faturacao.find((f) => f.mes_ano === mesAlerta);
         return sum + (fatMes?.valor_cve ?? 0);
       }, 0);
@@ -113,14 +133,17 @@ export function useKPIs(mesAno: string, zona?: string) {
       const totalCVEFaturado = ((faturacaoTotal ?? []) as unknown as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.valor_cve, 0);
 
       const perdaKwh = totalInjetado - totalFaturado;
-      const tarifaMedia = totalFaturado > 0 ? totalCVEFaturado / totalFaturado : 15;
-      const perdaCVE = perdaKwh * tarifaMedia;
+      // When there is no faturação for the month, we cannot derive a real tariff
+      // from the data — return 0 perdaCVE rather than inflating with a synthetic
+      // 15 CVE/kWh fallback that turns a "no data" month into a fake huge loss.
+      const tarifaMedia = totalFaturado > 0 ? totalCVEFaturado / totalFaturado : 0;
+      const perdaCVE = tarifaMedia > 0 ? perdaKwh * tarifaMedia : 0;
 
       // Variação vs mês anterior
       const totalInjetadoAnt = ((injecoesAnt ?? []) as unknown as Array<{ total_kwh_injetado: number }>).reduce((s, i) => s + i.total_kwh_injetado, 0);
       const totalFaturadoAnt = ((faturacaoAnt ?? []) as unknown as Array<{ kwh_faturado: number }>).reduce((s, f) => s + f.kwh_faturado, 0);
       const perdaKwhAnt = totalInjetadoAnt - totalFaturadoAnt;
-      const perdaCVEAnt = perdaKwhAnt * tarifaMedia;
+      const perdaCVEAnt = tarifaMedia > 0 ? perdaKwhAnt * tarifaMedia : 0;
       const variacaoPerda =
         perdaCVEAnt > 0 ? ((perdaCVE - perdaCVEAnt) / perdaCVEAnt) * 100 : 0;
 
