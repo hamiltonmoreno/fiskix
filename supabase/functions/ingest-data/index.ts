@@ -39,6 +39,15 @@ function validarMesAno(valor: string): boolean {
   return /^\d{4}-\d{2}$/.test(valor) && !isNaN(Date.parse(`${valor}-01`));
 }
 
+// Defence-in-depth: even with admin-only ingest, neutralise leading
+// formula triggers (=, +, -, @, tab, CR) so a poisoned upstream feed
+// can't smuggle =HYPERLINK(...) / =cmd|... payloads through to Excel
+// exports downstream. The exporter also sanitises (src/lib/export.ts),
+// but stripping at the source means the DB never stores the trap.
+function neutralizeFormulaTriggers(value: string): string {
+  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+}
+
 function parseCsvLine(line: string, delim: string): string[] {
   // Minimal RFC-4180 parsing: handle quoted fields containing the delimiter
   // and escaped quotes (`""` inside a quoted field).
@@ -65,7 +74,7 @@ function parseCsvLine(line: string, delim: string): string[] {
     }
   }
   out.push(cur);
-  return out.map((c) => c.trim());
+  return out.map((c) => neutralizeFormulaTriggers(c.trim()));
 }
 
 function parseCsv(texto: string): string[][] {
@@ -222,16 +231,34 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { data: { user } } = await createClient(
+    const supabaseAuth = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    ).auth.getUser();
+      { global: { headers: { Authorization: authHeader } } },
+    );
+
+    const { data: { user } } = await supabaseAuth.auth.getUser();
 
     if (!user) {
       return new Response(
         JSON.stringify({ error: "Token inválido" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Restrict CSV ingestion to admin/gestor — the function uses the service
+    // role key below to bypass RLS, so without this check any authenticated
+    // user (including a fiscal) could upload data and even poison fields
+    // with formula triggers that an admin would later export to Excel.
+    const { data: profile } = await supabaseAuth
+      .from("perfis")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!profile || !["admin_fiskix", "gestor_perdas"].includes(profile.role)) {
+      return new Response(
+        JSON.stringify({ error: "Sem permissão para importar dados" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

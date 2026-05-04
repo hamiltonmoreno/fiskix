@@ -106,6 +106,14 @@ function computeBalanco(
   return filtered.sort((a, b) => b.perda_kwh - a.perda_kwh);
 }
 
+const ALLOWED_ROLES = new Set([
+  "admin_fiskix",
+  "diretor",
+  "gestor_perdas",
+  "supervisor",
+]);
+const ZONA_RESTRICTED_ROLES = new Set(["supervisor"]);
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -114,6 +122,40 @@ Deno.serve(async (req) => {
   const start = Date.now();
 
   try {
+    // Authn/Authz first — the function uses the service role key below to
+    // bypass RLS, so any caller without an explicit role check would be able
+    // to read cross-zone aggregates. Mirror the pattern used in send-sms.
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: userData } = await supabaseAuth.auth.getUser();
+    if (!userData?.user) {
+      return new Response(JSON.stringify({ error: "Sessão inválida" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: profile } = await supabaseAuth
+      .from("perfis")
+      .select("role, id_zona")
+      .eq("id", userData.user.id)
+      .single();
+    if (!profile || !ALLOWED_ROLES.has(profile.role)) {
+      return new Response(JSON.stringify({ error: "Sem permissão para consultar balanço" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -141,6 +183,18 @@ Deno.serve(async (req) => {
         status: 405,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Zone-restricted roles (supervisor) cannot query other zones.
+    // Force their own id_zona regardless of the input parameter.
+    if (ZONA_RESTRICTED_ROLES.has(profile.role)) {
+      if (!profile.id_zona) {
+        return new Response(JSON.stringify({ error: "Perfil sem zona atribuída" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      zona = profile.id_zona;
     }
 
     if (!mesAno || !/^\d{4}-\d{2}$/.test(mesAno)) {
