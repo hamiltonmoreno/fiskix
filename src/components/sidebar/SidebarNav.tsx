@@ -10,12 +10,16 @@ import type { NavItem } from "./types";
 const MONITORAMENTO: NavItem[] = [
   { label: "Dashboard",  href: "/dashboard",  icon: "dashboard" },
   { label: "Alertas",    href: "/alertas",    icon: "notifications_active" },
+  { label: "Clientes",   href: "/clientes",   icon: "groups" },
   { label: "Balanço",    href: "/balanco",    icon: "query_stats" },
   { label: "Relatórios", href: "/relatorios", icon: "insert_chart" },
 ];
 
 const OPERACOES: NavItem[] = [
-  { label: "Motor de Scoring", href: "/admin/scoring", icon: "analytics" },
+  { label: "Inspeções",        href: "/inspecoes",       icon: "fact_check" },
+  { label: "Notificações SMS", href: "/notificacoes",    icon: "sms" },
+  { label: "Recuperação",      href: "/recuperacao",     icon: "savings" },
+  { label: "Motor de Scoring", href: "/admin/scoring",   icon: "analytics" },
 ];
 
 const CONFIGURACOES: NavItem[] = [
@@ -45,6 +49,8 @@ export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, on
   const isAdmin      = ["admin_fiskix", "gestor_perdas"].includes(profile.role);
   const isSuperAdmin = profile.role === "admin_fiskix";
   const isRelatorios = ["admin_fiskix", "diretor", "gestor_perdas"].includes(profile.role);
+  const hasOps       = ["admin_fiskix", "diretor", "gestor_perdas", "supervisor"].includes(profile.role);
+  const hasFinance   = ["admin_fiskix", "diretor", "gestor_perdas"].includes(profile.role);
 
   return (
     <div className="flex flex-col h-full mosaic-scrollbar">
@@ -75,15 +81,24 @@ export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, on
         <NavGroup
           label="Monitoramento"
           items={MONITORAMENTO.filter((item) => {
-            // /balanco and /relatorios are gated to roles with reporting access
             if (item.href === "/relatorios" || item.href === "/balanco") return isRelatorios;
+            if (item.href === "/clientes") return hasOps;
             return true;
           })}
           collapsed={collapsed}
           isActive={isActive}
         />
-        {isAdmin && (
-          <NavGroup label="Operações" items={OPERACOES} collapsed={collapsed} isActive={isActive} />
+        {hasOps && (
+          <NavGroup
+            label="Operações"
+            items={OPERACOES.filter((item) => {
+              if (item.href === "/admin/scoring") return isAdmin;
+              if (item.href === "/recuperacao") return hasFinance;
+              return true;
+            })}
+            collapsed={collapsed}
+            isActive={isActive}
+          />
         )}
         {isAdmin && (
           <NavGroup
