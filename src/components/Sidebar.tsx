@@ -17,6 +17,7 @@ import {
   X,
   Bell,
   FileBarChart2,
+  Activity,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -145,13 +146,20 @@ export function Sidebar({ profile }: SidebarProps) {
           <NavLink key={item.href} item={item} collapsed={collapsed} active={isActive(item.href)} />
         ))}
 
-        {/* Relatórios — visível para diretor, gestor_perdas, admin_fiskix */}
+        {/* Relatórios + Balanço — visível para diretor, gestor_perdas, admin_fiskix */}
         {isRelatorios && (
-          <NavLink
-            item={{ label: "Relatórios", href: "/relatorios", icon: FileBarChart2 }}
-            collapsed={collapsed}
-            active={isActive("/relatorios")}
-          />
+          <>
+            <NavLink
+              item={{ label: "Balanço Energético", href: "/balanco", icon: Activity }}
+              collapsed={collapsed}
+              active={isActive("/balanco")}
+            />
+            <NavLink
+              item={{ label: "Relatórios", href: "/relatorios", icon: FileBarChart2 }}
+              collapsed={collapsed}
+              active={isActive("/relatorios")}
+            />
+          </>
         )}
 
         {/* Admin section */}
