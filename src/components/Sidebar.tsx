@@ -91,7 +91,7 @@ export function Sidebar({ profile }: SidebarProps) {
       <div
         id="mobile-sidebar-drawer"
         className={cn(
-          "lg:hidden fixed top-0 left-0 bottom-0 z-50 w-64",
+          "lg:hidden fixed top-0 left-0 bottom-0 z-50 w-64 max-w-[85vw]",
           "bg-white dark:bg-gray-800",
           "shadow-2xl",
           "transition-transform duration-300 ease-in-out no-print",

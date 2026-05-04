@@ -87,7 +87,7 @@ export function HeatMap({ mesAno, zona }: HeatMapProps) {
   if (!Map) {
     return (
       <div className="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-outline-variant/10">
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Subestações</p>
+        <p className="text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest mb-1">Subestações</p>
         <p className="font-bold text-on-surface mb-4">Mapa de Calor — Perdas por Zona</p>
         <Skeleton className="h-80 w-full rounded-xl" />
       </div>
@@ -98,7 +98,7 @@ export function HeatMap({ mesAno, zona }: HeatMapProps) {
     <div className="bg-surface-container-lowest rounded-[1.5rem] p-6 shadow-sm border border-outline-variant/10">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Subestações</p>
+          <p className="text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest mb-0.5">Subestações</p>
           <p className="font-bold text-on-surface">Mapa de Calor — Perdas por Zona</p>
         </div>
         <div className="flex items-center gap-3 text-[11px] text-on-surface-variant">

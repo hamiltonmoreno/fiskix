@@ -147,7 +147,7 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
     <div className="bg-surface-container-lowest rounded-[1.5rem] p-8 shadow-sm border border-outline-variant/10">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Histórico</p>
+          <p className="text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest mb-0.5">Histórico</p>
           <p className="font-bold text-on-surface text-lg">Tendência de Perdas — 12 Meses</p>
         </div>
         <span className="text-[11px] text-on-surface-variant flex items-center gap-1.5">

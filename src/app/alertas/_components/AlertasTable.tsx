@@ -193,7 +193,7 @@ export function AlertasTable({
                               disabled={isLoading}
                               aria-label="Marcar como fraude confirmada"
                               title="Confirmar fraude"
-                              className="p-1.5 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors"
+                              className="p-2 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors touch-manipulation"
                             >
                               <CheckCircle2 className="w-4 h-4" />
                             </button>
@@ -202,7 +202,7 @@ export function AlertasTable({
                               disabled={isLoading}
                               aria-label="Marcar como anomalia técnica"
                               title="Anomalia técnica"
-                              className="p-1.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-md hover:bg-amber-500 hover:text-white transition-colors"
+                              className="p-2 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-md hover:bg-amber-500 hover:text-white transition-colors touch-manipulation"
                             >
                               <Wrench className="w-4 h-4" />
                             </button>
@@ -211,7 +211,7 @@ export function AlertasTable({
                               disabled={isLoading}
                               aria-label="Marcar como falso positivo"
                               title="Falso positivo"
-                              className="p-1.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                              className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors touch-manipulation"
                             >
                               <XCircle className="w-4 h-4" />
                             </button>
@@ -237,7 +237,7 @@ export function AlertasTable({
               onClick={() => { haptics.light(); onPageChange(Math.max(0, page - 1)); }}
               disabled={page === 0}
               aria-label="Página anterior"
-              className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 cursor-pointer touch-manipulation transition-colors"
+              className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 cursor-pointer touch-manipulation transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -245,7 +245,7 @@ export function AlertasTable({
               onClick={() => { haptics.light(); onPageChange(Math.min(totalPages - 1, page + 1)); }}
               disabled={page >= totalPages - 1}
               aria-label="Página seguinte"
-              className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 cursor-pointer touch-manipulation transition-colors"
+              className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 cursor-pointer touch-manipulation transition-colors"
             >
               <ChevronRight className="w-5 h-5" />
             </button>

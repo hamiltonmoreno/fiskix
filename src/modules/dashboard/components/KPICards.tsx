@@ -108,7 +108,7 @@ function KPICard({
 
 export function KPICards({ data, loading }: KPICardsProps) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <KPICard
         title="Perda Estimada"
         value={data ? formatCVE(data.perda_cve_total) : "—"}
