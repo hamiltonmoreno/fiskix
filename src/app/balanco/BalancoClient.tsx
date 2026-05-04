@@ -572,11 +572,14 @@ function DrillDownModal({
       setData(null);
       return;
     }
+    let cancelled = false;
     setLoading(true);
     fetchDrillDown(sub.id, mesAno).then((d) => {
+      if (cancelled) return;
       setData(d);
       setLoading(false);
     });
+    return () => { cancelled = true; };
   }, [open, sub, mesAno]);
 
   return (

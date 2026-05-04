@@ -174,8 +174,10 @@ Deno.serve(async (req) => {
       .order("mes_ano", { ascending: true });
 
     // Alertas anteriores por cliente (não falso-positivos, últimos 12 meses)
+    // month é 1-indexed; Date espera 0-indexed; subtrair 1 para alinhar antes do
+    // -12 — caso contrário a janela perde o mês mais antigo (apenas 11 meses).
     const [year, month] = mes_ano.split("-").map(Number);
-    const mes12Atras = new Date(year, month - 12, 1);
+    const mes12Atras = new Date(year, month - 1 - 12, 1);
     const mes12AtrasFmt = `${mes12Atras.getFullYear()}-${String(mes12Atras.getMonth() + 1).padStart(2, "0")}`;
 
     const { data: alertasHist } = await supabase
