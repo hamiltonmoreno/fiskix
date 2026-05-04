@@ -74,3 +74,22 @@ export const R9_MULT_FACTOR = 2;
 // Score final
 export const SCORE_MAX = 100;
 export const SCORE_LIMIAR_ALERTA = 50;
+
+// ============================================================
+// BALANÇO ENERGÉTICO
+// ============================================================
+
+/** Tarifa média (CVE/kWh) usada como fallback. Configurável em
+ *  `configuracoes.tarifa_fallback_cve_kwh`. */
+export const TARIFA_FALLBACK_CVE_KWH = 15;
+
+// ============================================================
+// R7 — REINCIDÊNCIA: resultados que contam como reincidência
+// ============================================================
+
+export const RESULTADOS_REINCIDENCIA = [
+  "Fraude_Confirmada",
+  "Anomalia_Tecnica",
+] as const;
+
+export type ResultadoReincidencia = typeof RESULTADOS_REINCIDENCIA[number];

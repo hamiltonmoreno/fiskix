@@ -11,6 +11,10 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  LIMIAR_PERDA_ZONA_PCT,
+  TARIFA_FALLBACK_CVE_KWH,
+} from "../_shared/scoring-constants.ts";
 
 type UserRole = "admin_fiskix" | "diretor" | "gestor_perdas" | "supervisor" | "fiscal";
 
@@ -114,14 +118,22 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "mes_ano é obrigatório no formato YYYY-MM" }, 400);
     }
 
-    // Limiar de zona vermelha das configurações
+    // Configurações: limiar de zona vermelha + tarifa fallback CVE/kWh
     const { data: configRows } = await supabase
       .from("configuracoes")
       .select("chave, valor")
-      .eq("chave", "limiar_perda_zona_pct")
-      .single();
+      .in("chave", ["limiar_perda_zona_pct", "tarifa_fallback_cve_kwh"]);
 
-    const limiarPerda = configRows ? parseFloat(configRows.valor) : 15;
+    const configMap = Object.fromEntries(
+      (configRows ?? []).map((r) => [r.chave, parseFloat(r.valor)])
+    );
+
+    const limiarPerda = Number.isFinite(configMap.limiar_perda_zona_pct)
+      ? configMap.limiar_perda_zona_pct
+      : LIMIAR_PERDA_ZONA_PCT;
+    const tarifaFallback = Number.isFinite(configMap.tarifa_fallback_cve_kwh)
+      ? configMap.tarifa_fallback_cve_kwh
+      : TARIFA_FALLBACK_CVE_KWH;
 
     // Obter subestações (uma ou todas)
     let subQuery = supabase
@@ -172,9 +184,11 @@ Deno.serve(async (req) => {
       const perda_pct =
         kwh_injetado > 0 ? (perda_kwh / kwh_injetado) * 100 : 0;
 
-      // Tarifa média como proxy do custo unitário das perdas
+      // Tarifa média como proxy do custo unitário das perdas.
+      // Quando a subestação não tem faturação, usa o fallback configurável
+      // de `configuracoes.tarifa_fallback_cve_kwh` (default TARIFA_FALLBACK_CVE_KWH).
       const tarifa_media =
-        kwh_faturado > 0 ? cve_faturado / kwh_faturado : 15;
+        kwh_faturado > 0 ? cve_faturado / kwh_faturado : tarifaFallback;
       const cve_perdido_estimado = Math.round(perda_kwh * tarifa_media);
 
       resultados.push({

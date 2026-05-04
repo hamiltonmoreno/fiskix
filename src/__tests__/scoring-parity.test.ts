@@ -42,9 +42,9 @@ import {
 // ---------------------------------------------------------------------------
 
 describe("scoring constants — paridade entre canónico e mirror Deno", () => {
-  // Snapshot estável das chaves esperadas. Se alguém adicionar uma constante
+  // Snapshot estável das chaves numéricas. Se alguém adicionar uma constante
   // só num lado, este array fica desactualizado e o teste de equality falha.
-  const CHAVES_ESPERADAS = [
+  const CHAVES_NUMERICAS = [
     "LIMIAR_QUEDA_PCT",
     "LIMIAR_CV_MAXIMO",
     "LIMIAR_MU_MINIMO",
@@ -82,7 +82,11 @@ describe("scoring constants — paridade entre canónico e mirror Deno", () => {
     "R9_MULT_FACTOR",
     "SCORE_MAX",
     "SCORE_LIMIAR_ALERTA",
+    "TARIFA_FALLBACK_CVE_KWH",
   ] as const;
+
+  // Constantes não-numéricas (arrays/objetos) — comparação deep
+  const CHAVES_ESTRUTURADAS = ["RESULTADOS_REINCIDENCIA"] as const;
 
   it("ambos os ficheiros exportam exactamente as mesmas chaves", () => {
     const chavesCanonico = Object.keys(constsCanonicas).sort();
@@ -92,15 +96,25 @@ describe("scoring constants — paridade entre canónico e mirror Deno", () => {
 
   it("o conjunto de chaves corresponde à lista esperada (detecta esquecimentos)", () => {
     const chavesCanonico = Object.keys(constsCanonicas).sort();
-    expect(chavesCanonico).toEqual([...CHAVES_ESPERADAS].sort());
+    const esperadas = [...CHAVES_NUMERICAS, ...CHAVES_ESTRUTURADAS].sort();
+    expect(chavesCanonico).toEqual(esperadas);
   });
 
-  it.each(CHAVES_ESPERADAS)(
+  it.each(CHAVES_NUMERICAS)(
     "constante %s tem o mesmo valor em ambos os ficheiros",
     (chave) => {
-      const v1 = (constsCanonicas as Record<string, number>)[chave];
-      const v2 = (constsEdgeMirror as Record<string, number>)[chave];
+      const v1 = (constsCanonicas as unknown as Record<string, number>)[chave];
+      const v2 = (constsEdgeMirror as unknown as Record<string, number>)[chave];
       expect(v2).toBe(v1);
+    }
+  );
+
+  it.each(CHAVES_ESTRUTURADAS)(
+    "constante estruturada %s é deep-equal entre os dois ficheiros",
+    (chave) => {
+      const v1 = (constsCanonicas as Record<string, unknown>)[chave];
+      const v2 = (constsEdgeMirror as Record<string, unknown>)[chave];
+      expect(v2).toEqual(v1);
     }
   );
 });

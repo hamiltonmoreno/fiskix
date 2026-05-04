@@ -25,6 +25,7 @@ import {
   R9_MULT_BASE,
   R9_MULT_MAX_DELTA,
   R9_MULT_FACTOR,
+  RESULTADOS_REINCIDENCIA,
   SCORE_LIMIAR_ALERTA,
 } from "../_shared/scoring-constants.ts";
 import { calcularScoreEdge } from "./pure.ts";
@@ -209,7 +210,7 @@ Deno.serve(async (req) => {
       .in("id_cliente", clienteIds)
       .gte("mes_ano", mes12AtrasFmt)
       .lt("mes_ano", mes_ano)
-      .in("resultado", ["Fraude_Confirmada", "Anomalia_Tecnica"]);
+      .in("resultado", RESULTADOS_REINCIDENCIA);
 
     const alertasPorCliente: Record<string, number> = {};
     for (const a of (alertasHist ?? [])) {
