@@ -72,9 +72,58 @@ Deno.serve(async (req) => {
     const configMap: Record<string, string> = {};
     for (const c of configRows ?? []) configMap[c.chave] = c.valor;
 
-    const pesos: PesosML = configMap.ml_pesos_v1
-      ? JSON.parse(configMap.ml_pesos_v1)
-      : { queda_pct: 0.35, cv: 0.20, zscore: 0.15, slope: 0.10, ratio_pico: 0.08, alertas_12m: 0.07, perda_zona: 0.05 };
+    // Modelo ativo (auto-promovido pelo cron quando há ground truth suficiente).
+    // Cada modelo tem o seu conjunto de pesos: ml_pesos_v1 / ml_pesos_v1_logistic.
+    const PESOS_HEURISTIC_DEFAULT: PesosML = {
+      queda_pct: 0.35, cv: 0.20, zscore: 0.15, slope: 0.10,
+      ratio_pico: 0.08, alertas_12m: 0.07, perda_zona: 0.05,
+    };
+    const REQUIRED_PESOS_KEYS = [
+      "queda_pct", "cv", "zscore", "slope", "ratio_pico", "alertas_12m", "perda_zona",
+    ] as const;
+
+    function isValidPesos(obj: unknown): obj is PesosML {
+      if (typeof obj !== "object" || obj === null || Array.isArray(obj)) return false;
+      const o = obj as Record<string, unknown>;
+      return REQUIRED_PESOS_KEYS.every(
+        (k) => typeof o[k] === "number" && Number.isFinite(o[k] as number)
+      );
+    }
+
+    const modeloPedido = (configMap.ml_modelo_ativo ?? "heuristic_v1") as
+      | "heuristic_v1"
+      | "logistic_v1";
+    const pesosKey = modeloPedido === "logistic_v1" ? "ml_pesos_v1_logistic" : "ml_pesos_v1";
+
+    let pesos: PesosML = PESOS_HEURISTIC_DEFAULT;
+    let modeloAtivo: "heuristic_v1" | "logistic_v1" = modeloPedido;
+    let downgraded = false;
+
+    if (configMap[pesosKey]) {
+      try {
+        const parsed = JSON.parse(configMap[pesosKey]);
+        if (isValidPesos(parsed)) {
+          pesos = parsed;
+        } else {
+          // Pesos malformados (faltam keys ou non-finite). Não podemos pontuar
+          // com NaN; também não devemos etiquetar como logistic_v1 quando estamos
+          // a usar pesos heurísticos default.
+          downgraded = modeloPedido === "logistic_v1";
+        }
+      } catch {
+        downgraded = modeloPedido === "logistic_v1";
+      }
+    }
+
+    // Se os pesos do modelo pedido estão partidos, etiquetar predições como
+    // heuristic_v1 (corresponde aos pesos default usados) — evita corromper
+    // monitoring de versão e não cria histórico falso de logistic_v1.
+    if (downgraded) {
+      modeloAtivo = "heuristic_v1";
+      console.warn(
+        `[ml-scoring] ml_pesos_v1_logistic inválido para mes_ano=${mes_ano} — downgrade defensivo para heuristic_v1 neste run.`
+      );
+    }
 
     // Obter alertas ativos no mês (score >= 50 já calculado pelo scoring-engine)
     let alertasQuery = supabase
@@ -150,7 +199,7 @@ Deno.serve(async (req) => {
         id_cliente: alerta.id_cliente,
         mes_ano,
         score_ml,
-        modelo_versao: "heuristic_v1",
+        modelo_versao: modeloAtivo,
         features_json,
       });
     }

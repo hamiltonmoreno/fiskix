@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/observability/logger";
 import { runPool } from "@/lib/concurrency";
 import { calcularRMSE, type ParRMSE, type ResultadoRMSE } from "@/lib/ml/rmse";
+import { attemptAutoPromote, type AutoPromoteOutcome } from "@/lib/ml/auto-promote";
+
+// Resultados que contam como inspeção confirmada para auto-promote (R7).
+// Nota: vai ser substituído por RESULTADOS_REINCIDENCIA do constants partilhado
+// após o merge de PR #18 (não fica DRY entretanto, mas evita merge conflicts).
+const RESULTADOS_CONFIRMADOS = ["Fraude_Confirmada", "Anomalia_Tecnica"] as const;
 
 /**
  * Cron route: executa o motor ML para todas as subestações ativas.
@@ -210,12 +216,33 @@ export async function GET(request: Request) {
     log.warn("cron.ml.rmse_failed", { error: rmseError });
   }
 
+  // AUTO-PROMOTE: heuristic_v1 → logistic_v1 quando atinge threshold + pesos existem
+  let autoPromote: AutoPromoteOutcome | null = null;
+  try {
+    autoPromote = await attemptAutoPromote(buildAutoPromoteDeps(supabase));
+    if (autoPromote.promoted) {
+      log.info("cron.ml.auto_promoted", {
+        from: autoPromote.from,
+        to: autoPromote.to,
+        inspecoes_confirmadas: autoPromote.inspecoes,
+        threshold: autoPromote.threshold,
+      });
+    } else if (autoPromote.reason === "error") {
+      log.warn("cron.ml.auto_promote_failed", { error: autoPromote.error });
+    }
+  } catch (err) {
+    log.warn("cron.ml.auto_promote_exception", {
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+
   log.info("cron.ml.completed", {
     mes_ano: mesAno,
     subestacoes_processadas: subestacoes.length,
     total_scored: totalScored,
     erros: erros.length,
     rmse: rmseResult?.rmse ?? null,
+    auto_promoted: autoPromote?.promoted ?? false,
     duration_ms: Date.now() - startedAt,
   });
 
@@ -229,8 +256,36 @@ export async function GET(request: Request) {
       resultados,
       rmse: rmseResult ?? null,
       ...(rmseError ? { rmse_error: rmseError } : {}),
+      auto_promote: autoPromote,
     },
     200,
     requestId
   );
+}
+
+/** Adapta o cliente Supabase às interfaces puras do auto-promote. */
+function buildAutoPromoteDeps(supabase: SupabaseClient) {
+  return {
+    async readConfig(chave: string) {
+      const { data } = await supabase
+        .from("configuracoes")
+        .select("valor")
+        .eq("chave", chave)
+        .maybeSingle();
+      return data?.valor ?? null;
+    },
+    async countInspecoesConfirmadas() {
+      const { count } = await supabase
+        .from("alertas_fraude")
+        .select("id", { count: "exact", head: true })
+        .in("resultado", RESULTADOS_CONFIRMADOS);
+      return count ?? 0;
+    },
+    async writeModeloAtivo(valor: "heuristic_v1" | "logistic_v1") {
+      const { error } = await supabase
+        .from("configuracoes")
+        .upsert({ chave: "ml_modelo_ativo", valor }, { onConflict: "chave" });
+      if (error) throw new Error(error.message);
+    },
+  };
 }
