@@ -45,3 +45,6 @@ verify_jwt = true
 
 [functions.ingest-data]
 verify_jwt = true
+
+[functions.balanco-energetico]
+verify_jwt = true

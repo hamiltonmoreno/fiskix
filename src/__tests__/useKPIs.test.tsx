@@ -130,7 +130,7 @@ describe("useKPIs", () => {
     expect(result.current.data?.perda_cve_total).toBeGreaterThanOrEqual(0);
   });
 
-  it("usa tarifa padrão 15 CVE/kWh quando não há faturação", async () => {
+  it("retorna perda_cve=0 quando não há faturação (sem fallback de tarifa fictícia)", async () => {
     setupMocks({
       injecoes: [{ total_kwh_injetado: 1000 }],
       // sem faturacao
@@ -140,8 +140,9 @@ describe("useKPIs", () => {
     const { result } = renderHook(() => useKPIs("2026-03"));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    // Sem faturação: perdaKwh = 1000 - 0 = 1000, tarifaMedia = 15 (fallback)
-    // perda_cve = 1000 × 15 = 15000
-    expect(result.current.data?.perda_cve_total).toBe(15000);
+    // Sem faturação real, não temos uma tarifa fiável — retornar 0 em vez de
+    // inflacionar com 15 CVE/kWh sintético que transforma um mês "sem dados"
+    // numa perda fictícia enorme.
+    expect(result.current.data?.perda_cve_total).toBe(0);
   });
 });

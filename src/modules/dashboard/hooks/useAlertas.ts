@@ -118,6 +118,9 @@ export function useAlertas({
   }, [load]);
 
   useEffect(() => {
+    // Re-subscribe whenever `load` changes (i.e. mes/zona/status/page changed),
+    // otherwise the channel keeps a stale closure to the initial filters and
+    // refetches the wrong data on each realtime event.
     const channel = supabase
       .channel("alertas-realtime")
       .on(
@@ -142,7 +145,14 @@ export function useAlertas({
         body: JSON.stringify({ alerta_id: alertaId, tipo }),
       }
     );
-    return res.json();
+    const json = await res.json().catch(() => ({} as Record<string, unknown>));
+    // The edge function returns 4xx/5xx when Twilio fails. Surface that as an
+    // error in the result so the UI can warn the user instead of pretending
+    // the SMS went out.
+    if (!res.ok || (json as { mensagem_enviada?: boolean }).mensagem_enviada === false) {
+      return { ...(json as object), error: (json as { error?: string }).error ?? "Falha ao enviar SMS" };
+    }
+    return json;
   }
 
   async function gerarOrdem(alertaId: string) {

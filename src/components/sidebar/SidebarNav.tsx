@@ -10,6 +10,7 @@ import type { NavItem } from "./types";
 const MONITORAMENTO: NavItem[] = [
   { label: "Dashboard",  href: "/dashboard",  icon: "dashboard" },
   { label: "Alertas",    href: "/alertas",    icon: "notifications_active" },
+  { label: "Balanço",    href: "/balanco",    icon: "query_stats" },
   { label: "Relatórios", href: "/relatorios", icon: "insert_chart" },
 ];
 
@@ -73,7 +74,11 @@ export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, on
       <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 pt-4 space-y-6 pb-4">
         <NavGroup
           label="Monitoramento"
-          items={MONITORAMENTO.filter((item) => item.href !== "/relatorios" || isRelatorios)}
+          items={MONITORAMENTO.filter((item) => {
+            // /balanco and /relatorios are gated to roles with reporting access
+            if (item.href === "/relatorios" || item.href === "/balanco") return isRelatorios;
+            return true;
+          })}
           collapsed={collapsed}
           isActive={isActive}
         />

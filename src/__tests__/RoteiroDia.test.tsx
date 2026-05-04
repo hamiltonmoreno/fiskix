@@ -33,12 +33,18 @@ vi.mock("idb", () => ({
 }));
 
 // ── Mock Supabase ──────────────────────────────────────────────────────────────
+// Supports any number of chained .eq() calls before resolving on .order().
+// RoteiroDia uses 3 .eq() calls (mes_ano, status, clientes.subestacoes.zona_bairro).
 let mockQueryData: unknown[] = [];
 
 const mockOrder = vi.fn().mockImplementation(() => ({ data: mockQueryData }));
-const mockEqStatus = vi.fn().mockReturnValue({ order: mockOrder });
-const mockEqMes = vi.fn().mockReturnValue({ eq: mockEqStatus });
-const mockSelect = vi.fn().mockReturnValue({ eq: mockEqMes });
+const eqChain: { eq: typeof mockEq; order: typeof mockOrder } = {
+  eq: (() => eqChain) as never,
+  order: mockOrder,
+};
+const mockEq = vi.fn().mockImplementation(() => eqChain);
+eqChain.eq = mockEq;
+const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
 const mockFrom = vi.fn().mockReturnValue({ select: mockSelect });
 const mockSignOut = vi.fn().mockResolvedValue({});
 

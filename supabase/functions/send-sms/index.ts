@@ -196,16 +196,22 @@ Deno.serve(async (req) => {
         .eq("id", alerta_id);
     }
 
-    return jsonResponse({
-      alerta_id,
-      tipo,
-      telemovel: cliente.telemovel.replace(/\d(?=\d{4})/g, "*"),
-      remetente: resultado.from,
-      mensagem_enviada: resultado.ok,
-      sid: resultado.ok ? resultado.sid : undefined,
-      erro: resultado.ok ? undefined : resultado.error,
-      status_atualizado: resultado.ok ? "Notificado_SMS" : "Pendente",
-    });
+    return jsonResponse(
+      {
+        alerta_id,
+        tipo,
+        telemovel: cliente.telemovel.replace(/\d(?=\d{4})/g, "*"),
+        remetente: resultado.from,
+        mensagem_enviada: resultado.ok,
+        sid: resultado.ok ? resultado.sid : undefined,
+        erro: resultado.ok ? undefined : resultado.error,
+        error: resultado.ok ? undefined : resultado.error,
+        status_atualizado: resultado.ok ? "Notificado_SMS" : "Pendente",
+      },
+      // 502 when Twilio rejected: the caller (browser) typically only checks
+      // res.ok and would otherwise treat a failed send as success.
+      resultado.ok ? 200 : 502,
+    );
   } catch (error) {
     console.error("Erro ao enviar SMS:", error);
     return jsonResponse({ error: String(error) }, 500);

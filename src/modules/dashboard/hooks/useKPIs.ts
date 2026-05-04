@@ -75,7 +75,7 @@ export function useKPIs(mesAno: string, zona?: string) {
 
       // Receita recuperada YTD (fraudes confirmadas no ano corrente)
       const ano = mesAno.split("-")[0];
-      const { data: recuperada } = await supabase
+      let recQuery = supabase
         .from("relatorios_inspecao")
         .select(
           `alertas_fraude!inner(mes_ano, id_cliente,
@@ -86,7 +86,22 @@ export function useKPIs(mesAno: string, zona?: string) {
           )`
         )
         .eq("resultado", "Fraude_Confirmada");
+      if (zona) {
+        recQuery = (recQuery as typeof recQuery).eq(
+          "alertas_fraude.clientes.subestacoes.zona_bairro",
+          zona,
+        );
+      }
+      const { data: recuperada } = await recQuery;
 
+      // PostgREST returns FK joins as arrays when the relationship is one-to-many,
+      // and as a single object when it's many-to-one. relatorios_inspecao→alertas_fraude
+      // is many-to-one, but defensively support both shapes.
+      type FatRow = { valor_cve: number; mes_ano: string };
+      type AlertaJoined = {
+        mes_ano: string;
+        clientes: { faturacao_clientes: FatRow[] } | { faturacao_clientes: FatRow[] }[];
+      };
       const receitaYTD = (recuperada ?? []).reduce((sum: number, r: unknown) => {
         const item = r as {
           alertas_fraude: {
@@ -149,8 +164,11 @@ export function useKPIs(mesAno: string, zona?: string) {
       const totalCVEFaturado = ((faturacaoTotal ?? []) as unknown as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.valor_cve, 0);
 
       const perdaKwh = totalInjetado - totalFaturado;
-      const tarifaMedia = totalFaturado > 0 ? totalCVEFaturado / totalFaturado : 15;
-      const perdaCVE = perdaKwh * tarifaMedia;
+      // When there is no faturação for the month, we cannot derive a real tariff
+      // from the data — return 0 perdaCVE rather than inflating with a synthetic
+      // 15 CVE/kWh fallback that turns a "no data" month into a fake huge loss.
+      const tarifaMedia = totalFaturado > 0 ? totalCVEFaturado / totalFaturado : 0;
+      const perdaCVE = tarifaMedia > 0 ? perdaKwh * tarifaMedia : 0;
 
       // Variação vs mês anterior
       const totalInjetadoAnt = ((injecoesAnt ?? []) as unknown as Array<{ total_kwh_injetado: number }>).reduce((s, i) => s + i.total_kwh_injetado, 0);

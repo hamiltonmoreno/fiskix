@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentMesAno } from "@/lib/utils";
+import { useOnlineStatus } from "@/lib/hooks/useOnlineStatus";
 import type { OrdemFiscal } from "../types";
 import {
   MapPin,
@@ -14,8 +15,7 @@ import {
   CloudUpload,
   ChevronRight,
 } from "lucide-react";
-import { openDB } from "idb";
-import type { RelatorioOffline } from "../types";
+import { syncPendingReports } from "../lib/sync-pending-reports";
 import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,136 +27,107 @@ interface RoteiroDiaProps {
   nomeFiscal: string;
 }
 
-async function syncPendingReports(supabase: ReturnType<typeof createClient>, fiscalId: string) {
-  try {
-    const db = await openDB("fiskix-offline", 1, {
-      upgrade(db) { db.createObjectStore("relatorios", { keyPath: "alerta_id" }); },
-    });
-    const pending: RelatorioOffline[] = await db.getAll("relatorios");
-    for (const r of pending) {
-      const { error } = await supabase.from("relatorios_inspecao").insert({
-        id_alerta: r.alerta_id,
-        id_fiscal: fiscalId,
-        resultado: r.resultado,
-        tipo_fraude: (r.tipo_fraude ?? null) as "Bypass" | "Contador_adulterado" | "Ligacao_vizinha" | "Ima" | "Outro" | null,
-        foto_url: null,
-        foto_lat: r.foto_lat ?? null,
-        foto_lng: r.foto_lng ?? null,
-        observacoes: r.observacoes ?? null,
-      });
-      if (!error) {
-        await supabase.from("alertas_fraude").update({ status: "Inspecionado", resultado: r.resultado }).eq("id", r.alerta_id);
-        await db.delete("relatorios", r.alerta_id);
-      }
-    }
-    return pending.length;
-  } catch {
-    return 0;
-  }
-}
-
 export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
   const [ordens, setOrdens] = useState<OrdemFiscal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [syncedCount, setSyncedCount] = useState(0);
-  const [isOnline, setIsOnline] = useState(
-    typeof window !== "undefined" ? navigator.onLine : true
-  );
+  const [zonaError, setZonaError] = useState<string | null>(null);
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const mesAno = getCurrentMesAno();
+  const isOnline = useOnlineStatus();
 
   const ordensPendentes = ordens.filter((o) => o.status === "Pendente_Inspecao");
   const ordensConcluidas = ordens.filter((o) => o.status !== "Pendente_Inspecao");
   const proximaOrdem = ordensPendentes[0] ?? null;
   const progressoPct = ordens.length > 0 ? (ordensConcluidas.length / ordens.length) * 100 : 0;
 
-  useEffect(() => {
-    setIsOnline(navigator.onLine);
-    const goOnline = () => setIsOnline(true);
-    const goOffline = () => setIsOnline(false);
-    window.addEventListener("online", goOnline);
-    window.addEventListener("offline", goOffline);
-    return () => {
-      window.removeEventListener("online", goOnline);
-      window.removeEventListener("offline", goOffline);
-    };
-  }, []);
-
   const carregarOrdens = useCallback(async () => {
+    // A fiscal without an assigned zone cannot see any orders (RLS would
+    // return zero rows silently). Surface the misconfiguration explicitly.
+    if (zona == null) {
+      setZonaError(
+        "A sua conta não tem zona atribuída. Contacte o administrador para receber ordens de inspeção.",
+      );
+      setOrdens([]);
+      return;
+    }
+    setZonaError(null);
+
     setRefreshing(true);
     try {
       const query = supabase
-      .from("alertas_fraude")
-      .select(
-        `
-        id, score_risco, status, mes_ano, motivo,
-        clientes!inner (
-          id, numero_contador, nome_titular, morada, tipo_tarifa, telemovel, lat, lng,
-          subestacoes!inner (nome, zona_bairro)
+        .from("alertas_fraude")
+        .select(
+          `
+          id, score_risco, status, mes_ano, motivo,
+          clientes!inner (
+            id, numero_contador, nome_titular, morada, tipo_tarifa, telemovel, lat, lng,
+            subestacoes!inner (nome, zona_bairro)
+          )
+          `
         )
-        `
-      )
-      .eq("mes_ano", mesAno)
-      .eq("status", "Pendente_Inspecao")
-      .order("score_risco", { ascending: false });
+        .eq("mes_ano", mesAno)
+        .eq("status", "Pendente_Inspecao")
+        // Defence-in-depth: in addition to RLS, restrict to the fiscal's zone
+        // via the joined substation so a misconfigured policy can't leak rows.
+        .eq("clientes.subestacoes.zona_bairro", zona)
+        .order("score_risco", { ascending: false });
 
-    const { data } = await query;
+      const { data } = await query;
 
-    const mapped: OrdemFiscal[] = (data ?? []).map((r) => {
-      const c = r.clientes as {
-        id: string;
-        numero_contador: string;
-        nome_titular: string;
-        morada: string;
-        tipo_tarifa: string;
-        telemovel: string | null;
-        lat: number | null;
-        lng: number | null;
-        subestacoes: { nome: string; zona_bairro: string };
-      };
+      const mapped: OrdemFiscal[] = (data ?? []).map((r) => {
+        const c = r.clientes as {
+          id: string;
+          numero_contador: string;
+          nome_titular: string;
+          morada: string;
+          tipo_tarifa: string;
+          telemovel: string | null;
+          lat: number | null;
+          lng: number | null;
+          subestacoes: { nome: string; zona_bairro: string };
+        };
 
-      return {
-        id: r.id,
-        score_risco: r.score_risco,
-        status: r.status,
-        mes_ano: r.mes_ano,
-        motivo: (r.motivo as OrdemFiscal["motivo"]) ?? [],
-        cliente: {
-          id: c.id,
-          numero_contador: c.numero_contador,
-          nome_titular: c.nome_titular,
-          morada: c.morada,
-          tipo_tarifa: c.tipo_tarifa,
-          telemovel: c.telemovel,
-          lat: c.lat,
-          lng: c.lng,
-        },
-        subestacao: {
-          nome: c.subestacoes.nome,
-          zona_bairro: c.subestacoes.zona_bairro,
-        },
-      };
-    });
+        return {
+          id: r.id,
+          score_risco: r.score_risco,
+          status: r.status,
+          mes_ano: r.mes_ano,
+          motivo: (r.motivo as OrdemFiscal["motivo"]) ?? [],
+          cliente: {
+            id: c.id,
+            numero_contador: c.numero_contador,
+            nome_titular: c.nome_titular,
+            morada: c.morada,
+            tipo_tarifa: c.tipo_tarifa,
+            telemovel: c.telemovel,
+            lat: c.lat,
+            lng: c.lng,
+          },
+          subestacao: {
+            nome: c.subestacoes.nome,
+            zona_bairro: c.subestacoes.zona_bairro,
+          },
+        };
+      });
 
-    // Guardar em localStorage para offline
-    try {
-      localStorage.setItem("fiskix_ordens", JSON.stringify(mapped));
-      localStorage.setItem("fiskix_ordens_ts", Date.now().toString());
-    } catch {}
+      try {
+        localStorage.setItem("fiskix_ordens", JSON.stringify(mapped));
+        localStorage.setItem("fiskix_ordens_ts", Date.now().toString());
+      } catch {}
 
-    setOrdens(mapped);
+      setOrdens(mapped);
     } finally {
       setRefreshing(false);
     }
-  }, [mesAno, supabase]);
+  }, [mesAno, supabase, zona]);
 
   useEffect(() => {
     async function init() {
       setLoading(true);
       try {
-        // Tentar online primeiro
         if (isOnline) {
           await carregarOrdens();
         } else {
@@ -179,11 +150,11 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
   // Sync pending offline reports when online
   useEffect(() => {
     if (isOnline) {
-      syncPendingReports(supabase, fiscalId).then((n) => {
-        if (n > 0) setSyncedCount(n);
+      syncPendingReports(supabase, fiscalId).then((res) => {
+        if (res.synced > 0) setSyncedCount(res.synced);
       });
     }
-  }, [fiscalId, supabase, isOnline]);
+  }, [fiscalId, isOnline, supabase]);
 
   async function handleRefresh() {
     await carregarOrdens();
@@ -408,6 +379,14 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
         <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-4 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
           <p className="text-amber-700 text-sm">Modo offline — a mostrar dados guardados</p>
+        </div>
+      )}
+
+      {/* Aviso de zona não atribuída */}
+      {zonaError && (
+        <div className="mx-4 mb-4 bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+          <p className="text-red-700 text-sm">{zonaError}</p>
         </div>
       )}
     </div>

@@ -31,7 +31,8 @@ const CONFIG_LIMITS: Record<string, { min: number; max: number; hint: string }> 
   limiar_queda_pct:      { min: 5,   max: 80,  hint: "5% – 80%" },
   limiar_cv_maximo:      { min: 0.01,max: 1,   hint: "0.01 – 1.00" },
   limiar_mu_minimo:      { min: 0,   max: 500, hint: "≥ 0 kWh" },
-  limiar_zscore_cluster: { min: 0.5, max: 5,   hint: "0.5 – 5.0" },
+  // Z-score for cluster anomaly is below-mean detection: must be negative.
+  limiar_zscore_cluster: { min: -5,  max: -0.5,hint: "Valor negativo (-5.0 a -0.5)" },
   limiar_div_sazonal:    { min: 1,   max: 80,  hint: "1% – 80%" },
   limiar_slope_tendencia:{ min: -500,max: -0.1,hint: "Valor negativo" },
   limiar_ratio_racio:    { min: 0.5, max: 5,   hint: "0.5 – 5.0" },
