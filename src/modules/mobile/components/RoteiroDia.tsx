@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getScoreLabel, getCurrentMesAno } from "@/lib/utils";
+import { useOnlineStatus } from "@/lib/hooks/useOnlineStatus";
 import type { OrdemFiscal } from "../types";
 import {
   MapPin,
@@ -23,31 +24,98 @@ interface RoteiroDiaProps {
   nomeFiscal: string;
 }
 
+const MAX_SYNC_RETRIES = 5;
+const FOTO_BUCKET = "fotos-inspecao";
+
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [meta, b64] = dataUrl.split(",");
+  const mime = meta.match(/data:(.*);base64/)?.[1] ?? "image/jpeg";
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
 async function syncPendingReports(supabase: ReturnType<typeof createClient>, fiscalId: string) {
+  let synced = 0;
+  let dropped = 0;
   try {
     const db = await openDB("fiskix-offline", 1, {
       upgrade(db) { db.createObjectStore("relatorios", { keyPath: "alerta_id" }); },
     });
     const pending: RelatorioOffline[] = await db.getAll("relatorios");
+
     for (const r of pending) {
+      let fotoUrl: string | null = null;
+      let fotoUploadFailed = false;
+
+      // Try to upload the photo (data URL stored offline) before inserting
+      // the relatório, otherwise the legal evidence would be lost.
+      if (r.foto_data_url) {
+        try {
+          const blob = dataUrlToBlob(r.foto_data_url);
+          const path = `${r.alerta_id}_${Date.now()}.jpg`;
+          const { error: upErr } = await supabase.storage
+            .from(FOTO_BUCKET)
+            .upload(path, blob, { contentType: blob.type, upsert: true });
+          if (upErr) {
+            fotoUploadFailed = true;
+          } else {
+            const { data: pub } = supabase.storage.from(FOTO_BUCKET).getPublicUrl(path);
+            fotoUrl = pub.publicUrl;
+          }
+        } catch {
+          fotoUploadFailed = true;
+        }
+      }
+
+      // If we have a photo data URL but upload failed, defer this record:
+      // bump retry counter and skip; do not insert without the evidence.
+      if (fotoUploadFailed) {
+        const next = { ...r, retry_count: (r.retry_count ?? 0) + 1 };
+        if (next.retry_count >= MAX_SYNC_RETRIES) {
+          await db.delete("relatorios", r.alerta_id);
+          dropped++;
+          console.warn("Dropping offline relatório after max retries:", r.alerta_id);
+        } else {
+          await db.put("relatorios", next);
+        }
+        continue;
+      }
+
       const { error } = await supabase.from("relatorios_inspecao").insert({
         id_alerta: r.alerta_id,
         id_fiscal: fiscalId,
         resultado: r.resultado,
         tipo_fraude: (r.tipo_fraude ?? null) as "Bypass" | "Contador_adulterado" | "Ligacao_vizinha" | "Ima" | "Outro" | null,
-        foto_url: null,
+        foto_url: fotoUrl,
         foto_lat: r.foto_lat ?? null,
         foto_lng: r.foto_lng ?? null,
         observacoes: r.observacoes ?? null,
       });
+
       if (!error) {
         await supabase.from("alertas_fraude").update({ status: "Inspecionado", resultado: r.resultado }).eq("id", r.alerta_id);
         await db.delete("relatorios", r.alerta_id);
+        synced++;
+        continue;
+      }
+
+      // Permanent failure (e.g. invalid enum value, RLS denial). Bump retry;
+      // drop after MAX_SYNC_RETRIES to prevent infinite loops.
+      const next = { ...r, retry_count: (r.retry_count ?? 0) + 1 };
+      if (next.retry_count >= MAX_SYNC_RETRIES) {
+        await db.delete("relatorios", r.alerta_id);
+        dropped++;
+        console.warn("Dropping offline relatório after max retries:", r.alerta_id, error);
+      } else {
+        await db.put("relatorios", next);
       }
     }
-    return pending.length;
+
+    return { synced, dropped, total: pending.length };
   } catch {
-    return 0;
+    return { synced, dropped, total: 0 };
   }
 }
 
@@ -56,12 +124,25 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [syncedCount, setSyncedCount] = useState(0);
+  const [zonaError, setZonaError] = useState<string | null>(null);
   const supabase = createClient();
   const router = useRouter();
   const mesAno = getCurrentMesAno();
+  const online = useOnlineStatus();
 
   const carregarOrdens = useCallback(async () => {
-    let query = supabase
+    // A fiscal without an assigned zone cannot see any orders (RLS would
+    // return zero rows silently). Surface the misconfiguration explicitly.
+    if (zona == null) {
+      setZonaError(
+        "A sua conta não tem zona atribuída. Contacte o administrador para receber ordens de inspeção.",
+      );
+      setOrdens([]);
+      return;
+    }
+    setZonaError(null);
+
+    const query = supabase
       .from("alertas_fraude")
       .select(
         `
@@ -74,12 +155,10 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
       )
       .eq("mes_ano", mesAno)
       .eq("status", "Pendente_Inspecao")
+      // Defence-in-depth: in addition to RLS, restrict to the fiscal's zone
+      // via the joined substation so a misconfigured policy can't leak rows.
+      .eq("clientes.subestacoes.zona_bairro", zona)
       .order("score_risco", { ascending: false });
-
-    if (zona) {
-      // Filtrar por zona através da subestação
-      // RLS já faz isso, mas filtro adicional por segurança
-    }
 
     const { data } = await query;
 
@@ -133,7 +212,7 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
       setLoading(true);
 
       // Tentar online primeiro
-      if (navigator.onLine) {
+      if (online) {
         await carregarOrdens();
       } else {
         // Fallback offline
@@ -149,16 +228,16 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
     }
 
     init();
-  }, [carregarOrdens]);
+  }, [carregarOrdens, online]);
 
   // Sync pending offline reports when online
   useEffect(() => {
-    if (navigator.onLine) {
-      syncPendingReports(supabase, fiscalId).then((n) => {
-        if (n > 0) setSyncedCount(n);
+    if (online) {
+      syncPendingReports(supabase, fiscalId).then((res) => {
+        if (res.synced > 0) setSyncedCount(res.synced);
       });
     }
-  }, [fiscalId]);
+  }, [fiscalId, online, supabase]);
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -313,10 +392,18 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
       )}
 
       {/* Aviso offline */}
-      {!navigator.onLine && (
+      {!online && (
         <div className="fixed bottom-4 left-4 right-4 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
           <p className="text-amber-700 text-sm">Modo offline — a mostrar dados guardados</p>
+        </div>
+      )}
+
+      {/* Aviso de zona não atribuída */}
+      {zonaError && (
+        <div className="mx-4 mb-4 bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+          <p className="text-red-700 text-sm">{zonaError}</p>
         </div>
       )}
     </div>

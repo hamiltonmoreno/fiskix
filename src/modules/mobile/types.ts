@@ -39,4 +39,7 @@ export interface RelatorioOffline {
   foto_lat?: number;
   foto_lng?: number;
   timestamp: number;
+  /** Number of failed sync attempts. After 5, the record is dropped to avoid
+   *  infinite retries on permanent (non-network) errors. */
+  retry_count?: number;
 }
