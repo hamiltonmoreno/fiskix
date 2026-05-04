@@ -20,7 +20,7 @@ export async function GET(
   const cliente = await verificarApiKey(request);
   if (!cliente) return apiError("API key inválida ou ausente", 401);
 
-  const { allowed, remaining } = checkRateLimit(cliente);
+  const { allowed, remaining } = await checkRateLimit(cliente);
   if (!allowed) return apiError("Rate limit excedido.", 429);
 
   const { id } = await params;

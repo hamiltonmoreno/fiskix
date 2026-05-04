@@ -82,19 +82,23 @@ describe("verificarApiKey", () => {
 });
 
 // ── Tests: lib/api/rateLimit.ts ────────────────────────────────────────────────
+//
+// Estes testes cobrem o backend in-memory (default sem env vars Upstash).
+// O backend Upstash é testado em rateLimit-upstash.test.ts com mocks dedicados.
 
-describe("checkRateLimit", () => {
+describe("checkRateLimit (memory backend)", () => {
   it("permite o primeiro request", async () => {
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
-    const { allowed } = checkRateLimit(`key-${Date.now()}-1`);
+    const { allowed, backend } = await checkRateLimit(`key-${Date.now()}-1`);
     expect(allowed).toBe(true);
+    expect(backend).toBe("memory");
   });
 
   it("decrementa o remaining a cada chamada", async () => {
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
     const key = `key-${Date.now()}-2`;
-    const r1 = checkRateLimit(key);
-    const r2 = checkRateLimit(key);
+    const r1 = await checkRateLimit(key);
+    const r2 = await checkRateLimit(key);
     expect(r2.remaining).toBe(r1.remaining - 1);
   });
 
@@ -102,8 +106,8 @@ describe("checkRateLimit", () => {
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
     const key = `key-${Date.now()}-3`;
     // Consumir todos os 60 slots
-    for (let i = 0; i < 60; i++) checkRateLimit(key);
-    const { allowed, remaining } = checkRateLimit(key);
+    for (let i = 0; i < 60; i++) await checkRateLimit(key);
+    const { allowed, remaining } = await checkRateLimit(key);
     expect(allowed).toBe(false);
     expect(remaining).toBe(0);
   });
@@ -111,7 +115,7 @@ describe("checkRateLimit", () => {
   it("fornece resetAt como timestamp futuro", async () => {
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
     const key = `key-${Date.now()}-4`;
-    const { resetAt } = checkRateLimit(key);
+    const { resetAt } = await checkRateLimit(key);
     expect(resetAt).toBeGreaterThan(Date.now());
   });
 
@@ -119,8 +123,8 @@ describe("checkRateLimit", () => {
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
     const keyA = `key-${Date.now()}-A`;
     const keyB = `key-${Date.now()}-B`;
-    for (let i = 0; i < 60; i++) checkRateLimit(keyA);
-    const { allowed } = checkRateLimit(keyB);
+    for (let i = 0; i < 60; i++) await checkRateLimit(keyA);
+    const { allowed } = await checkRateLimit(keyB);
     expect(allowed).toBe(true); // B não foi afectado por A
   });
 });
