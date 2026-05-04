@@ -416,7 +416,9 @@ function r8PicoHistoricoVsAtual(
     return { regra: "R8", pontos: 0, descricao: "Histórico insuficiente (< 6 meses)" };
   }
 
-  const historico = sorted.slice(0, idx);
+  // Bound to last 24 months — avoids penalising customers who legitimately
+  // downsized years ago (e.g. industrial site that became residential).
+  const historico = sorted.slice(Math.max(0, idx - 24), idx);
   const picoHistorico = Math.max(...historico.map((f) => f.kwh_faturado));
   const atual = sorted[idx].kwh_faturado;
 

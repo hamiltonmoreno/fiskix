@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
 
     // Alertas anteriores por cliente (não falso-positivos, últimos 12 meses)
     const [year, month] = mes_ano.split("-").map(Number);
-    const mes12Atras = new Date(year, month - 13, 1);
+    const mes12Atras = new Date(year, month - 12, 1);
     const mes12AtrasFmt = `${mes12Atras.getFullYear()}-${String(mes12Atras.getMonth() + 1).padStart(2, "0")}`;
 
     const { data: alertasHist } = await supabase
@@ -223,12 +223,15 @@ Deno.serve(async (req) => {
       const mediaRacio = raciosPorTarifa.length
         ? raciosPorTarifa.reduce((s, r) => s + r, 0) / raciosPorTarifa.length
         : 0;
-      const sigmaRacio = raciosPorTarifa.length > 1
+      // R6 needs at least 3 customers in the same tariff group to compute a
+      // meaningful sigma; below that, leave it as 0 so the rule is bypassed
+      // (avoids the previous fallback `sigma=1` triggering on tiny clusters).
+      const sigmaRacio = raciosPorTarifa.length >= 3
         ? Math.sqrt(
           raciosPorTarifa.reduce((s, r) => s + Math.pow(r - mediaRacio, 2), 0) /
           raciosPorTarifa.length
         )
-        : 1;
+        : 0;
 
       // Executar as 9 regras inline (versão simplificada para Edge Function)
       const regras = [];
@@ -373,7 +376,9 @@ Deno.serve(async (req) => {
         const sorted = fHist.slice().sort((a, b) => a.mes_ano.localeCompare(b.mes_ano));
         const idx = sorted.findIndex((f) => f.mes_ano === mes_ano);
         if (idx >= 6) {
-          const hist = sorted.slice(0, idx);
+          // Bound the historic peak to the last 24 months — avoids permanently
+          // penalising a customer who legitimately downsized years ago.
+          const hist = sorted.slice(Math.max(0, idx - 24), idx);
           const pico = Math.max(...hist.map((f) => f.kwh_faturado));
           const atual = sorted[idx].kwh_faturado;
           if (pico > 0) {
@@ -406,6 +411,7 @@ Deno.serve(async (req) => {
     // 6. Inserir novos alertas; actualizar score/motivo apenas em alertas ainda Pendente
     // Nunca sobrescrever status de alertas já em Notificado_SMS, Pendente_Inspecao ou Inspecionado
     let inseridos = 0;
+    let actualizados = 0;
     if (alertasParaInserir.length > 0) {
       const clienteIds = alertasParaInserir.map((a) => a.id_cliente);
 
@@ -421,22 +427,24 @@ Deno.serve(async (req) => {
       const novos = alertasParaInserir.filter((a) => !existentesMap.has(a.id_cliente));
       const actualizaveis = alertasParaInserir.filter((a) => existentesMap.get(a.id_cliente) === "Pendente");
 
-      // INSERT novos alertas
+      // INSERT novos alertas — pedir count exato para reportar bem ao admin
       if (novos.length > 0) {
-        const { error, count } = await supabase.from("alertas_fraude").insert(novos);
+        const { error, count } = await supabase
+          .from("alertas_fraude")
+          .insert(novos, { count: "exact" });
         if (!error) inseridos += count ?? novos.length;
         else console.error("Erro ao inserir novos alertas:", error);
       }
 
       // UPDATE score e motivo apenas em alertas ainda Pendente (não actuados)
       for (const a of actualizaveis) {
-        await supabase
+        const { error, count } = await supabase
           .from("alertas_fraude")
-          .update({ score_risco: a.score_risco, motivo: a.motivo })
+          .update({ score_risco: a.score_risco, motivo: a.motivo }, { count: "exact" })
           .eq("id_cliente", a.id_cliente)
           .eq("mes_ano", mes_ano)
           .eq("status", "Pendente");
-        inseridos++;
+        if (!error && (count ?? 0) > 0) actualizados++;
       }
 
     }
@@ -455,6 +463,7 @@ Deno.serve(async (req) => {
         clientes_analisados: clientes.length,
         alertas_gerados: alertasParaInserir.length,
         alertas_inseridos: inseridos,
+        alertas_actualizados: actualizados,
         duracao_ms,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
