@@ -95,7 +95,7 @@ export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, on
           />
         </div>
 
-        {hasOps && (
+        {operacoesItems.length > 0 && (
           <div className="mt-6">
             <NavGroup
               label="Operações"

@@ -21,8 +21,9 @@ export function Sidebar({ profile }: SidebarProps) {
   const router   = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
-  const [collapsed,  setCollapsed]  = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed,      setCollapsed]      = useState(false);
+  const [mobileOpen,     setMobileOpen]     = useState(false);
+  const [criticalCount,  setCriticalCount]  = useState(0);
 
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-collapsed");
@@ -31,7 +32,35 @@ export function Sidebar({ profile }: SidebarProps) {
 
   useEffect(() => {
     if (mobileOpen) setMobileOpen(false);
-  }, [pathname]);
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Realtime badge: count of Pendente critical alerts (score >= 75)
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchCount() {
+      const { count } = await supabase
+        .from("alertas_fraude")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "Pendente")
+        .gte("score", 75);
+      if (!cancelled) setCriticalCount(count ?? 0);
+    }
+    fetchCount();
+
+    const channel = supabase
+      .channel("sidebar-critical-alertas")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "alertas_fraude" },
+        () => fetchCount()
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
 
   const toggleCollapsed = useCallback(() => {
     haptics.light();
@@ -53,7 +82,14 @@ export function Sidebar({ profile }: SidebarProps) {
     [pathname]
   );
 
-  const navProps = { profile, collapsed, isActive, onToggleCollapsed: toggleCollapsed, onSignOut: handleSignOut };
+  const navProps = {
+    profile,
+    collapsed,
+    isActive,
+    onToggleCollapsed: toggleCollapsed,
+    onSignOut: handleSignOut,
+    criticalCount,
+  };
 
   return (
     <>
@@ -77,6 +113,11 @@ export function Sidebar({ profile }: SidebarProps) {
           </div>
           <span className="font-bold text-gray-800 dark:text-gray-100">Fiskix</span>
         </div>
+        {criticalCount > 0 && (
+          <span className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full leading-none font-bold">
+            {criticalCount}
+          </span>
+        )}
       </div>
 
       {/* ── Mobile overlay ── */}
@@ -127,7 +168,7 @@ export function Sidebar({ profile }: SidebarProps) {
         "bg-white dark:bg-gray-800",
         "border-r border-gray-200 dark:border-gray-700/60",
         "transition-[width] duration-300 ease-in-out",
-        collapsed ? "w-[4.5rem]" : "w-64"
+        collapsed ? "w-16" : "w-64"
       )}>
         <SidebarNav {...navProps} />
       </aside>
@@ -135,7 +176,7 @@ export function Sidebar({ profile }: SidebarProps) {
       {/* ── Spacer (prevents content from going under fixed sidebar) ── */}
       <div className={cn(
         "hidden lg:block flex-shrink-0 transition-[width] duration-300 ease-in-out no-print",
-        collapsed ? "w-[4.5rem]" : "w-64"
+        collapsed ? "w-16" : "w-64"
       )} />
     </>
   );

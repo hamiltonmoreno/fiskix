@@ -24,7 +24,7 @@ export function NavGroup({ label, items, collapsed, isActive }: NavGroupProps) {
 
       {/* Collapsed: tiny divider line */}
       {collapsed && (
-        <div className="mx-auto mb-2 w-4 border-t border-gray-200 dark:border-gray-700/60" />
+        <div className="mx-auto mb-2 w-6 border-t border-gray-300 dark:border-gray-600" />
       )}
 
       <div className="space-y-0.5">

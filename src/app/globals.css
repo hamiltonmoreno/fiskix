@@ -61,6 +61,16 @@
   }
 }
 
+/* Sidebar: disable width/opacity transitions for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  aside[class*="transition-"],
+  [class*="transition-[width"],
+  [class*="transition-[max-height"],
+  [class*="transition-transform"] {
+    transition: none !important;
+  }
+}
+
 /* KPI card staggered entry */
 @media (prefers-reduced-motion: no-preference) {
   @keyframes kpi-enter {
