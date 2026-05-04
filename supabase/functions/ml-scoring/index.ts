@@ -72,9 +72,20 @@ Deno.serve(async (req) => {
     const configMap: Record<string, string> = {};
     for (const c of configRows ?? []) configMap[c.chave] = c.valor;
 
-    const pesos: PesosML = configMap.ml_pesos_v1
-      ? JSON.parse(configMap.ml_pesos_v1)
-      : { queda_pct: 0.35, cv: 0.20, zscore: 0.15, slope: 0.10, ratio_pico: 0.08, alertas_12m: 0.07, perda_zona: 0.05 };
+    // Modelo ativo (auto-promovido pelo cron quando há ground truth suficiente).
+    // Cada modelo tem o seu conjunto de pesos: ml_pesos_v1 / ml_pesos_v1_logistic.
+    const modeloAtivo = (configMap.ml_modelo_ativo ?? "heuristic_v1") as "heuristic_v1" | "logistic_v1";
+    const pesosKey = modeloAtivo === "logistic_v1" ? "ml_pesos_v1_logistic" : "ml_pesos_v1";
+
+    let pesos: PesosML;
+    try {
+      pesos = configMap[pesosKey]
+        ? JSON.parse(configMap[pesosKey])
+        : { queda_pct: 0.35, cv: 0.20, zscore: 0.15, slope: 0.10, ratio_pico: 0.08, alertas_12m: 0.07, perda_zona: 0.05 };
+    } catch {
+      // Pesos inválidos → fallback para defaults heurísticos
+      pesos = { queda_pct: 0.35, cv: 0.20, zscore: 0.15, slope: 0.10, ratio_pico: 0.08, alertas_12m: 0.07, perda_zona: 0.05 };
+    }
 
     // Obter alertas ativos no mês (score >= 50 já calculado pelo scoring-engine)
     let alertasQuery = supabase
@@ -150,7 +161,7 @@ Deno.serve(async (req) => {
         id_cliente: alerta.id_cliente,
         mes_ano,
         score_ml,
-        modelo_versao: "heuristic_v1",
+        modelo_versao: modeloAtivo,
         features_json,
       });
     }
