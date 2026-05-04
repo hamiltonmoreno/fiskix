@@ -246,7 +246,7 @@ export function UtilizadoresClient({
 
       {/* Modal: Novo Utilizador */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-surface-container-lowest rounded-[1.5rem] shadow-xl w-full max-w-md p-6">
             <p className="text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest mb-1">Novo</p>
             <h2 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-5">Criar Utilizador</h2>
@@ -289,7 +289,7 @@ export function UtilizadoresClient({
 
       {/* Modal: Editar Utilizador */}
       {editUser && (
-        <div className="fixed inset-0 bg-gray-900/40 dark:bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 transition-all duration-300">
+        <div className="fixed inset-0 bg-gray-900/40 dark:bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700/60 w-full max-w-md p-6">
             <h2 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-5">Editar Utilizador</h2>
             <div className="space-y-4">

@@ -113,6 +113,10 @@
   /* Mosaic extra breakpoint */
   --breakpoint-xs: 480px;
 
+  /* Extra container widths — pages share a 1536px max-width container */
+  --container-8xl: 88rem;   /* 1408px */
+  --container-9xl: 96rem;   /* 1536px */
+
   /* MD3 surface token aliases */
   --color-surface-container-lowest:  var(--surface-container-lowest);
   --color-surface-container-low:     var(--surface-container-low);

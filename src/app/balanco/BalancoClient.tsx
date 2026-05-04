@@ -114,27 +114,27 @@ export function BalancoClient({ profile }: { profile: Profile }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
-      <header className="bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-gray-700/60 px-4 sm:px-6 py-4">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-          <div>
-            <h1 className="font-bold text-slate-900 dark:text-gray-100">Balanço Energético</h1>
-            <p className="text-sm text-slate-500 dark:text-gray-400">
-              Energia injetada vs faturada por subestação · perdas técnicas e comerciais
-            </p>
-          </div>
-          <button
-            onClick={handleExport}
-            disabled={!data || loading}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            Exportar Excel
-          </button>
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+      <div className="sm:flex sm:justify-between sm:items-center mb-8">
+        <div className="mb-4 sm:mb-0">
+          <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
+            Balanço Energético
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-gray-400 mt-1">
+            Energia injetada vs faturada por subestação · perdas técnicas e comerciais
+          </p>
         </div>
-      </header>
+        <button
+          onClick={handleExport}
+          disabled={!data || loading}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          <Download className="w-4 h-4" />
+          Exportar Excel
+        </button>
+      </div>
 
-      <main className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+      <main className="space-y-6">
         {/* Filtros */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-slate-200 dark:border-gray-700/60 p-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
