@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   agregarKPIs,
@@ -46,7 +46,7 @@ export interface DrillDownData {
 export function useBalanco(filtros: BalancoFiltros) {
   const [data, setData] = useState<BalancoData | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = createClient();
 
   const load = useCallback(async () => {
     setLoading(true);

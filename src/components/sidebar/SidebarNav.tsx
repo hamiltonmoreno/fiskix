@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Icon } from "@/components/Icon";
 import { NavGroup } from "./NavGroup";
-import { NavLink } from "./NavLink";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SidebarProfileMenu } from "./SidebarProfileMenu";
+import { Icon } from "@/components/Icon";
 import { haptics } from "@/lib/haptics";
 import type { NavItem } from "./types";
 
@@ -16,10 +14,10 @@ const MONITORAMENTO: NavItem[] = [
 ];
 
 const OPERACOES: NavItem[] = [
-  { label: "Inspeções",        href: "/inspecoes",       icon: "fact_check" },
-  { label: "Notificações SMS", href: "/notificacoes",    icon: "sms" },
-  { label: "Recuperação",      href: "/recuperacao",     icon: "savings" },
-  { label: "Motor de Scoring", href: "/admin/scoring",   icon: "analytics" },
+  { label: "Inspeções",        href: "/inspecoes",    icon: "fact_check" },
+  { label: "Notificações SMS", href: "/notificacoes", icon: "sms" },
+  { label: "Recuperação",      href: "/recuperacao",  icon: "savings" },
+  { label: "Motor de Scoring", href: "/admin/scoring", icon: "analytics" },
 ];
 
 const CONFIGURACOES: NavItem[] = [
@@ -29,28 +27,38 @@ const CONFIGURACOES: NavItem[] = [
   { label: "API Keys",       href: "/admin/api-keys",     icon: "key",      superAdminOnly: true },
 ];
 
-const ROLE_LABELS: Record<string, string> = {
-  admin_fiskix:  "Administrador",
-  gestor_perdas: "Gestor de Perdas",
-  supervisor:    "Supervisor",
-  fiscal:        "Fiscal",
-  diretor:       "Diretor",
-};
-
 interface SidebarNavProps {
   profile: { role: string; nome_completo: string };
   collapsed: boolean;
   isActive: (href: string) => boolean;
   onToggleCollapsed: () => void;
   onSignOut: () => void;
+  criticalCount?: number;
 }
 
-export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, onSignOut }: SidebarNavProps) {
+export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, onSignOut, criticalCount = 0 }: SidebarNavProps) {
   const isAdmin      = ["admin_fiskix", "gestor_perdas"].includes(profile.role);
   const isSuperAdmin = profile.role === "admin_fiskix";
   const isRelatorios = ["admin_fiskix", "diretor", "gestor_perdas"].includes(profile.role);
   const hasOps       = ["admin_fiskix", "diretor", "gestor_perdas", "supervisor"].includes(profile.role);
   const hasFinance   = ["admin_fiskix", "diretor", "gestor_perdas"].includes(profile.role);
+
+  // Build monitored items with live badge on Alertas
+  const monitoramentoItems = MONITORAMENTO.filter((item) => {
+    if (item.href === "/relatorios" || item.href === "/balanco") return isRelatorios;
+    if (item.href === "/clientes") return hasOps;
+    return true;
+  }).map((item) =>
+    item.href === "/alertas" && criticalCount > 0
+      ? { ...item, badge: criticalCount }
+      : item
+  );
+
+  const operacoesItems = OPERACOES.filter((item) => {
+    if (item.href === "/admin/scoring") return isAdmin;
+    if (item.href === "/recuperacao")   return hasFinance;
+    return hasOps;
+  });
 
   return (
     <div className="flex flex-col h-full mosaic-scrollbar">
@@ -77,88 +85,46 @@ export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, on
       </div>
 
       {/* ── Navigation ── */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 pt-4 space-y-6 pb-4">
-        <NavGroup
-          label="Monitoramento"
-          items={MONITORAMENTO.filter((item) => {
-            if (item.href === "/relatorios" || item.href === "/balanco") return isRelatorios;
-            if (item.href === "/clientes") return hasOps;
-            return true;
-          })}
-          collapsed={collapsed}
-          isActive={isActive}
-        />
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 pt-4 pb-4">
+        <div className="space-y-0.5">
+          <NavGroup
+            label="Monitoramento"
+            items={monitoramentoItems}
+            collapsed={collapsed}
+            isActive={isActive}
+          />
+        </div>
+
         {hasOps && (
-          <NavGroup
-            label="Operações"
-            items={OPERACOES.filter((item) => {
-              if (item.href === "/admin/scoring") return isAdmin;
-              if (item.href === "/recuperacao") return hasFinance;
-              return true;
-            })}
-            collapsed={collapsed}
-            isActive={isActive}
-          />
+          <div className="mt-6">
+            <NavGroup
+              label="Operações"
+              items={operacoesItems}
+              collapsed={collapsed}
+              isActive={isActive}
+            />
+          </div>
         )}
+
         {isAdmin && (
-          <NavGroup
-            label="Configurações"
-            items={CONFIGURACOES.filter((i) => !i.superAdminOnly || isSuperAdmin)}
-            collapsed={collapsed}
-            isActive={isActive}
-          />
+          <div className="mt-6">
+            <NavGroup
+              label="Configurações"
+              items={CONFIGURACOES.filter((i) => !i.superAdminOnly || isSuperAdmin)}
+              collapsed={collapsed}
+              isActive={isActive}
+            />
+          </div>
         )}
       </nav>
 
-      {/* ── CTA Button ── */}
-      {!collapsed && (
-        <div className="px-4 pb-3">
-          <Link
-            href="/relatorios"
-            className="w-full py-2.5 px-4 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium text-sm shadow-sm transition-colors active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer touch-manipulation"
-          >
-            <Icon name="summarize" size="sm" className="text-white" />
-            Relatório Diário
-          </Link>
-        </div>
-      )}
-
       {/* ── Footer ── */}
-      <div className="border-t border-gray-200 dark:border-gray-700/60 pt-3 pb-4 mt-auto space-y-1 px-3">
-        {/* Theme toggle */}
-        <ThemeToggle collapsed={collapsed} />
-
-        {/* User profile link */}
-        <NavLink
-          href="/perfil"
-          icon="account_circle"
-          label={collapsed ? "" : profile.nome_completo}
-          sub={collapsed ? undefined : (ROLE_LABELS[profile.role] ?? profile.role)}
-          active={isActive("/perfil")}
+      <div className="border-t border-gray-200 dark:border-gray-700/60 pt-2 pb-3 mt-auto px-3 space-y-1">
+        <SidebarProfileMenu
+          profile={profile}
           collapsed={collapsed}
+          onSignOut={onSignOut}
         />
-
-        {/* Sign out */}
-        <button
-          onClick={() => {
-            haptics.heavy();
-            onSignOut();
-          }}
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer touch-manipulation",
-            "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20",
-            collapsed && "justify-center px-2"
-          )}
-          aria-label="Terminar sessão"
-        >
-          <Icon name="logout" size="sm" className="flex-shrink-0" />
-          <span className={cn(
-            "overflow-hidden transition-[width,opacity] duration-300 whitespace-nowrap",
-            collapsed ? "w-0 opacity-0" : "w-full opacity-100"
-          )}>
-            Sair
-          </span>
-        </button>
 
         {/* Expand/Collapse toggle (desktop only) */}
         <button

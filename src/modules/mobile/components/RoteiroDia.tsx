@@ -397,6 +397,14 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
           <p className="text-red-700 text-sm">{zonaError}</p>
         </div>
       )}
+
+      {/* Aviso de zona não atribuída */}
+      {zonaError && (
+        <div className="mx-4 mb-4 bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+          <p className="text-red-700 text-sm">{zonaError}</p>
+        </div>
+      )}
     </div>
   );
 }
