@@ -88,6 +88,27 @@ export interface BalancoOptions {
   tipoTarifa?: string;
 }
 
+/**
+ * Returns the YYYY-MM string `deltaMeses` away from `mesAno`. Negative deltas
+ * go back in time, positive forward. Handles year boundaries.
+ */
+export function shiftMesAno(mesAno: string, deltaMeses: number): string {
+  const [y, m] = mesAno.split("-").map(Number);
+  const d = new Date(y, m - 1 + deltaMeses, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/**
+ * Builds a chronological list of `n` YYYY-MM strings ending at `anchor`.
+ * Anchored at the *selected* month — not at "now" — so historical selections
+ * still get the full requested window for trend / YoY analysis.
+ */
+export function buildMesesRange(anchor: string, n: number): string[] {
+  const out: string[] = [];
+  for (let i = n - 1; i >= 0; i--) out.push(shiftMesAno(anchor, -i));
+  return out;
+}
+
 function classify(
   perdaPct: number,
   atencao = DEFAULT_ATENCAO_PCT,
@@ -168,6 +189,18 @@ export function calcularEvolucaoMensal(
   meses: string[],
   opts: BalancoOptions = {},
 ): EvolucaoMensalRow[] {
+  // FaturacaoRow doesn't carry zona, only id_subestacao. To scope billing
+  // to the same zone as injection, derive the in-zone substation IDs from
+  // the injection-side rows. Without this, zone views mixed zone injection
+  // with network-wide billing and understated perda_kwh / perda_pct.
+  const subsInZone = opts.zona
+    ? new Set(
+        injecoes
+          .filter((r) => r.subestacao?.zona_bairro === opts.zona)
+          .map((r) => r.id_subestacao),
+      )
+    : null;
+
   const injMap: Record<string, number> = {};
   for (const r of injecoes) {
     if (opts.zona && r.subestacao?.zona_bairro !== opts.zona) continue;
@@ -177,6 +210,7 @@ export function calcularEvolucaoMensal(
   const fatMap: Record<string, number> = {};
   for (const r of faturacoes) {
     if (opts.tipoTarifa && r.cliente?.tipo_tarifa !== opts.tipoTarifa) continue;
+    if (subsInZone && !subsInZone.has(r.cliente?.id_subestacao ?? "")) continue;
     fatMap[r.mes_ano] = (fatMap[r.mes_ano] ?? 0) + r.kwh_faturado;
   }
 

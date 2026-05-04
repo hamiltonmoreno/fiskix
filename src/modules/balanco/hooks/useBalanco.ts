@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getLastNMonths } from "@/lib/utils";
 import {
   agregarKPIs,
+  buildMesesRange,
   calcularBalancoPorSubestacao,
   calcularEvolucaoMensal,
+  shiftMesAno,
   topContribuidores,
   DEFAULT_ATENCAO_PCT,
   DEFAULT_CRITICO_PCT,
@@ -42,12 +43,6 @@ export interface DrillDownData {
   contribuidores: ClienteContribuidor[];
 }
 
-function shiftMesAno(mesAno: string, deltaMeses: number): string {
-  const [y, m] = mesAno.split("-").map(Number);
-  const d = new Date(y, m - 1 + deltaMeses, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
-
 export function useBalanco(filtros: BalancoFiltros) {
   const [data, setData] = useState<BalancoData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -56,7 +51,10 @@ export function useBalanco(filtros: BalancoFiltros) {
   const load = useCallback(async () => {
     setLoading(true);
     const nMeses = filtros.nMeses ?? 12;
-    const meses = getLastNMonths(nMeses).filter((m) => m <= filtros.mesAno).slice(-nMeses);
+    // Anchor the trend window at the *selected* month, not at "now". The
+    // previous getLastNMonths(...).filter(<= mesAno) approach silently
+    // truncated the window for historical selections.
+    const meses = buildMesesRange(filtros.mesAno, nMeses);
     const yoyMes = shiftMesAno(filtros.mesAno, -12);
     const mesesPlusYoy = Array.from(new Set([...meses, yoyMes]));
 
@@ -79,6 +77,13 @@ export function useBalanco(filtros: BalancoFiltros) {
           "limiar_critico_perda_pct",
         ]),
     ]);
+
+    // Surface partial query failures to the console so they're not silently
+    // swallowed. We continue with whatever data did load (config falls back
+    // to defaults below) but the operator can debug from logs.
+    if (injecaoRes.error) console.error("useBalanco: injecao_energia query failed", injecaoRes.error);
+    if (faturacaoRes.error) console.error("useBalanco: faturacao_clientes query failed", faturacaoRes.error);
+    if (configRes.error) console.error("useBalanco: configuracoes query failed", configRes.error);
 
     const cfg: Record<string, number> = {};
     for (const row of configRes.data ?? []) cfg[row.chave] = parseFloat(row.valor);
@@ -155,7 +160,7 @@ export async function fetchDrillDown(
   nMeses = 6,
 ): Promise<DrillDownData> {
   const supabase = createClient();
-  const meses = getLastNMonths(nMeses).filter((m) => m <= mesAno).slice(-nMeses);
+  const meses = buildMesesRange(mesAno, nMeses);
 
   const [injecaoRes, faturacaoRes] = await Promise.all([
     supabase

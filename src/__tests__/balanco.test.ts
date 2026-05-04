@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
+  buildMesesRange,
   calcularBalancoPorSubestacao,
   calcularEvolucaoMensal,
   agregarKPIs,
+  shiftMesAno,
   topContribuidores,
   type InjecaoRow,
   type FaturacaoRow,
@@ -198,6 +200,89 @@ describe("calcularEvolucaoMensal", () => {
     const faturacoes = [fat("A", "2026-01", 800), fat("C", "2026-01", 700)];
     const evol = calcularEvolucaoMensal(injecoes, faturacoes, ["2026-01"], { zona: "Plateau" });
     expect(evol[0].kwh_injetado).toBe(1000);
+  });
+
+  it("scopes faturação to the same zone as injection (regression: Codex P1)", () => {
+    // Plateau: SUB_A injects 1000 kWh, bills 800 kWh → perda 200
+    // Espargos: SUB_C injects 800 kWh, bills 700 kWh → perda 100
+    // Without zone-scoping faturação the function would aggregate
+    // 1000 inj (in zone) against 800+700=1500 fat (cross-zone) and report
+    // perda_kwh=0, dramatically understating the loss.
+    const injecoes = [inj("A", "2026-01", 1000, SUB_A), inj("C", "2026-01", 800, SUB_C)];
+    const faturacoes = [fat("A", "2026-01", 800), fat("C", "2026-01", 700)];
+
+    const evol = calcularEvolucaoMensal(injecoes, faturacoes, ["2026-01"], {
+      zona: "Plateau",
+    });
+
+    expect(evol[0].kwh_injetado).toBe(1000);
+    expect(evol[0].kwh_faturado).toBe(800); // only SUB_A's billing
+    expect(evol[0].perda_kwh).toBe(200);
+    expect(evol[0].perda_pct).toBe(20);
+  });
+
+  it("zone-scopes faturação from substations injecting in any month of the window", () => {
+    // SUB_A only has injection in Jan, SUB_B (also Plateau zone) only in Feb.
+    // Both should remain in the in-zone faturação set across the window.
+    const SUB_A_PLATEAU = SUB_A; // Plateau
+    const SUB_B_PLATEAU = { nome: "Sub B", ilha: "Santiago", zona_bairro: "Plateau" };
+    const injecoes = [
+      inj("A", "2026-01", 1000, SUB_A_PLATEAU),
+      inj("B", "2026-02", 500, SUB_B_PLATEAU),
+    ];
+    const faturacoes = [
+      fat("A", "2026-01", 700),
+      fat("B", "2026-02", 400),
+    ];
+    const evol = calcularEvolucaoMensal(injecoes, faturacoes, ["2026-01", "2026-02"], {
+      zona: "Plateau",
+    });
+    expect(evol[0]).toMatchObject({ kwh_injetado: 1000, kwh_faturado: 700, perda_kwh: 300 });
+    expect(evol[1]).toMatchObject({ kwh_injetado: 500, kwh_faturado: 400, perda_kwh: 100 });
+  });
+});
+
+describe("shiftMesAno", () => {
+  it("shifts months back across a year boundary", () => {
+    expect(shiftMesAno("2026-01", -1)).toBe("2025-12");
+    expect(shiftMesAno("2026-03", -12)).toBe("2025-03");
+  });
+
+  it("shifts months forward", () => {
+    expect(shiftMesAno("2025-12", 1)).toBe("2026-01");
+  });
+
+  it("returns the same month when delta is 0", () => {
+    expect(shiftMesAno("2025-06", 0)).toBe("2025-06");
+  });
+});
+
+describe("buildMesesRange", () => {
+  it("returns N months ending at the anchor in chronological order", () => {
+    expect(buildMesesRange("2026-03", 3)).toEqual(["2026-01", "2026-02", "2026-03"]);
+  });
+
+  it("anchors the window at the selected month, not 'now' (regression: Codex P2)", () => {
+    // Even if the anchor is well in the past, we want a full N-month window
+    // so trend / YoY computations don't silently truncate.
+    expect(buildMesesRange("2024-08", 12)).toEqual([
+      "2023-09",
+      "2023-10",
+      "2023-11",
+      "2023-12",
+      "2024-01",
+      "2024-02",
+      "2024-03",
+      "2024-04",
+      "2024-05",
+      "2024-06",
+      "2024-07",
+      "2024-08",
+    ]);
+  });
+
+  it("returns an empty array when N is 0", () => {
+    expect(buildMesesRange("2026-03", 0)).toEqual([]);
   });
 });
 
