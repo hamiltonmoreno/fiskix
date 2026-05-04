@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getLastNMonths } from "@/lib/utils";
 import {
@@ -52,7 +52,6 @@ export function useBalanco(filtros: BalancoFiltros) {
   const [data, setData] = useState<BalancoData | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
-  const lastFetched = useRef<string>("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -139,12 +138,13 @@ export function useBalanco(filtros: BalancoFiltros) {
     setLoading(false);
   }, [filtros.mesAno, filtros.zona, filtros.tipoTarifa, filtros.nMeses]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Rely on the memoized `load` callback identity (which only changes when one
+  // of the filter primitives changes) instead of the filtros object identity.
+  // The previous JSON.stringify gate could mask a legitimate refetch when a
+  // parent re-renders and passes a new filtros object with the same values.
   useEffect(() => {
-    const key = JSON.stringify(filtros);
-    if (lastFetched.current === key) return;
-    lastFetched.current = key;
     load();
-  }, [filtros, load]);
+  }, [load]);
 
   return { data, loading, reload: load };
 }
