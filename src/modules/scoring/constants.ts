@@ -9,6 +9,10 @@
  * O teste `src/__tests__/scoring-parity.test.ts` falha se os dois divergirem.
  */
 
+import type { Database } from "@/types/database";
+
+type InspecaoResultado = Database["public"]["Enums"]["inspecao_resultado"];
+
 // ============================================================
 // THRESHOLDS DAS REGRAS (defaults — sobreescrevíveis em `configuracoes`)
 // ============================================================
@@ -73,4 +77,28 @@ export const R9_MULT_FACTOR = 2;               // (perda_pct - limiar_pct) * fac
 
 // Score final
 export const SCORE_MAX = 100;
-export const SCORE_LIMIAR_ALERTA = 50;         // só insere alerta se score_final >= 50
+export const SCORE_LIMIAR_ALERTA = 50;
+
+// ============================================================
+// BALANÇO ENERGÉTICO
+// ============================================================
+
+/** Tarifa média (CVE/kWh) usada como fallback no cálculo de cve_perdido_estimado
+ *  quando a subestação tem zero faturação. Configurável em
+ *  `configuracoes.tarifa_fallback_cve_kwh` (default 15 — referência tarifa Electra residencial). */
+export const TARIFA_FALLBACK_CVE_KWH = 15;
+
+// ============================================================
+// R7 — REINCIDÊNCIA: resultados que contam como reincidência
+// ============================================================
+
+/** Resultados de inspeção que contam como reincidência (R7).
+ *  Falso_Positivo NÃO conta — apenas inspeções que confirmaram problema real.
+ *  Tipado para que renomear o enum `inspecao_resultado` em
+ *  `src/types/database.ts` quebre o build em vez de matar a regra silenciosamente. */
+export const RESULTADOS_REINCIDENCIA = [
+  "Fraude_Confirmada",
+  "Anomalia_Tecnica",
+] as const satisfies readonly InspecaoResultado[];
+
+export type ResultadoReincidencia = typeof RESULTADOS_REINCIDENCIA[number];         // só insere alerta se score_final >= 50
