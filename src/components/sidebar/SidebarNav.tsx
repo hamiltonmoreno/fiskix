@@ -6,25 +6,33 @@ import { haptics } from "@/lib/haptics";
 import type { NavItem } from "./types";
 
 const MONITORAMENTO: NavItem[] = [
-  { label: "Dashboard",  href: "/dashboard",  icon: "dashboard" },
-  { label: "Alertas",    href: "/alertas",    icon: "notifications_active" },
-  { label: "Clientes",   href: "/clientes",   icon: "groups" },
-  { label: "Balanço",    href: "/balanco",    icon: "query_stats" },
-  { label: "Relatórios", href: "/relatorios", icon: "insert_chart" },
+  { label: "Dashboard",    href: "/dashboard",                  icon: "dashboard" },
+  { label: "Alertas",      href: "/alertas",                    icon: "notifications_active" },
+  { label: "Clientes",     href: "/clientes",                   icon: "groups" },
+  { label: "Balanço",      href: "/balanco",                    icon: "query_stats" },
+  { label: "Relatórios",   href: "/relatorios",                 icon: "insert_chart" },
+  { label: "Fiscais",      href: "/relatorios/fiscais",         icon: "badge" },
+  { label: "Reincidência", href: "/relatorios/reincidencia",    icon: "repeat" },
+  { label: "Fraudes",      href: "/relatorios/fraudes",         icon: "shield" },
+  { label: "Modelo ML",    href: "/relatorios/ml",              icon: "psychology" },
 ];
 
 const OPERACOES: NavItem[] = [
-  { label: "Inspeções",        href: "/inspecoes",    icon: "fact_check" },
-  { label: "Notificações SMS", href: "/notificacoes", icon: "sms" },
-  { label: "Recuperação",      href: "/recuperacao",  icon: "savings" },
-  { label: "Motor de Scoring", href: "/admin/scoring", icon: "analytics" },
+  { label: "Inspeções",        href: "/inspecoes",         icon: "fact_check" },
+  { label: "Mapa de Inspeções",href: "/inspecoes/mapa",    icon: "map" },
+  { label: "Notificações SMS", href: "/notificacoes",      icon: "sms" },
+  { label: "Recuperação",      href: "/recuperacao",       icon: "savings" },
+  { label: "Motor de Scoring", href: "/admin/scoring",     icon: "analytics" },
+  { label: "Distribuição",     href: "/admin/scoring/distribuicao", icon: "bar_chart" },
 ];
 
 const CONFIGURACOES: NavItem[] = [
-  { label: "Importar Dados", href: "/admin/importar",     icon: "upload_file" },
-  { label: "Utilizadores",   href: "/admin/utilizadores", icon: "group",    superAdminOnly: true },
-  { label: "Configuração",   href: "/admin/configuracao", icon: "settings", superAdminOnly: true },
-  { label: "API Keys",       href: "/admin/api-keys",     icon: "key",      superAdminOnly: true },
+  { label: "Subestações",      href: "/admin/subestacoes",  icon: "bolt" },
+  { label: "Importar Dados",   href: "/admin/importar",     icon: "upload_file" },
+  { label: "Utilizadores",     href: "/admin/utilizadores", icon: "group",    superAdminOnly: true },
+  { label: "Configuração",     href: "/admin/configuracao", icon: "settings", superAdminOnly: true },
+  { label: "Auditoria",        href: "/admin/auditoria",    icon: "history",  superAdminOnly: true },
+  { label: "API Keys",         href: "/admin/api-keys",     icon: "key",      superAdminOnly: true },
 ];
 
 interface SidebarNavProps {
@@ -45,7 +53,7 @@ export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, on
 
   // Build monitored items with live badge on Alertas
   const monitoramentoItems = MONITORAMENTO.filter((item) => {
-    if (item.href === "/relatorios" || item.href === "/balanco") return isRelatorios;
+    if (["/relatorios", "/balanco", "/relatorios/fiscais", "/relatorios/reincidencia", "/relatorios/fraudes", "/relatorios/ml"].includes(item.href)) return isRelatorios;
     if (item.href === "/clientes") return hasOps;
     return true;
   }).map((item) =>
@@ -55,8 +63,9 @@ export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, on
   );
 
   const operacoesItems = OPERACOES.filter((item) => {
-    if (item.href === "/admin/scoring") return isAdmin;
-    if (item.href === "/recuperacao")   return hasFinance;
+    if (["/admin/scoring", "/admin/scoring/distribuicao"].includes(item.href)) return isAdmin;
+    if (item.href === "/recuperacao") return hasFinance;
+    if (item.href === "/inspecoes/mapa") return hasOps;
     return hasOps;
   });
 
