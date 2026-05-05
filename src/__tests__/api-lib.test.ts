@@ -1,9 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
+//
+// A chain Supabase usada por verificarApiKey é:
+//   from(table).select(cols).like(col, pattern).in(col, [vals]).maybeSingle()
 
-const mockSelect = vi.fn();
-const mockLike = vi.fn();
+const mockMaybeSingle = vi.fn();
+const mockIn = vi.fn(() => ({ maybeSingle: mockMaybeSingle }));
+const mockLike = vi.fn(() => ({ in: mockIn }));
+const mockSelect = vi.fn(() => ({ like: mockLike }));
 const mockFrom = vi.fn(() => ({ select: mockSelect }));
 
 vi.mock("@supabase/supabase-js", () => ({
@@ -43,8 +48,7 @@ describe("verificarApiKey", () => {
   });
 
   it("retorna null quando a chave não existe na BD", async () => {
-    mockSelect.mockReturnValue({ like: mockLike });
-    mockLike.mockResolvedValue({ data: [], error: null });
+    mockMaybeSingle.mockResolvedValue({ data: null, error: null });
 
     const { verificarApiKey } = await import("@/lib/api/auth");
     const result = await verificarApiKey(buildRequest("Bearer chave-invalida"));
@@ -52,9 +56,8 @@ describe("verificarApiKey", () => {
   });
 
   it("retorna o nome do cliente quando a chave é válida", async () => {
-    mockSelect.mockReturnValue({ like: mockLike });
-    mockLike.mockResolvedValue({
-      data: [{ chave: "api_key_electra", valor: "chave-valida-123" }],
+    mockMaybeSingle.mockResolvedValue({
+      data: { chave: "api_key_electra" },
       error: null,
     });
 
@@ -63,9 +66,26 @@ describe("verificarApiKey", () => {
     expect(result).toBe("electra");
   });
 
+  it("hash do input é incluído na query .in() (transition: aceita hash OU plaintext)", async () => {
+    mockMaybeSingle.mockResolvedValue({
+      data: { chave: "api_key_electra" },
+      error: null,
+    });
+
+    const { verificarApiKey } = await import("@/lib/api/auth");
+    await verificarApiKey(buildRequest("Bearer chave-x"));
+
+    const inCallArgs = mockIn.mock.calls[0] as unknown as [string, string[]];
+    expect(inCallArgs[0]).toBe("valor");
+    const valoresProcurados = inCallArgs[1];
+    expect(valoresProcurados).toHaveLength(2);
+    expect(valoresProcurados).toContain("chave-x"); // plaintext fallback
+    // SHA-256("chave-x") = primeiro elemento (hash)
+    expect(valoresProcurados[0]).toMatch(/^[0-9a-f]{64}$/);
+  });
+
   it("retorna null quando a query Supabase falha", async () => {
-    mockSelect.mockReturnValue({ like: mockLike });
-    mockLike.mockResolvedValue({ data: null, error: { message: "connection error" } });
+    mockMaybeSingle.mockResolvedValue({ data: null, error: { message: "connection error" } });
 
     const { verificarApiKey } = await import("@/lib/api/auth");
     const result = await verificarApiKey(buildRequest("Bearer qualquer-chave"));
