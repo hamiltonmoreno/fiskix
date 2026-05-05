@@ -165,7 +165,8 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
           Sem dados de injeção nos últimos 12 meses
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={210}>
+        <div className="h-40 sm:h-52">
+          <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
             <defs>
               <linearGradient id="perdaGradient" x1="0" y1="0" x2="0" y2="1">
@@ -220,7 +221,8 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
               activeDot={{ r: 5, fill: "#EF4444", stroke: "white", strokeWidth: 2 }}
             />
           </AreaChart>
-        </ResponsiveContainer>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   );

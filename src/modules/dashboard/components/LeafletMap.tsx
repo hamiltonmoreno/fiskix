@@ -57,7 +57,7 @@ export function LeafletMap({ subestacoes }: LeafletMapProps) {
             }}
           >
             <Popup>
-              <div className="text-sm min-w-48">
+              <div className="text-sm min-w-0 sm:min-w-48">
                 <p className="font-bold text-slate-900 mb-1">{sub.nome}</p>
                 <p className="text-slate-500 text-xs mb-2">{sub.zona_bairro}</p>
                 <div className="space-y-1">

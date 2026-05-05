@@ -120,7 +120,8 @@ export function TabPerdasZona({ filtros, active, onExportReady }: Props) {
           {loading ? (
             <Skeleton className="h-64 rounded-lg" />
           ) : (
-            <ResponsiveContainer width="100%" height={260}>
+            <div className="h-44 sm:h-64">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={data?.top7}
                 layout="vertical"
@@ -147,6 +148,7 @@ export function TabPerdasZona({ filtros, active, onExportReady }: Props) {
                 <Bar dataKey="kwh_faturado" name="Faturado" fill="#22C55E" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            </div>
           )}
         </div>
 
@@ -156,8 +158,9 @@ export function TabPerdasZona({ filtros, active, onExportReady }: Props) {
           {loading ? (
             <Skeleton className="h-64 rounded-lg" />
           ) : (data?.radarIlha && data.radarIlha.length > 0) ? (
-            <ResponsiveContainer width="100%" height={260}>
-              <RadarChart data={data.radarIlha} margin={{ top: 10, right: 30, left: 30, bottom: 10 }}>
+            <div className="h-44 sm:h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={data.radarIlha} margin={{ top: 10, right: 20, left: 20, bottom: 10 }}>
                 <PolarGrid />
                 <PolarAngleAxis dataKey="ilha" tick={{ fontSize: 11 }} />
                 <PolarRadiusAxis
@@ -175,6 +178,7 @@ export function TabPerdasZona({ filtros, active, onExportReady }: Props) {
                 />
               </RadarChart>
             </ResponsiveContainer>
+            </div>
           ) : (
             <div className="h-64 flex items-center justify-center text-muted-foreground text-sm">
               Sem dados por ilha no período selecionado

@@ -39,7 +39,7 @@ export function PreviewTable({ preview, ficheiro, loading, onCancel, onImportar 
           <thead>
             <tr className="bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700/60">
               {preview.preview?.[0]?.map((head, i) => (
-                <th key={i} className="px-6 py-3 font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider text-[10px]">
+                <th key={i} className="px-6 py-3 font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider text-xs sm:text-[10px]">
                   {head}
                 </th>
               ))}
