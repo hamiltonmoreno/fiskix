@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/Sidebar";
 import { TopBar } from "@/components/TopBar";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 export default async function RelatoriosLayout({
   children,
@@ -28,6 +29,9 @@ export default async function RelatoriosLayout({
       <Sidebar profile={profile} />
       <div className="flex-1 min-w-0 lg:pl-0 pt-14 lg:pt-0">
         <TopBar profile={profile} />
+        <div className="px-6 py-2.5 border-b border-slate-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <Breadcrumb />
+        </div>
         {children}
       </div>
     </div>

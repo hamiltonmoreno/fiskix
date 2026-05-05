@@ -22,8 +22,8 @@ export function NavLink({ href, icon, label, sub, badge, active, collapsed }: Na
           "relative flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-sm font-medium cursor-pointer",
           collapsed && "justify-center px-2",
           active
-            ? "bg-gray-100 dark:bg-gray-700/30 text-primary"
-            : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/20"
+            ? "bg-primary/10 dark:bg-primary/15 text-primary"
+            : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-primary/5 dark:hover:bg-primary/10"
         )}
       >
         {/* Active indicator bar */}
@@ -37,7 +37,7 @@ export function NavLink({ href, icon, label, sub, badge, active, collapsed }: Na
           filled={active}
           className={cn(
             "flex-shrink-0 transition-colors duration-150",
-            active ? "text-primary" : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
+            active ? "text-primary" : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200"
           )}
         />
 

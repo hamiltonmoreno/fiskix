@@ -9,7 +9,7 @@ interface ImportResultadoProps {
 
 export function ImportResultado({ resultado, onReset }: ImportResultadoProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700/60 transition-all duration-300">
+    <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 mosaic-card-hover p-6 transition-all duration-300">
       <div className="flex items-center gap-4 mb-5">
         {resultado.erros === 0 ? (
           <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center border border-emerald-100 dark:border-emerald-500/20">

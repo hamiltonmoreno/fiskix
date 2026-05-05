@@ -200,6 +200,8 @@ Deno.serve(async (req) => {
       .order("mes_ano", { ascending: true });
 
     // Alertas anteriores por cliente (não falso-positivos, últimos R7_LOOKBACK_MESES meses)
+    // month é 1-indexed; Date espera 0-indexed; já é considerado pelo offset
+    // R7_LOOKBACK_MESES (definido em scoring/constants.ts).
     const [year, month] = mes_ano.split("-").map(Number);
     const mes12Atras = new Date(year, month - R7_LOOKBACK_MESES, 1);
     const mes12AtrasFmt = `${mes12Atras.getFullYear()}-${String(mes12Atras.getMonth() + 1).padStart(2, "0")}`;
@@ -289,8 +291,9 @@ Deno.serve(async (req) => {
       const mediaRacio = raciosPorTarifa.length
         ? raciosPorTarifa.reduce((s, r) => s + r, 0) / raciosPorTarifa.length
         : 0;
-      // R6 needs at least R6_MIN_CLUSTER_SIZE customers to compute a meaningful
-      // sigma; abaixo disso `sigma=0` faz a regra ser ignorada na função pura.
+      // R6 needs at least R6_MIN_CLUSTER_SIZE customers in the same tariff
+      // group to compute a meaningful sigma; abaixo disso `sigma=0` faz a regra
+      // ser ignorada (evita fallback `sigma=1` em clusters minúsculos).
       const sigmaRacio = raciosPorTarifa.length >= R6_MIN_CLUSTER_SIZE
         ? Math.sqrt(
           raciosPorTarifa.reduce((s, r) => s + Math.pow(r - mediaRacio, 2), 0) /

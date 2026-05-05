@@ -133,12 +133,9 @@ export function FichaInteligencia({
       : 0;
 
   return (
-    <div
-      className="min-h-screen pb-8"
-      style={{ backgroundColor: "#F1F5F9", color: "#0F172A" }}
-    >
+    <div className="mobile-app min-h-screen pb-8">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-40">
+      <header className="bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-gray-700/60 px-4 py-3 sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}

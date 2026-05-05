@@ -40,7 +40,7 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 lg:col-span-7 space-y-4">
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700/60 mb-6">
+          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 mosaic-card-hover p-6 mb-6">
             <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">
               Tipo de Dados
             </p>
@@ -71,7 +71,7 @@ export function ImportarDados({ historico: historicoInicial }: ImportarDadosProp
           )}
 
           {loading && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-12 text-center border border-gray-200 dark:border-gray-700/60">
+            <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 mosaic-card-hover p-12 text-center">
               <div className="w-10 h-10 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
               <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">A processar ficheiro...</p>
               <Skeleton className="h-4 w-48 rounded-md mx-auto mt-4" />

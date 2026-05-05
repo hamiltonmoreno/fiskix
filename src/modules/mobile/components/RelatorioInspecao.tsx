@@ -65,6 +65,7 @@ export function RelatorioInspecao({
   const [submitting, setSubmitting] = useState(false);
   const [sucesso, setSucesso] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "error" | "info"; message: string } | null>(null);
+  const [confirmGpsMissing, setConfirmGpsMissing] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -175,15 +176,19 @@ export function RelatorioInspecao({
     }
     setFeedback(null);
 
-    // If we have a photo but no GPS, the photo isn't legally usable as proof.
-    // Make the fiscal explicitly confirm before submitting.
+    // If we have a photo but no GPS, ask the fiscal to confirm before submitting.
+    // Inline modal (setConfirmGpsMissing) em vez de window.confirm — funciona em
+    // PWA (window.confirm pode ser bloqueado/inconsistente no standalone display).
     if (fotoBlob && !gps) {
-      const ok = window.confirm(
-        "Não há coordenadas GPS para a foto. Sem GPS a foto pode não ser válida como prova jurídica. Submeter mesmo assim?",
-      );
-      if (!ok) return;
+      setConfirmGpsMissing(true);
+      return;
     }
 
+    await doSubmit();
+  }
+
+  async function doSubmit() {
+    setConfirmGpsMissing(false);
     setSubmitting(true);
 
     const relatorioData: RelatorioOffline = {
@@ -233,7 +238,7 @@ export function RelatorioInspecao({
         .insert({
           id_alerta: alertaId,
           id_fiscal: fiscalId,
-          resultado,
+          resultado: resultado as "Fraude_Confirmada" | "Anomalia_Tecnica" | "Falso_Positivo",
           tipo_fraude: (tipoFraude || null) as "Bypass" | "Contador_adulterado" | "Ligacao_vizinha" | "Ima" | "Outro" | null,
           foto_url,
           foto_lat: gps?.lat ?? null,
@@ -248,7 +253,7 @@ export function RelatorioInspecao({
         .from("alertas_fraude")
         .update({
           status: "Inspecionado",
-          resultado,
+          resultado: resultado as "Fraude_Confirmada" | "Anomalia_Tecnica" | "Falso_Positivo",
         })
         .eq("id", alertaId);
 
@@ -270,8 +275,7 @@ export function RelatorioInspecao({
   if (sucesso) {
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center p-8 text-center"
-        style={{ backgroundColor: "#F1F5F9" }}
+        className="mobile-app min-h-screen flex flex-col items-center justify-center p-8 text-center"
       >
         <div className="bg-white rounded-2xl p-8 w-full max-w-sm">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
@@ -297,11 +301,10 @@ export function RelatorioInspecao({
 
   return (
     <div
-      className="min-h-screen pb-8"
-      style={{ backgroundColor: "#F1F5F9", color: "#0F172A" }}
+      className="mobile-app min-h-screen pb-8"
     >
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-40">
+      <header className="bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-gray-700/60 px-4 py-3 sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
@@ -488,11 +491,38 @@ export function RelatorioInspecao({
           />
         </div>
 
+        {/* Confirmação de foto sem GPS */}
+        {confirmGpsMissing && (
+          <div className="bg-amber-50 border border-amber-300 rounded-2xl p-5">
+            <div className="flex items-start gap-3 mb-4">
+              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-amber-800 text-sm font-medium">
+                A foto não tem coordenadas GPS. Sem GPS pode não ser válida como prova jurídica.
+                Deseja submeter mesmo assim?
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmGpsMissing(false)}
+                className="flex-1 py-3 border border-slate-200 rounded-xl text-slate-700 font-semibold text-sm bg-white"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={doSubmit}
+                className="flex-1 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-semibold text-sm transition-colors"
+              >
+                Submeter sem GPS
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Botão Sincronizar */}
         <button
           onClick={handleSubmit}
-          disabled={submitting || !resultado}
-          className="w-full py-5 bg-blue-700 hover:bg-blue-800 disabled:bg-slate-300 text-white rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-colors"
+          disabled={submitting || !resultado || confirmGpsMissing}
+          className="w-full py-5 bg-blue-700 hover:bg-blue-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-colors"
           style={{ minHeight: "64px" }}
         >
           {submitting ? (

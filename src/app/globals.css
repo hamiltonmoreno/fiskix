@@ -50,9 +50,24 @@
   min-height: 100dvh;
 }
 
+.dark .mobile-app {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
 @media print {
   .no-print {
     display: none !important;
+  }
+}
+
+/* Sidebar: disable width/opacity transitions for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  aside[class*="transition-"],
+  [class*="transition-[width"],
+  [class*="transition-[max-height"],
+  [class*="transition-transform"] {
+    transition: none !important;
   }
 }
 
@@ -107,6 +122,10 @@
 
   /* Mosaic extra breakpoint */
   --breakpoint-xs: 480px;
+
+  /* Extra container widths — pages share a 1536px max-width container */
+  --container-8xl: 88rem;   /* 1408px */
+  --container-9xl: 96rem;   /* 1536px */
 
   /* MD3 surface token aliases */
   --color-surface-container-lowest:  var(--surface-container-lowest);

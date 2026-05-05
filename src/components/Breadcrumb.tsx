@@ -7,6 +7,11 @@ import { Icon } from "@/components/Icon";
 const SEGMENT_LABELS: Record<string, string> = {
   dashboard: "Dashboard",
   alertas: "Alertas",
+  balanco: "Balanço",
+  clientes: "Clientes",
+  inspecoes: "Inspeções",
+  recuperacao: "Recuperação",
+  notificacoes: "Notificações",
   admin: "Administração",
   importar: "Importar Dados",
   scoring: "Motor de Scoring",

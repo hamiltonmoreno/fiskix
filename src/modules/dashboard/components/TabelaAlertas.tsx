@@ -136,14 +136,14 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-surface-container-low/50 text-left border-b border-surface-container-low">
-              <th className="px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Score</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Contador</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Titular</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Zona</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tarifa</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Regras</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Estado</th>
-              <th className="px-8 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
+              <th className="px-8 py-4 text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest">Score</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest">Contador</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest">Titular</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest">Zona</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest">Tarifa</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest">Regras</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest">Estado</th>
+              <th className="px-8 py-4 text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest text-right">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-container-low">
@@ -266,7 +266,7 @@ export function TabelaAlertas({ mesAno, zona }: TabelaAlertasProps) {
       {/* Paginação */}
       {totalPages > 1 && (
         <div className="p-4 border-t border-slate-100 flex items-center justify-between">
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-gray-400">
             Página {page + 1} de {totalPages} · {total} alertas
           </p>
           <div className="flex items-center gap-1">

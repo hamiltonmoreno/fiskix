@@ -19,7 +19,7 @@ export function AlertasCriticosPanel({ alertas, loading, mesAno }: AlertasCritic
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+          <p className="text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-widest mb-0.5">
             Score ≥ 75
           </p>
           <p className="font-bold text-on-surface">Alertas Críticos</p>

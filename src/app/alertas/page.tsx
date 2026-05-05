@@ -39,6 +39,7 @@ export default function AlertasPage() {
   const [zona, setZona] = useState("todas");
   const [zonas, setZonas] = useState<string[]>([]);
   const [page, setPage] = useState(0);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [total, setTotal] = useState(0);
@@ -75,7 +76,7 @@ export default function AlertasPage() {
           { count: "exact" }
         )
         .eq("mes_ano", mesAno)
-        .order("score_risco", { ascending: false })
+        .order("score_risco", { ascending: sortDir === "asc" })
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
       if (statusFilter !== "todos") {
@@ -125,7 +126,7 @@ export default function AlertasPage() {
     } finally {
       setLoading(false);
     }
-  }, [mesAno, statusFilter, zona, page, supabase]);
+  }, [mesAno, statusFilter, zona, page, sortDir, supabase]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { setPage(0); }, [mesAno, statusFilter, zona]);
@@ -209,9 +210,11 @@ export default function AlertasPage() {
         zona={zona}
         zonas={zonas}
         hasAlertas={alertas.length > 0}
+        defaultMesAno={getCurrentMesAno()}
         onMesAnoChange={setMesAno}
         onStatusChange={(v) => { setStatusFilter(v); setPage(0); }}
         onZonaChange={(v) => { setZona(v); setPage(0); }}
+        onClear={() => { setMesAno(getCurrentMesAno()); setStatusFilter("todos"); setZona("todas"); setPage(0); }}
         onExport={handleExportExcel}
         onRefresh={load}
       />
@@ -234,6 +237,8 @@ export default function AlertasPage() {
         onGerarOrdem={handleGerarOrdem}
         onSetPendingStatus={setPendingStatusUpdate}
         onPageChange={setPage}
+        sortDir={sortDir}
+        onSortChange={(dir) => { setSortDir(dir); setPage(0); }}
       />
       </div>
 

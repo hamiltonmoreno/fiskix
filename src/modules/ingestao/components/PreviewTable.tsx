@@ -10,7 +10,7 @@ interface PreviewTableProps {
 
 export function PreviewTable({ preview, ficheiro, loading, onCancel, onImportar }: PreviewTableProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700/60">
+    <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 mosaic-card-hover overflow-hidden">
       <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700/60 flex items-center justify-between">
         <div>
           <p className="font-bold text-gray-900 dark:text-gray-100 text-sm">{ficheiro?.name}</p>
