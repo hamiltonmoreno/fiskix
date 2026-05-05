@@ -19,6 +19,7 @@ import { formatKWh, formatCVE } from "@/lib/utils";
 import { useBalancoEnergeticoData } from "../hooks/useRelatoriosData";
 import type { RelatoriosFiltros } from "../types";
 import type { ExportRow } from "@/lib/export";
+import { DEFAULT_PRICE_CVE_PER_KWH } from "@/modules/balanco/lib/balanco";
 
 interface Props {
   filtros: RelatoriosFiltros;
@@ -84,7 +85,7 @@ export function TabBalancoEnergetico({ filtros, active, onExportReady }: Props) 
           {loading ? <Skeleton className="h-8 w-3/4" /> : (
             <div className="text-2xl font-bold text-foreground">{data ? formatKWh(data.kpis.perdaKwh) : "—"}</div>
           )}
-          <p className="text-xs text-muted-foreground mt-1">{data ? `≈ ${formatCVE(data.kpis.perdaKwh * 15)}` : ""}</p>
+          <p className="text-xs text-muted-foreground mt-1">{data ? `≈ ${formatCVE(data.kpis.perdaKwh * DEFAULT_PRICE_CVE_PER_KWH)}` : ""}</p>
         </div>
 
         <div className="bg-card rounded-xl border border-border p-5">

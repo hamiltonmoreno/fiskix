@@ -14,6 +14,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { formatCVE } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DEFAULT_PRICE_CVE_PER_KWH } from "@/modules/balanco/lib/balanco";
 
 interface Top5Props {
   mesAno: string;
@@ -108,7 +109,7 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
         const sub = inj.subestacoes as unknown as { nome: string } | null;
         const kwh_injetado = inj.total_kwh_injetado;
         const { kwh: kwh_faturado, cve: cve_faturado } = faturacaoPorSub[inj.id_subestacao] ?? { kwh: 0, cve: 0 };
-        const tarifaMedia = kwh_faturado > 0 ? cve_faturado / kwh_faturado : 15;
+        const tarifaMedia = kwh_faturado > 0 ? cve_faturado / kwh_faturado : DEFAULT_PRICE_CVE_PER_KWH;
         const perda_pct =
           kwh_injetado > 0
             ? ((kwh_injetado - kwh_faturado) / kwh_injetado) * 100

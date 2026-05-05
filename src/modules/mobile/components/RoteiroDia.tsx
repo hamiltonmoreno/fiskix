@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScoreBadge } from "@/components/ui/score-badge";
+import { logger } from "@/lib/observability/logger";
 
 interface RoteiroDiaProps {
   fiscalId: string;
@@ -116,7 +117,12 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
       try {
         localStorage.setItem("fiskix_ordens", JSON.stringify(mapped));
         localStorage.setItem("fiskix_ordens_ts", Date.now().toString());
-      } catch {}
+      } catch (err) {
+        // QuotaExceeded ou private mode — fallback ao Supabase no próximo refresh
+        logger({ module: "RoteiroDia" }).warn("localstorage_write_failed", {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
 
       setOrdens(mapped);
     } finally {
@@ -137,7 +143,12 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
             if (cached) {
               setOrdens(JSON.parse(cached) as OrdemFiscal[]);
             }
-          } catch {}
+          } catch (err) {
+            // Cache corrupto ou inacessível — UI mostra estado vazio
+            logger({ module: "RoteiroDia" }).warn("localstorage_read_failed", {
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
         }
       } finally {
         setLoading(false);
