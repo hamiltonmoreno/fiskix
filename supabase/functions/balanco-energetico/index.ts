@@ -15,14 +15,9 @@ import {
   LIMIAR_PERDA_ZONA_PCT,
   TARIFA_FALLBACK_CVE_KWH,
 } from "../_shared/scoring-constants.ts";
+import { corsHeadersFor, corsPreflight } from "../_shared/cors.ts";
 
 type UserRole = "admin_fiskix" | "diretor" | "gestor_perdas" | "supervisor" | "fiscal";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
 
 interface BalancoSubestacao {
   subestacao_id: string;
@@ -46,17 +41,18 @@ const BALANCO_ALLOWED_ROLES: UserRole[] = [
   "fiscal",
 ];
 
-function jsonResponse(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return await corsPreflight(req);
   }
+
+  const corsHeaders = await corsHeadersFor(req);
+  const jsonResponse = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");

@@ -8,12 +8,7 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeadersFor, corsPreflight } from "../_shared/cors.ts";
 
 interface LinhaFaturacao {
   numero_contador: string;
@@ -213,8 +208,10 @@ function validarInjecao(rows: string[][]): {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return await corsPreflight(req);
   }
+
+  const corsHeaders = await corsHeadersFor(req);
 
   try {
     const supabase = createClient(

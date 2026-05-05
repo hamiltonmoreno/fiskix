@@ -38,6 +38,7 @@
     "supabase/functions/ingest-data",
     "supabase/functions/ml-scoring",
     "supabase/functions/send-sms",
-    "supabase/functions/scoring-engine/index.ts"
+    "supabase/functions/scoring-engine/index.ts",
+    "supabase/functions/_shared/cors.ts"
   ]
 }
