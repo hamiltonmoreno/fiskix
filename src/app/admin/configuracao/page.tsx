@@ -24,6 +24,9 @@ const CONFIG_LABELS: Record<string, string> = {
   limiar_ratio_racio: "R6 — Desvios padrão rácio CVE/kWh",
   limiar_pico_ratio: "R8 — Rácio pico histórico mínimo",
   limiar_perda_zona_pct: "Filtro Macro — Perda mínima por zona (%)",
+  limiar_divida_acumulada_cve: "R10 — Limiar dívida acumulada (CVE)",
+  r11_meses_min_estimada: "R11 — Meses mínimos consecutivos estimada",
+  r12_threshold_pct: "R12 — Capacidade subutilizada (% mínimo)",
   limiar_score_medio: "Score MÉDIO mínimo",
   limiar_score_critico: "Score CRÍTICO mínimo",
 };
@@ -39,6 +42,9 @@ const CONFIG_LIMITS: Record<string, { min: number; max: number; hint: string }> 
   limiar_ratio_racio:    { min: 0.5, max: 5,   hint: "0.5 – 5.0" },
   limiar_pico_ratio:     { min: 0.05,max: 0.5, hint: "0.05 – 0.50" },
   limiar_perda_zona_pct: { min: 5,   max: 40,  hint: "5% – 40%" },
+  limiar_divida_acumulada_cve: { min: 500,  max: 100000, hint: "500 – 100.000 CVE" },
+  r11_meses_min_estimada: { min: 2, max: 12, hint: "2 – 12 meses" },
+  r12_threshold_pct:     { min: 0.1, max: 50,  hint: "0.1% – 50%" },
   limiar_score_medio:    { min: 20,  max: 74,  hint: "20 – 74 pts" },
   limiar_score_critico:  { min: 50,  max: 100, hint: "50 – 100 pts" },
 };
@@ -139,7 +145,7 @@ export default function ConfiguracaoPage() {
             Configuração do Motor
           </h1>
           <p className="text-sm text-gray-500 mt-1 uppercase tracking-wider font-semibold">
-            Limiares ajustáveis · 9 Regras v2
+            Limiares ajustáveis · 12 Regras v3
           </p>
         </div>
 

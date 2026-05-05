@@ -1,9 +1,10 @@
 /**
- * Motor de Scoring v2 — 9 Regras Graduais
+ * Motor de Scoring v3 — 12 Regras Graduais
  * Fiskix PoC — Electra Cabo Verde
  *
- * Etapa A: Balanço Energético (Filtro Macro)
- * Etapa B: 9 Regras Graduais por cliente (Filtro Micro)
+ * Etapa A: Balanço Energético (Filtro Macro) — R9 multiplicador zona vermelha
+ * Etapa B: 11 Regras Graduais por cliente (Filtro Micro)
+ *   R1-R8 originais + R10 (dívida) + R11 (leitura estimada) + R12 (potência)
  *
  * Constantes vêm de `src/modules/scoring/constants.ts` (fonte única partilhada
  * com a edge function via mirror em `supabase/functions/_shared/`).
