@@ -15,6 +15,15 @@ interface LinhaFaturacao {
   mes_ano: string;
   kwh_faturado: number;
   valor_cve: number;
+  // Campos enriquecidos (opcionais — formato fatura EDEC completo, migration 021)
+  numero_fatura?: string;
+  tipo_leitura?: "real" | "estimada" | "empresa" | "cliente";
+  leitura_inicial?: number;
+  leitura_final?: number;
+  saldo_anterior_cve?: number;
+  saldo_atual_cve?: number;
+  periodo_inicio?: string;  // YYYY-MM-DD
+  periodo_fim?: string;
 }
 
 interface LinhaInjecao {
@@ -106,6 +115,16 @@ function validarFaturacao(rows: string[][]): {
     h.includes("cve") || h.includes("valor") || h.includes("factura") || h.includes("fatura")
   );
 
+  // Colunas opcionais (formato EDEC enriquecido — migration 021)
+  const idxNumFatura = header.findIndex((h) => h === "numero_fatura" || h === "n_fatura" || h === "nfatura");
+  const idxTipoLeitura = header.findIndex((h) => h === "tipo_leitura" || h === "tipoleitura");
+  const idxLeitInicial = header.findIndex((h) => h === "leitura_inicial" || h === "leit_inicial");
+  const idxLeitFinal = header.findIndex((h) => h === "leitura_final" || h === "leit_final");
+  const idxSaldoAnt = header.findIndex((h) => h === "saldo_anterior_cve" || h === "saldo_anterior");
+  const idxSaldoAtual = header.findIndex((h) => h === "saldo_atual_cve" || h === "saldo_atual");
+  const idxPerInicio = header.findIndex((h) => h === "periodo_inicio" || h === "data_inicio");
+  const idxPerFim = header.findIndex((h) => h === "periodo_fim" || h === "data_fim");
+
   if (idxContador < 0 || idxMes < 0 || idxKwh < 0 || idxCve < 0) {
     erros.push({
       linha: 0,
@@ -115,6 +134,19 @@ function validarFaturacao(rows: string[][]): {
         "Colunas obrigatórias não encontradas: numero_contador, mes_ano, kwh_faturado, valor_cve",
     });
     return { validos, erros };
+  }
+
+  function pickNum(row: string[], i: number): number | undefined {
+    if (i < 0) return undefined;
+    const s = row[i];
+    if (!s || s.trim() === "") return undefined;
+    const n = parseFloat(s.replace(",", "."));
+    return Number.isFinite(n) ? n : undefined;
+  }
+  function pickStr(row: string[], i: number): string | undefined {
+    if (i < 0) return undefined;
+    const s = row[i];
+    return s && s.trim() !== "" ? s.trim() : undefined;
   }
 
   for (let i = 1; i < rows.length; i++) {
@@ -148,7 +180,25 @@ function validarFaturacao(rows: string[][]): {
       continue;
     }
 
-    validos.push({ numero_contador: contador, mes_ano: mesAno, kwh_faturado: kwh, valor_cve: cve });
+    const tipoLeituraRaw = pickStr(row, idxTipoLeitura);
+    const tipoLeitura = tipoLeituraRaw && ["real", "estimada", "empresa", "cliente"].includes(tipoLeituraRaw.toLowerCase())
+      ? (tipoLeituraRaw.toLowerCase() as LinhaFaturacao["tipo_leitura"])
+      : undefined;
+
+    validos.push({
+      numero_contador: contador,
+      mes_ano: mesAno,
+      kwh_faturado: kwh,
+      valor_cve: cve,
+      numero_fatura: pickStr(row, idxNumFatura),
+      tipo_leitura: tipoLeitura,
+      leitura_inicial: pickNum(row, idxLeitInicial),
+      leitura_final: pickNum(row, idxLeitFinal),
+      saldo_anterior_cve: pickNum(row, idxSaldoAnt),
+      saldo_atual_cve: pickNum(row, idxSaldoAtual),
+      periodo_inicio: pickStr(row, idxPerInicio),
+      periodo_fim: pickStr(row, idxPerFim),
+    });
   }
 
   return { validos, erros };
@@ -335,12 +385,23 @@ Deno.serve(async (req) => {
             });
             return null;
           }
-          return {
+          // Campos enriquecidos só são incluídos se preenchidos — manter o
+          // payload mínimo quando o CSV é simples (formato pré-021).
+          const reg: Record<string, unknown> = {
             id_cliente,
             mes_ano: v.mes_ano,
             kwh_faturado: v.kwh_faturado,
             valor_cve: v.valor_cve,
           };
+          if (v.numero_fatura !== undefined) reg.numero_fatura = v.numero_fatura;
+          if (v.tipo_leitura !== undefined) reg.tipo_leitura = v.tipo_leitura;
+          if (v.leitura_inicial !== undefined) reg.leitura_inicial = v.leitura_inicial;
+          if (v.leitura_final !== undefined) reg.leitura_final = v.leitura_final;
+          if (v.saldo_anterior_cve !== undefined) reg.saldo_anterior_cve = v.saldo_anterior_cve;
+          if (v.saldo_atual_cve !== undefined) reg.saldo_atual_cve = v.saldo_atual_cve;
+          if (v.periodo_inicio !== undefined) reg.periodo_inicio = v.periodo_inicio;
+          if (v.periodo_fim !== undefined) reg.periodo_fim = v.periodo_fim;
+          return reg;
         })
         .filter((r): r is NonNullable<typeof r> => r !== null);
 

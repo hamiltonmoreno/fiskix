@@ -43,6 +43,13 @@ import {
   R8_LOOKBACK_MAX,
   R8_PONTOS_MAX,
   R8_FACTOR,
+  LIMIAR_DIVIDA_CVE,
+  R10_PONTOS_MAX,
+  R10_FACTOR,
+  R11_MESES_MIN_ESTIMADA,
+  R11_PONTOS,
+  R12_THRESHOLD_PCT,
+  R12_PONTOS_MAX,
   SCORE_MAX,
 } from "../_shared/scoring-constants.ts";
 
@@ -89,6 +96,12 @@ export interface ScoreInputEdge {
   alertasAnteriores: number;
   /** Multiplicador de zona já calculado a partir do balanço energético */
   multiplicadorZona: number;
+  /** R10: saldo em dívida (CVE) extraído da fatura. Opcional. */
+  saldoAtualCve?: number | null;
+  /** R11: tipos de leitura ordenados (mais recente primeiro). Opcional. */
+  tiposLeituraRecentes?: Array<"real" | "estimada" | "empresa" | "cliente" | null>;
+  /** R12: potência contratada em watts. Opcional. */
+  potenciaContratadaWatts?: number | null;
 }
 
 export interface ScoreOutputEdge {
@@ -106,6 +119,8 @@ export interface LimiaresEdge {
   limiar_slope_tendencia?: number;
   limiar_ratio_racio?: number;
   limiar_pico_ratio?: number;
+  limiar_divida_cve?: number;
+  r12_threshold_pct?: number;
 }
 
 // ============================================================
@@ -124,6 +139,8 @@ export function calcularScoreEdge(
   const limiar_slope_tendencia = limiares.limiar_slope_tendencia ?? LIMIAR_SLOPE_TENDENCIA;
   const limiar_ratio_racio = limiares.limiar_ratio_racio ?? LIMIAR_RATIO_RACIO;
   const limiar_pico_ratio = limiares.limiar_pico_ratio ?? LIMIAR_PICO_RATIO;
+  const limiar_divida_cve = limiares.limiar_divida_cve ?? LIMIAR_DIVIDA_CVE;
+  const r12_threshold_pct = limiares.r12_threshold_pct ?? R12_THRESHOLD_PCT;
 
   const {
     faturacao,
@@ -138,6 +155,9 @@ export function calcularScoreEdge(
     tendenciaSubestacao,
     alertasAnteriores,
     multiplicadorZona,
+    saldoAtualCve,
+    tiposLeituraRecentes,
+    potenciaContratadaWatts,
   } = input;
 
   const sorted = [...faturacao].sort((a, b) =>
@@ -384,6 +404,90 @@ export function calcularScoreEdge(
             descricao: `Atual é ${(ratio * 100).toFixed(1)}% do pico — normal`,
           });
         }
+      }
+    }
+  }
+
+  // ---------------- R10: Dívida Acumulada ----------------
+  {
+    if (saldoAtualCve == null || saldoAtualCve < limiar_divida_cve) {
+      regras.push({
+        regra: "R10",
+        pontos: 0,
+        descricao: saldoAtualCve == null
+          ? "Sem dados de dívida"
+          : `Dívida ${saldoAtualCve.toFixed(0)} CVE — abaixo do limiar (${limiar_divida_cve})`,
+        valor: saldoAtualCve ?? undefined,
+        threshold: limiar_divida_cve,
+      });
+    } else {
+      const pts = Math.min(R10_PONTOS_MAX, Math.round((saldoAtualCve - limiar_divida_cve) * R10_FACTOR));
+      score_base += pts;
+      regras.push({
+        regra: "R10",
+        pontos: pts,
+        descricao: `Dívida acumulada ${saldoAtualCve.toFixed(0)} CVE — incentivo financeiro elevado`,
+        valor: saldoAtualCve,
+        threshold: limiar_divida_cve,
+      });
+    }
+  }
+
+  // ---------------- R11: Leitura Estimada Recorrente ----------------
+  {
+    if (!tiposLeituraRecentes || tiposLeituraRecentes.length < R11_MESES_MIN_ESTIMADA) {
+      regras.push({ regra: "R11", pontos: 0, descricao: "Sem histórico suficiente de tipos de leitura" });
+    } else {
+      let consecutivos = 0;
+      for (const t of tiposLeituraRecentes) {
+        if (t === "estimada") consecutivos++;
+        else break;
+      }
+      if (consecutivos >= R11_MESES_MIN_ESTIMADA) {
+        score_base += R11_PONTOS;
+        regras.push({
+          regra: "R11",
+          pontos: R11_PONTOS,
+          descricao: `${consecutivos} meses consecutivos com leitura estimada — possível recusa de acesso`,
+          valor: consecutivos,
+          threshold: R11_MESES_MIN_ESTIMADA,
+        });
+      } else {
+        regras.push({
+          regra: "R11",
+          pontos: 0,
+          descricao: `Apenas ${consecutivos} meses consecutivos estimados — abaixo do limiar`,
+        });
+      }
+    }
+  }
+
+  // ---------------- R12: Subutilização de Potência ----------------
+  {
+    if (potenciaContratadaWatts == null || potenciaContratadaWatts <= 0) {
+      regras.push({ regra: "R12", pontos: 0, descricao: "Sem dados de potência contratada" });
+    } else {
+      const potenciaKw = potenciaContratadaWatts / 1000;
+      const capacidadeMensal = potenciaKw * 24 * 30;
+      const usoPct = capacidadeMensal > 0 ? (kwhAtual / capacidadeMensal) * 100 : 0;
+      if (usoPct >= r12_threshold_pct) {
+        regras.push({
+          regra: "R12",
+          pontos: 0,
+          descricao: `Uso ${usoPct.toFixed(2)}% da capacidade contratada — normal`,
+          valor: usoPct,
+          threshold: r12_threshold_pct,
+        });
+      } else {
+        const pts = Math.min(R12_PONTOS_MAX, Math.round((r12_threshold_pct - usoPct) * 5));
+        score_base += pts;
+        regras.push({
+          regra: "R12",
+          pontos: pts,
+          descricao: `Apenas ${usoPct.toFixed(2)}% da capacidade contratada (${potenciaKw.toFixed(1)} kW) — subutilização anormal`,
+          valor: usoPct,
+          threshold: r12_threshold_pct,
+        });
       }
     }
   }

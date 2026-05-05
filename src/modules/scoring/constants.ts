@@ -82,6 +82,19 @@ export const R9_MULT_BASE = 1.0;
 export const R9_MULT_MAX_DELTA = 0.3;          // cap de 1.3x (1.0 + 0.3)
 export const R9_MULT_FACTOR = 2;               // (perda_pct - limiar_pct) * factor
 
+// R10 — Dívida Acumulada (incentivo financeiro para fraude)
+export const LIMIAR_DIVIDA_CVE = 3000;         // saldo_atual_cve >= este → pontua
+export const R10_PONTOS_MAX = 10;
+export const R10_FACTOR = 0.001;               // pontos = (saldo - limiar) * factor
+
+// R11 — Leitura Estimada Recorrente (recusa de acesso → fraude)
+export const R11_MESES_MIN_ESTIMADA = 3;       // 3+ meses consecutivos estimados
+export const R11_PONTOS = 5;                   // bónus fixo
+
+// R12 — Subutilização de Potência Contratada (cliente "fantasma")
+export const R12_THRESHOLD_PCT = 1;            // (kWh / capacidade) × 100 < 1% → pontua
+export const R12_PONTOS_MAX = 5;
+
 // Score final
 export const SCORE_MAX = 100;
 export const SCORE_LIMIAR_ALERTA = 50;

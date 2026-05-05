@@ -518,6 +518,138 @@ describe("calcularScore — R9 multiplicador e limite 100", () => {
 });
 
 // ---------------------------------------------------------------------------
+// R10: Dívida Acumulada (incentivo financeiro)
+// ---------------------------------------------------------------------------
+
+describe("calcularScore — R10 dívida acumulada", () => {
+  const mesAtual = "2024-12";
+
+  it("dívida abaixo do limiar (3000 CVE) → 0 pontos", () => {
+    const cliente = makeCliente([...Array(12).fill(100)]);
+    const result = calcularScore(cliente, mesAtual, 1.0, clusterNeutro(100), {}, {
+      saldo_atual_cve: 1500,
+    });
+    const r10 = result.regras.find((r) => r.regra === "R10");
+    expect(r10?.pontos).toBe(0);
+  });
+
+  it("dívida elevada (10000 CVE) → pontuação capped em R10_PONTOS_MAX (10)", () => {
+    const cliente = makeCliente([...Array(12).fill(100)]);
+    const result = calcularScore(cliente, mesAtual, 1.0, clusterNeutro(100), {}, {
+      saldo_atual_cve: 100000,
+    });
+    const r10 = result.regras.find((r) => r.regra === "R10");
+    expect(r10?.pontos).toBe(10);
+  });
+
+  it("dívida ausente (campo não preenchido) → 0 pontos + descrição clara", () => {
+    const cliente = makeCliente([...Array(12).fill(100)]);
+    const result = calcularScore(cliente, mesAtual, 1.0, clusterNeutro(100), {}, {});
+    const r10 = result.regras.find((r) => r.regra === "R10");
+    expect(r10?.pontos).toBe(0);
+    expect(r10?.descricao).toContain("Sem dados de dívida");
+  });
+
+  it("limiar configurável via Limiares.limiar_divida_cve", () => {
+    const cliente = makeCliente([...Array(12).fill(100)]);
+    const result = calcularScore(
+      cliente, mesAtual, 1.0, clusterNeutro(100),
+      { limiar_divida_cve: 500 },
+      { saldo_atual_cve: 1500 },
+    );
+    const r10 = result.regras.find((r) => r.regra === "R10");
+    expect(r10?.pontos).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R11: Leitura Estimada Recorrente
+// ---------------------------------------------------------------------------
+
+describe("calcularScore — R11 leitura estimada recorrente", () => {
+  const mesAtual = "2024-12";
+
+  it("3+ meses consecutivos estimados → +5 pontos", () => {
+    const cliente = makeCliente([...Array(12).fill(100)]);
+    const result = calcularScore(cliente, mesAtual, 1.0, clusterNeutro(100), {}, {
+      tipos_leitura_recentes: ["estimada", "estimada", "estimada", "real"],
+    });
+    const r11 = result.regras.find((r) => r.regra === "R11");
+    expect(r11?.pontos).toBe(5);
+  });
+
+  it("2 meses estimados (insuficiente) → 0 pontos", () => {
+    const cliente = makeCliente([...Array(12).fill(100)]);
+    const result = calcularScore(cliente, mesAtual, 1.0, clusterNeutro(100), {}, {
+      tipos_leitura_recentes: ["estimada", "estimada", "real"],
+    });
+    const r11 = result.regras.find((r) => r.regra === "R11");
+    expect(r11?.pontos).toBe(0);
+  });
+
+  it("estimada interrompida por real não conta como consecutivo", () => {
+    const cliente = makeCliente([...Array(12).fill(100)]);
+    const result = calcularScore(cliente, mesAtual, 1.0, clusterNeutro(100), {}, {
+      tipos_leitura_recentes: ["real", "estimada", "estimada", "estimada"],
+    });
+    const r11 = result.regras.find((r) => r.regra === "R11");
+    expect(r11?.pontos).toBe(0);
+  });
+
+  it("histórico vazio ou ausente → 0 pontos sem erro", () => {
+    const cliente = makeCliente([...Array(12).fill(100)]);
+    const result = calcularScore(cliente, mesAtual, 1.0, clusterNeutro(100), {}, {});
+    const r11 = result.regras.find((r) => r.regra === "R11");
+    expect(r11?.pontos).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R12: Subutilização de Potência Contratada
+// ---------------------------------------------------------------------------
+
+describe("calcularScore — R12 subutilização de potência", () => {
+  const mesAtual = "2024-12";
+
+  it("cliente 6.6 kW que consome 53 kWh → < 1% capacidade → pontua", () => {
+    // 6600W = 6.6 kW × 24h × 30d = 4752 kWh capacidade. 53/4752 = 1.12% — borderline
+    const cliente = makeCliente([...Array(11).fill(53), 53]);
+    cliente.potencia_contratada_w = 6600;
+    const result = calcularScore(cliente, mesAtual, 1.0, clusterNeutro(53), {}, {});
+    const r12 = result.regras.find((r) => r.regra === "R12");
+    // 1.12% > 1% threshold → NÃO pontua (caso real Maria Orlanda — fica abaixo)
+    expect(r12?.pontos).toBe(0);
+  });
+
+  it("cliente 6.6 kW que consome 10 kWh → < 1% → pontua claramente", () => {
+    const cliente = makeCliente([...Array(11).fill(10), 10]);
+    cliente.potencia_contratada_w = 6600;
+    const result = calcularScore(cliente, mesAtual, 1.0, clusterNeutro(10), {}, {});
+    const r12 = result.regras.find((r) => r.regra === "R12");
+    expect(r12?.pontos).toBeGreaterThan(0);
+    expect(r12?.pontos).toBeLessThanOrEqual(5);
+  });
+
+  it("potência ausente → 0 pontos", () => {
+    const cliente = makeCliente([...Array(12).fill(100)]);
+    // potencia_contratada_w fica undefined
+    const result = calcularScore(cliente, mesAtual, 1.0, clusterNeutro(100), {}, {});
+    const r12 = result.regras.find((r) => r.regra === "R12");
+    expect(r12?.pontos).toBe(0);
+    expect(r12?.descricao).toContain("Sem dados de potência contratada");
+  });
+
+  it("uso normal (50% capacidade) → 0 pontos", () => {
+    // 1 kW = 720 kWh/mês capacidade. 360 kWh = 50% uso
+    const cliente = makeCliente([...Array(12).fill(360)]);
+    cliente.potencia_contratada_w = 1000;
+    const result = calcularScore(cliente, mesAtual, 1.0, clusterNeutro(360), {}, {});
+    const r12 = result.regras.find((r) => r.regra === "R12");
+    expect(r12?.pontos).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Casos extremos de calcularScore
 // ---------------------------------------------------------------------------
 
@@ -535,7 +667,7 @@ describe("calcularScore — casos extremos", () => {
     expect(result.regras).toHaveLength(0);
   });
 
-  it("resultado contém sempre 8 regras (R1-R8) quando mês existe", () => {
+  it("resultado contém sempre 11 regras (R1-R8 + R10-R12) quando mês existe", () => {
     const cliente = makeCliente([...Array(12).fill(100)]);
     const result = calcularScore(
       cliente,
@@ -543,7 +675,7 @@ describe("calcularScore — casos extremos", () => {
       1.0,
       clusterNeutro(100)
     );
-    expect(result.regras).toHaveLength(8);
+    expect(result.regras).toHaveLength(11);
     const regrasNomes = result.regras.map((r) => r.regra);
     ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8"].forEach((r) => {
       expect(regrasNomes).toContain(r);
