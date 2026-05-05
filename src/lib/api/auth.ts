@@ -32,15 +32,16 @@ export async function verificarApiKey(request: Request): Promise<string | null> 
   // da validade da key — sem early-exit baseado em conteúdo da key).
   const inputHash = await sha256Hex(key);
 
-  // Aceita hash (preferido, post-migration 017) OU plaintext (legacy, pre-migration).
-  // Transition window: enquanto não aplicarmos 017, valor em DB ainda é plaintext;
-  // após apply, valor é hash. .in([hash, plaintext]) cobre ambos sem janela quebrada.
-  // Após confirmação de migration aplicada, remover plaintext do `.in()`.
+  // Migration 017 já aplicada → DB armazena APENAS hash SHA-256. Cliente B2B
+  // continua a enviar plaintext; servidor hasha e compara.
+  // Para revogar/rotacionar uma key, admin executa em /admin/api-keys o SQL
+  // que faz UPDATE com encode(digest('<plaintext>','sha256'),'hex') — nunca
+  // se guarda plaintext em DB.
   const { data, error } = await supabase
     .from("configuracoes")
     .select("chave")
     .like("chave", "api_key_%")
-    .in("valor", [inputHash, key])
+    .eq("valor", inputHash)
     .maybeSingle();
 
   if (error || !data) return null;
