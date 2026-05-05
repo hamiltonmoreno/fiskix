@@ -4,6 +4,7 @@ import { apiError, apiCors } from "@/lib/api/response";
 import { checkRateLimit } from "@/lib/api/rateLimit";
 import { corsHeadersFor } from "@/lib/api/cors";
 import { getClientIp } from "@/lib/api/client-ip";
+import { AlertaIdParamSchema, parseParams } from "@/lib/api/schemas";
 
 /**
  * GET /api/v1/alertas/:id
@@ -30,7 +31,12 @@ export async function GET(
   const { allowed, remaining } = await checkRateLimit(`key:${cliente}`);
   if (!allowed) return apiError("Rate limit excedido.", 429, request);
 
-  const { id } = await params;
+  const rawParams = await params;
+  const parsed = parseParams(AlertaIdParamSchema, rawParams);
+  if (!parsed.ok) {
+    return apiError("ID inválido", 400, request, parsed.errors);
+  }
+  const { id } = parsed.data;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
