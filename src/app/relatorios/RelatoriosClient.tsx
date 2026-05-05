@@ -38,12 +38,16 @@ const TabAnaliseAvancada = dynamic(
   () => import("@/modules/relatorios/components/TabAnaliseAvancada").then((m) => m.TabAnaliseAvancada),
   { ssr: false, loading: tabSkeleton }
 );
+const TabInteligenciaFinanceira = dynamic(
+  () => import("@/modules/relatorios/components/TabInteligenciaFinanceira").then((m) => m.TabInteligenciaFinanceira),
+  { ssr: false, loading: tabSkeleton }
+);
 const TabGerarRelatorio = dynamic(
   () => import("@/modules/relatorios/components/TabGerarRelatorio").then((m) => m.TabGerarRelatorio),
   { ssr: false, loading: tabSkeleton }
 );
 
-type TabId = "executivo" | "inspecoes" | "perdas-zona" | "recidivismo" | "balanco" | "analise-avancada" | "gerar";
+type TabId = "executivo" | "inspecoes" | "perdas-zona" | "recidivismo" | "balanco" | "analise-avancada" | "inteligencia-financeira" | "gerar";
 
 const TAB_DEFS: { value: TabId; label: string }[] = [
   { value: "executivo", label: "Executivo" },
@@ -52,6 +56,7 @@ const TAB_DEFS: { value: TabId; label: string }[] = [
   { value: "recidivismo", label: "Recidivismo" },
   { value: "balanco", label: "Balanço Energético" },
   { value: "analise-avancada", label: "Análise Avançada" },
+  { value: "inteligencia-financeira", label: "Inteligência Financeira" },
   { value: "gerar", label: "Gerar Relatório" },
 ];
 
@@ -270,6 +275,10 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
 
               <Tabs.Content value="analise-avancada" className="focus:outline-none">
                 <TabAnaliseAvancada filtros={filtros} active={activeTab === "analise-avancada"} onExportReady={handleExportReady} />
+              </Tabs.Content>
+
+              <Tabs.Content value="inteligencia-financeira" className="focus:outline-none">
+                <TabInteligenciaFinanceira filtros={filtros} active={activeTab === "inteligencia-financeira"} onExportReady={handleExportReady} />
               </Tabs.Content>
 
               <Tabs.Content value="gerar" className="focus:outline-none">
