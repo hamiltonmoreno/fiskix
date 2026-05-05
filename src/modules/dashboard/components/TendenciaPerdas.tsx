@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { createClient } from "@/lib/supabase/client";
-import { formatCVE } from "@/lib/utils";
+import { formatCVE, parseMesAno } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DEFAULT_PRICE_CVE_PER_KWH } from "@/modules/balanco/lib/balanco";
 import { castRows } from "@/lib/supabase/types";
@@ -35,7 +35,7 @@ interface MesDatum {
 const MESES_PT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 function getLast12Months(mesAno: string): string[] {
-  const [y, m] = mesAno.split("-").map(Number);
+  const [y, m] = parseMesAno(mesAno);
   return Array.from({ length: 12 }, (_, i) => {
     const d = new Date(y, m - 1 - (11 - i), 1);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -52,7 +52,7 @@ const CustomTooltip = ({
   label?: string;
 }) => {
   if (!active || !payload?.length) return null;
-  const d = payload[0].payload;
+  const d = payload[0]!.payload;
   const perdaCVE = d.perda_kwh * d.tarifa_media;
 
   return (
@@ -116,7 +116,7 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
       }
 
       const chartData: MesDatum[] = meses.map((m) => {
-        const [, month] = m.split("-").map(Number);
+        const [, month] = parseMesAno(m);
         const kwh_injetado = injetadoPorMes[m] ?? 0;
         const { kwh: kwh_faturado, cve: cve_faturado } = faturadoPorMes[m] ?? { kwh: 0, cve: 0 };
         const perda_kwh = Math.max(0, kwh_injetado - kwh_faturado);
@@ -124,7 +124,7 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
         const tarifa_media = kwh_faturado > 0 ? cve_faturado / kwh_faturado : DEFAULT_PRICE_CVE_PER_KWH;
 
         return {
-          mes: MESES_PT[month - 1],
+          mes: MESES_PT[month - 1]!,
           mes_ano: m,
           perda_pct: parseFloat(perda_pct.toFixed(1)),
           kwh_injetado: Math.round(kwh_injetado),

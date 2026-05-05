@@ -138,7 +138,7 @@ describe("getLastNMonths", () => {
   it("meses estão em ordem crescente", () => {
     const meses = getLastNMonths(6);
     for (let i = 1; i < meses.length; i++) {
-      expect(meses[i] > meses[i - 1]).toBe(true);
+      expect(meses[i]! > meses[i - 1]!).toBe(true);
     }
   });
 });

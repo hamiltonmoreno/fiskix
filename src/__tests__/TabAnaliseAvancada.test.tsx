@@ -189,7 +189,7 @@ describe("TabAnaliseAvancada.tsx", () => {
       data: {
         ...mockData,
         porSubestacao: [
-          { ...mockData.porSubestacao[1], irec: 7.3 },
+          { ...mockData.porSubestacao[1]!, irec: 7.3 },
         ],
       },
       loading: false,

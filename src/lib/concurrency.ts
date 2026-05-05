@@ -16,7 +16,7 @@ export async function runPool<T, R>(
     while (next < items.length) {
       const i = next++;
       try {
-        results[i] = await fn(items[i]);
+        results[i] = await fn(items[i]!);
       } catch (error) {
         // Propaga o erro no slot do resultado para ser tratado pelo chamador
         results[i] = error as unknown as R;

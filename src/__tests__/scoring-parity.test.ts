@@ -126,7 +126,7 @@ describe("scoring constants — paridade entre canónico e mirror Deno", () => {
 // ---------------------------------------------------------------------------
 
 function genMeses(startMes: string, n: number): string[] {
-  const [y, m] = startMes.split("-").map(Number);
+  const [y, m] = startMes.split("-").map(Number) as [number, number];
   return Array.from({ length: n }, (_, i) => {
     const month = ((m - 1 + i) % 12) + 1;
     const year = y + Math.floor((m - 1 + i) / 12);
@@ -142,8 +142,8 @@ function mkFaturacao(
   const meses = genMeses(startMes, kwhValues.length);
   return meses.map((mes_ano, i) => ({
     mes_ano,
-    kwh_faturado: kwhValues[i],
-    valor_cve: kwhValues[i] * pricePerKwh,
+    kwh_faturado: kwhValues[i]!,
+    valor_cve: kwhValues[i]! * pricePerKwh,
   }));
 }
 

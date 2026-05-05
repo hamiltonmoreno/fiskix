@@ -154,7 +154,7 @@ export function calcularScoreEdge(
       const wSize = Math.min(idx, R1_WINDOW_MAX);
       const hist = sorted.slice(idx - wSize, idx);
       const media = hist.reduce((s, f) => s + f.kwh_faturado, 0) / hist.length;
-      const atual = sorted[idx].kwh_faturado;
+      const atual = sorted[idx]!.kwh_faturado;
       if (media > 0) {
         const delta = ((media - atual) / media) * 100;
         if (delta >= limiar_queda_pct) {
@@ -242,8 +242,8 @@ export function calcularScoreEdge(
   // ---------------- R4: Divergência Sazonal ----------------
   {
     if (idx >= 2) {
-      const atual = sorted[idx].kwh_faturado;
-      const ant = sorted[idx - 1].kwh_faturado;
+      const atual = sorted[idx]!.kwh_faturado;
+      const ant = sorted[idx - 1]!.kwh_faturado;
       if (ant > 0) {
         const tendCli = ((atual - ant) / ant) * 100;
         const div = tendenciaSubestacao - tendCli;
@@ -280,12 +280,12 @@ export function calcularScoreEdge(
       const ys = janela.map((f) => f.kwh_faturado);
       const sumX = xs.reduce((s, x) => s + x, 0);
       const sumY = ys.reduce((s, y) => s + y, 0);
-      const sumXY = xs.reduce((s, x, i) => s + x * ys[i], 0);
+      const sumXY = xs.reduce((s, x, i) => s + x * ys[i]!, 0);
       const sumX2 = xs.reduce((s, x) => s + x * x, 0);
       const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
       let meses = 0;
       for (let i = janela.length - 1; i > 0; i--) {
-        if (janela[i].kwh_faturado < janela[i - 1].kwh_faturado) meses++;
+        if (janela[i]!.kwh_faturado < janela[i - 1]!.kwh_faturado) meses++;
         else break;
       }
       if (slope < limiar_slope_tendencia && meses >= R5_MIN_MESES_CONSECUTIVOS) {
@@ -361,7 +361,7 @@ export function calcularScoreEdge(
     if (idx >= R8_MIN_INDEX) {
       const hist = sorted.slice(Math.max(0, idx - R8_LOOKBACK_MAX), idx);
       const pico = Math.max(...hist.map((f) => f.kwh_faturado));
-      const atual = sorted[idx].kwh_faturado;
+      const atual = sorted[idx]!.kwh_faturado;
       if (pico > 0) {
         const ratio = atual / pico;
         if (ratio < limiar_pico_ratio) {

@@ -75,7 +75,7 @@ describe("LeafletMap.tsx", () => {
   });
 
   it("renderiza o popup com as informações da subestação", () => {
-    render(<LeafletMap subestacoes={[mockSubestacoes[0]]} />); // Renderiza só a vermelha
+    render(<LeafletMap subestacoes={[mockSubestacoes[0]!]} />); // Renderiza só a vermelha
 
     // Info Textual
     expect(screen.getByText("Subestação Vermelha")).toBeInTheDocument();

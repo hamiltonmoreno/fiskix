@@ -194,7 +194,7 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
             >
               {mesesDisponiveis.map((m) => {
                 const [year, month] = m.split("-");
-                const label = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("pt-CV", {
+                const label = new Date(parseInt(year ?? "0"), parseInt(month ?? "1") - 1, 1).toLocaleDateString("pt-CV", {
                   month: "short",
                   year: "numeric",
                 });

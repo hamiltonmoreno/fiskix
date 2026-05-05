@@ -152,7 +152,7 @@ function r1QuedaSubitaGraduada(
   const windowSize = Math.min(idx, R1_WINDOW_MAX);
   const historico = sorted.slice(idx - windowSize, idx);
   const media = historico.reduce((s, f) => s + f.kwh_faturado, 0) / historico.length;
-  const atual = sorted[idx].kwh_faturado;
+  const atual = sorted[idx]!.kwh_faturado;
 
   if (media === 0) {
     return { regra: "R1", pontos: 0, descricao: "Média histórica zero" };
@@ -293,8 +293,8 @@ function r4DivergenciaSazonal(
     return { regra: "R4", pontos: 0, descricao: "Dados insuficientes" };
   }
 
-  const atual = sorted[idx].kwh_faturado;
-  const anterior = sorted[idx - 1].kwh_faturado;
+  const atual = sorted[idx]!.kwh_faturado;
+  const anterior = sorted[idx - 1]!.kwh_faturado;
 
   if (anterior === 0) {
     return { regra: "R4", pontos: 0, descricao: "Consumo anterior zero" };
@@ -350,7 +350,7 @@ function r5TendenciaDescendente(
   // Regressão linear simples
   const sumX = xs.reduce((s, x) => s + x, 0);
   const sumY = ys.reduce((s, y) => s + y, 0);
-  const sumXY = xs.reduce((s, x, i) => s + x * ys[i], 0);
+  const sumXY = xs.reduce((s, x, i) => s + x * ys[i]!, 0);
   const sumX2 = xs.reduce((s, x) => s + x * x, 0);
 
   const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
@@ -358,7 +358,7 @@ function r5TendenciaDescendente(
   // Verificar se há 3+ meses consecutivos com queda
   let mesesConsecutivos = 0;
   for (let i = janela.length - 1; i > 0; i--) {
-    if (janela[i].kwh_faturado < janela[i - 1].kwh_faturado) {
+    if (janela[i]!.kwh_faturado < janela[i - 1]!.kwh_faturado) {
       mesesConsecutivos++;
     } else {
       break;
@@ -466,7 +466,7 @@ function r8PicoHistoricoVsAtual(
   // legitimately downsized years ago (e.g. industrial site → residential).
   const historico = sorted.slice(Math.max(0, idx - R8_LOOKBACK_MAX), idx);
   const picoHistorico = Math.max(...historico.map((f) => f.kwh_faturado));
-  const atual = sorted[idx].kwh_faturado;
+  const atual = sorted[idx]!.kwh_faturado;
 
   if (picoHistorico === 0) {
     return { regra: "R8", pontos: 0, descricao: "Pico histórico zero" };
@@ -600,8 +600,8 @@ export function mediana(valores: number[]): number {
   const sorted = [...valores].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 !== 0
-    ? sorted[mid]
-    : (sorted[mid - 1] + sorted[mid]) / 2;
+    ? sorted[mid]!
+    : (sorted[mid - 1]! + sorted[mid]!) / 2;
 }
 
 /** Calcula MAD (Median Absolute Deviation) */
