@@ -29,14 +29,9 @@ import {
   SCORE_LIMIAR_ALERTA,
 } from "../_shared/scoring-constants.ts";
 import { calcularScoreEdge } from "./pure.ts";
+import { corsHeadersFor, corsPreflight } from "../_shared/cors.ts";
 
 type UserRole = "admin_fiskix" | "diretor" | "gestor_perdas" | "supervisor" | "fiscal";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
 
 const SCORING_ALLOWED_ROLES: UserRole[] = [
   "admin_fiskix",
@@ -45,17 +40,17 @@ const SCORING_ALLOWED_ROLES: UserRole[] = [
   "supervisor",
 ];
 
-function jsonResponse(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return await corsPreflight(req);
   }
+
+  const corsHeaders = await corsHeadersFor(req);
+  const jsonResponse = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
 
   const start = Date.now();
 
