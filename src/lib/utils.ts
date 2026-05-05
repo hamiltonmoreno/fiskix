@@ -30,6 +30,16 @@ export function formatMesAno(mesAno: string): string {
   return date.toLocaleDateString("pt-CV", { month: "long", year: "numeric" });
 }
 
+/** Formata timestamp ISO para "DD MMM YYYY · HH:MM" em pt-CV */
+export function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
+  const date = d.toLocaleDateString("pt-CV", { day: "2-digit", month: "short", year: "numeric" });
+  const time = d.toLocaleTimeString("pt-CV", { hour: "2-digit", minute: "2-digit" });
+  return `${date} · ${time}`;
+}
+
 /**
  * Parse 'YYYY-MM' para tuple `[year, month]`. Caller é responsável por
  * passar formato válido — devolve `[NaN, NaN]` em formato malformado.

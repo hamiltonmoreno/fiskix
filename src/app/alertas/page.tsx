@@ -9,6 +9,7 @@ import { AlertaSheet, type AlertaSheetData } from "@/modules/alertas/components/
 import type { AlertaStatus, InspecaoResultado } from "@/types/database";
 import { AlertasFilters } from "./_components/AlertasFilters";
 import { AlertasTable } from "./_components/AlertasTable";
+import { AlertasBulkBar } from "./_components/AlertasBulkBar";
 import { AlertasConfirmDialog } from "./_components/AlertasConfirmDialog";
 import { logger } from "@/lib/observability/logger";
 
@@ -18,6 +19,7 @@ interface Alerta {
   status: string;
   mes_ano: string;
   resultado: string | null;
+  criado_em: string;
   motivo: Array<{ regra: string; pontos: number; descricao: string }>;
   cliente: {
     numero_contador: string;
@@ -52,6 +54,12 @@ export default function AlertasPage() {
     novoStatus: InspecaoResultado;
     label: string;
   } | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  // Twilio cobra por SMS — limite defensivo por click para evitar custos imprevistos
+  // ou hammering acidental. Se utilizador realmente precisa de mais, faz outro batch.
+  const BULK_SMS_MAX = 30;
 
   useEffect(() => {
     supabase
@@ -70,7 +78,7 @@ export default function AlertasPage() {
       let query = supabase
         .from("alertas_fraude")
         .select(
-          `id, score_risco, status, mes_ano, resultado, motivo,
+          `id, score_risco, status, mes_ano, resultado, motivo, criado_em,
            clientes!inner(numero_contador, nome_titular, morada, tipo_tarifa, telemovel,
              subestacoes!inner(nome, zona_bairro))`,
           { count: "exact" }
@@ -109,6 +117,7 @@ export default function AlertasPage() {
           status: r.status,
           mes_ano: r.mes_ano,
           resultado: r.resultado,
+          criado_em: r.criado_em,
           motivo: (r.motivo as Alerta["motivo"]) ?? [],
           cliente: {
             numero_contador: c.numero_contador,
@@ -130,6 +139,121 @@ export default function AlertasPage() {
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { setPage(0); }, [mesAno, statusFilter, zona]);
+  // Limpar selecção quando filtros mudam (alertas em vista mudaram)
+  useEffect(() => { setSelectedIds(new Set()); }, [mesAno, statusFilter, zona, page]);
+
+  function toggleSelect(alertaId: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(alertaId)) next.delete(alertaId);
+      else next.add(alertaId);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds((prev) => {
+      const allInView = alertas.map((a) => a.id);
+      const allSelected = allInView.every((id) => prev.has(id));
+      if (allSelected) {
+        const next = new Set(prev);
+        allInView.forEach((id) => next.delete(id));
+        return next;
+      }
+      const next = new Set(prev);
+      allInView.forEach((id) => next.add(id));
+      return next;
+    });
+  }
+
+  function clearSelection() { setSelectedIds(new Set()); }
+
+  // Para SMS: precisam de telemovel + status === "Pendente"
+  const smsEligibleSelected = alertas.filter(
+    (a) => selectedIds.has(a.id) && a.cliente.telemovel && a.status === "Pendente",
+  );
+  // Para Ordem: status pode ser Pendente ou Notificado_SMS
+  const ordemEligibleSelected = alertas.filter(
+    (a) =>
+      selectedIds.has(a.id) &&
+      (a.status === "Pendente" || a.status === "Notificado_SMS"),
+  );
+
+  async function handleBulkSMS() {
+    if (smsEligibleSelected.length === 0) return;
+    if (smsEligibleSelected.length > BULK_SMS_MAX) {
+      toast.error(`Máximo ${BULK_SMS_MAX} SMS por batch (selecionados: ${smsEligibleSelected.length}). Reduza a seleção.`);
+      return;
+    }
+    setBulkBusy(true);
+    let ok = 0, fail = 0;
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      // Sequencial para respeitar rate limit do edge function (60 req/min)
+      // e dar feedback gradual em caso de erro.
+      for (const a of smsEligibleSelected) {
+        try {
+          const tipo = a.score_risco >= 75 ? "vermelho" : "amarelo";
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-sms`,
+            { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ alerta_id: a.id, tipo }) }
+          );
+          const json = await res.json();
+          if (json.mensagem_enviada) ok++; else fail++;
+        } catch {
+          fail++;
+        }
+      }
+      if (ok > 0) toast.success(`${ok} SMS enviado${ok === 1 ? "" : "s"}.`);
+      if (fail > 0) toast.error(`${fail} SMS falhou${fail === 1 ? "" : "ram"}.`);
+      clearSelection();
+      await load();
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  async function handleBulkOrdem() {
+    if (ordemEligibleSelected.length === 0) return;
+    setBulkBusy(true);
+    try {
+      const ids = ordemEligibleSelected.map((a) => a.id);
+      const { error } = await supabase
+        .from("alertas_fraude")
+        .update({ status: "Pendente_Inspecao" })
+        .in("id", ids);
+      if (error) throw error;
+      toast.success(`${ids.length} ordem${ids.length === 1 ? "" : "s"} de inspeção criada${ids.length === 1 ? "" : "s"}.`);
+      clearSelection();
+      await load();
+    } catch (err) {
+      logger({ page: "alertas" }).error("bulk_ordem_failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      toast.error("Falha ao criar ordens em massa.");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  function handleBulkExport() {
+    const selecionados = alertas.filter((a) => selectedIds.has(a.id));
+    if (selecionados.length === 0) return;
+    const headers = ["Score", "Contador", "Titular", "Zona", "Tarifa", "Regras", "Estado", "Resultado", "Mês"];
+    const rows = selecionados.map((a) => ({
+      "Score": a.score_risco,
+      "Contador": a.cliente.numero_contador,
+      "Titular": a.cliente.nome_titular,
+      "Zona": a.subestacao.zona_bairro,
+      "Tarifa": a.cliente.tipo_tarifa,
+      "Regras": a.motivo.filter((r) => r.pontos > 0).map((r) => r.regra).join(", "),
+      "Estado": a.status,
+      "Resultado": a.resultado ?? "",
+      "Mês": a.mes_ano,
+    }));
+    exportToExcel(`alertas_selecionados_${mesAno}`, headers, rows);
+  }
 
   async function handleEnviarSMS(alertaId: string) {
     const alerta = alertas.find((a) => a.id === alertaId);
@@ -224,6 +348,17 @@ export default function AlertasPage() {
         {total} alertas · Monitorização Ativa
       </div>
 
+      <AlertasBulkBar
+        selectedCount={selectedIds.size}
+        smsEligibleCount={smsEligibleSelected.length}
+        ordemEligibleCount={ordemEligibleSelected.length}
+        busy={bulkBusy}
+        onClear={clearSelection}
+        onBulkSMS={handleBulkSMS}
+        onBulkOrdem={handleBulkOrdem}
+        onBulkExport={handleBulkExport}
+      />
+
       <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 mosaic-card-hover">
         <AlertasTable
         alertas={alertas}
@@ -232,6 +367,7 @@ export default function AlertasPage() {
         page={page}
         pageSize={PAGE_SIZE}
         actionLoading={actionLoading}
+        selectedIds={selectedIds}
         onRowClick={(a) => { setAlertaSheet(a); setSheetOpen(true); }}
         onEnviarSMS={handleEnviarSMS}
         onGerarOrdem={handleGerarOrdem}
@@ -239,6 +375,8 @@ export default function AlertasPage() {
         onPageChange={setPage}
         sortDir={sortDir}
         onSortChange={(dir) => { setSortDir(dir); setPage(0); }}
+        onToggleSelect={toggleSelect}
+        onToggleSelectAll={toggleSelectAll}
       />
       </div>
 

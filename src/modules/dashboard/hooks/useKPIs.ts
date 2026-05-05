@@ -19,25 +19,31 @@ export function useKPIs(mesAno: string, zona?: string) {
     async function load() {
       setLoading(true);
       try {
-      // Query de alertas do mês atual
-      let alertasQuery = supabase
-        .from("alertas_fraude")
-        .select(
-          `score_risco, status, resultado,
-           clientes!inner(id_subestacao,
-             subestacoes!inner(zona_bairro)
-           )`
-        )
-        .eq("mes_ano", mesAno);
+      // Mês anterior (calculado uma vez, reusado abaixo)
+      const mesAnterior = (() => {
+        const [y, m] = parseMesAno(mesAno);
+        const d = new Date(y, m - 2, 1);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      })();
 
-      if (zona) {
-        alertasQuery = (alertasQuery as typeof alertasQuery).eq(
-          "clientes.subestacoes.zona_bairro",
-          zona
-        );
-      }
-
-      const { data: alertas } = await alertasQuery;
+      // Query de alertas do mês atual + mês anterior (para deltas)
+      const buildAlertasQuery = (mes: string) => {
+        let q = supabase
+          .from("alertas_fraude")
+          .select(
+            `score_risco, status, resultado,
+             clientes!inner(id_subestacao,
+               subestacoes!inner(zona_bairro)
+             )`
+          )
+          .eq("mes_ano", mes);
+        if (zona) q = (q as typeof q).eq("clientes.subestacoes.zona_bairro", zona);
+        return q;
+      };
+      const [{ data: alertas }, { data: alertasAnt }] = await Promise.all([
+        buildAlertasQuery(mesAno),
+        buildAlertasQuery(mesAnterior),
+      ]);
 
       const filtrados = (alertas ?? []) as Array<{
         score_risco: number;
@@ -45,11 +51,20 @@ export function useKPIs(mesAno: string, zona?: string) {
         resultado: string | null;
         clientes: { subestacoes: { zona_bairro: string } };
       }>;
+      const filtradosAnt = (alertasAnt ?? []) as typeof filtrados;
 
       const criticos = filtrados.filter((a) => a.score_risco >= SCORE_CRITICO).length;
       const pendentes = filtrados.filter(
         (a) => a.status === "Pendente_Inspecao"
       ).length;
+      const criticosAnt = filtradosAnt.filter((a) => a.score_risco >= SCORE_CRITICO).length;
+      const pendentesAnt = filtradosAnt.filter(
+        (a) => a.status === "Pendente_Inspecao"
+      ).length;
+      const pctDelta = (cur: number, prev: number) =>
+        prev > 0 ? ((cur - prev) / prev) * 100 : cur > 0 ? 100 : 0;
+      const variacaoCriticos = pctDelta(criticos, criticosAnt);
+      const variacaoPendentes = pctDelta(pendentes, pendentesAnt);
 
       // Query alertas críticos (top 5, score >= 75)
       let criticosQuery = supabase
@@ -108,30 +123,31 @@ export function useKPIs(mesAno: string, zona?: string) {
         mes_ano: string;
         clientes: { faturacao_clientes: FatRow[] } | { faturacao_clientes: FatRow[] }[];
       };
-      const receitaYTD = (recuperada ?? []).reduce((sum: number, r: unknown) => {
-        const item = r as {
-          alertas_fraude: {
-            mes_ano: string;
-            clientes: {
-              faturacao_clientes: Array<{ valor_cve: number; mes_ano: string }>;
-              subestacoes: { zona_bairro: string };
+      // Acumular receita YTD até mês N e até mês N-1 (delta vs mês anterior).
+      // O cliente vê a curva crescer; a comparação útil é "quanto mais subimos
+      // este mês face ao acumulado do mês passado".
+      const reduceReceita = (limite: string) =>
+        (recuperada ?? []).reduce((sum: number, r: unknown) => {
+          const item = r as {
+            alertas_fraude: {
+              mes_ano: string;
+              clientes: {
+                faturacao_clientes: Array<{ valor_cve: number; mes_ano: string }>;
+                subestacoes: { zona_bairro: string };
+              };
             };
           };
-        };
-        const mesAlerta = item.alertas_fraude?.mes_ano;
-        if (!mesAlerta?.startsWith(ano)) return sum;
-        if (zona && item.alertas_fraude?.clientes?.subestacoes?.zona_bairro !== zona) return sum;
-        const faturacao = item.alertas_fraude?.clientes?.faturacao_clientes ?? [];
-        const fatMes = faturacao.find((f) => f.mes_ano === mesAlerta);
-        return sum + (fatMes?.valor_cve ?? 0);
-      }, 0);
-
-      // Perda CVE total estimada — mês atual e mês anterior para calcular variação
-      const mesAnterior = (() => {
-        const [y, m] = parseMesAno(mesAno);
-        const d = new Date(y, m - 2, 1);
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      })();
+          const mesAlerta = item.alertas_fraude?.mes_ano;
+          if (!mesAlerta?.startsWith(ano)) return sum;
+          if (mesAlerta > limite) return sum;
+          if (zona && item.alertas_fraude?.clientes?.subestacoes?.zona_bairro !== zona) return sum;
+          const faturacao = item.alertas_fraude?.clientes?.faturacao_clientes ?? [];
+          const fatMes = faturacao.find((f) => f.mes_ano === mesAlerta);
+          return sum + (fatMes?.valor_cve ?? 0);
+        }, 0);
+      const receitaYTD = reduceReceita(mesAno);
+      const receitaYTDAnt = reduceReceita(mesAnterior);
+      const variacaoReceita = pctDelta(receitaYTD, receitaYTDAnt);
 
       // Queries de energia — filtradas por zona quando selecionada
       let injecoesQuery = supabase
@@ -192,6 +208,9 @@ export function useKPIs(mesAno: string, zona?: string) {
         ordens_pendentes: pendentes,
         receita_recuperada_ytd: receitaYTD,
         variacao_perda_pct: Math.round(variacaoPerda * 10) / 10,
+        variacao_criticos_pct: Math.round(variacaoCriticos * 10) / 10,
+        variacao_pendentes_pct: Math.round(variacaoPendentes * 10) / 10,
+        variacao_receita_pct: Math.round(variacaoReceita * 10) / 10,
         alertas_criticos,
       });
       } finally {

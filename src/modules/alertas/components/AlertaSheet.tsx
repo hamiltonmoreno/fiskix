@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ScoreBadge } from "@/components/ui/score-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { MessageSquare, ClipboardList, MapPin } from "lucide-react";
+import { AlertaTimeline } from "./AlertaTimeline";
 
 export interface AlertaSheetData {
   id: string;
@@ -17,6 +18,7 @@ export interface AlertaSheetData {
   status: string;
   mes_ano: string;
   resultado: string | null;
+  criado_em?: string;
   motivo: Array<{ regra: string; pontos: number; descricao: string }>;
   cliente: {
     numero_contador: string;
@@ -117,6 +119,19 @@ export function AlertaSheet({
             <StatusBadge status={alerta.resultado} />
           </div>
         )}
+
+        {/* Cronologia */}
+        <div className="mb-5">
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+            Cronologia
+          </h4>
+          <AlertaTimeline
+            alertaId={alerta.id}
+            criado_em={alerta.criado_em}
+            status={alerta.status}
+            resultado={alerta.resultado}
+          />
+        </div>
 
         {/* Acções */}
         {(podeEnviarSMS || podeGerarOrdem) && (
