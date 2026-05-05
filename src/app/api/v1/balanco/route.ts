@@ -5,6 +5,7 @@ import { checkRateLimit } from "@/lib/api/rateLimit";
 import { corsHeadersFor } from "@/lib/api/cors";
 import { getClientIp } from "@/lib/api/client-ip";
 import { BalancoQuerySchema, parseQuery } from "@/lib/api/schemas";
+import { cacheControlForMesAno } from "@/lib/api/cache";
 
 /**
  * GET /api/v1/balanco
@@ -123,6 +124,7 @@ export async function GET(request: Request) {
       headers: {
         ...corsHeaders,
         "Content-Type": "application/json",
+        "Cache-Control": cacheControlForMesAno(mes_ano),
         "X-RateLimit-Remaining": String(remaining),
       },
     }
