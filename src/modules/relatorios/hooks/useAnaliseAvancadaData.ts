@@ -5,6 +5,7 @@ import { formatMesAno } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { RelatoriosFiltros, AnaliseAvancadaData } from "../types";
 import { getMesesRange } from "./_shared";
+import { SCORE_CRITICO } from "@/modules/scoring/constants";
 
 export function useAnaliseAvancadaData(filtros: RelatoriosFiltros, active: boolean) {
   const supabase = createClient();
@@ -69,7 +70,7 @@ export function useAnaliseAvancadaData(filtros: RelatoriosFiltros, active: boole
         if (sid) {
           if (!alertasSubMap[sid]) alertasSubMap[sid] = { total: 0, alto: 0 };
           alertasSubMap[sid].total++;
-          if (a.score_risco >= 75) alertasSubMap[sid].alto++;
+          if (a.score_risco >= SCORE_CRITICO) alertasSubMap[sid].alto++;
         }
       }
 

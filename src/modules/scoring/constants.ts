@@ -28,6 +28,13 @@ export const LIMIAR_PICO_RATIO = 0.20;         // R8: rácio atual/pico máximo
 export const LIMIAR_PERDA_ZONA_PCT = 15;       // R9 / Balanço: % perda zona vermelha
 
 // ============================================================
+// SEVERIDADE DOS ALERTAS (UI + relatórios)
+// ============================================================
+
+export const SCORE_CRITICO = 75;               // score >= → CRÍTICO (vermelho)
+export const SCORE_MEDIO = 50;                 // 50 <= score < 75 → MÉDIO (amarelo)
+
+// ============================================================
 // PARÂMETROS ESTRUTURAIS (não configuráveis — fazem parte da definição)
 // ============================================================
 
