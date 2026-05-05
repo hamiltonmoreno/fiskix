@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { SCORE_CRITICO } from "@/modules/scoring/constants";
+import { castRows } from "@/lib/supabase/types";
 import type { KPIData } from "../types";
+
+type InjecaoRow = { total_kwh_injetado: number };
+type FaturacaoRow = { kwh_faturado: number; valor_cve: number };
 
 export function useKPIs(mesAno: string, zona?: string) {
   const [data, setData] = useState<KPIData | null>(null);
@@ -160,9 +164,9 @@ export function useKPIs(mesAno: string, zona?: string) {
         { data: faturacaoAnt },
       ] = await Promise.all([injecoesQuery, fatQuery, injecoesAntQuery, fatAntQuery]);
 
-      const totalInjetado = ((injecoes ?? []) as unknown as Array<{ total_kwh_injetado: number }>).reduce((s, i) => s + i.total_kwh_injetado, 0);
-      const totalFaturado = ((faturacaoTotal ?? []) as unknown as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.kwh_faturado, 0);
-      const totalCVEFaturado = ((faturacaoTotal ?? []) as unknown as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.valor_cve, 0);
+      const totalInjetado = castRows<InjecaoRow>(injecoes).reduce((s, i) => s + i.total_kwh_injetado, 0);
+      const totalFaturado = castRows<FaturacaoRow>(faturacaoTotal).reduce((s, f) => s + f.kwh_faturado, 0);
+      const totalCVEFaturado = castRows<FaturacaoRow>(faturacaoTotal).reduce((s, f) => s + f.valor_cve, 0);
 
       const perdaKwh = totalInjetado - totalFaturado;
       // When there is no faturação for the month, we cannot derive a real tariff
@@ -172,9 +176,9 @@ export function useKPIs(mesAno: string, zona?: string) {
       const perdaCVE = tarifaMedia > 0 ? perdaKwh * tarifaMedia : 0;
 
       // Variação vs mês anterior
-      const totalInjetadoAnt = ((injecoesAnt ?? []) as unknown as Array<{ total_kwh_injetado: number }>).reduce((s, i) => s + i.total_kwh_injetado, 0);
-      const totalFaturadoAnt = ((faturacaoAnt ?? []) as unknown as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.kwh_faturado, 0);
-      const totalCVEFaturadoAnt = ((faturacaoAnt ?? []) as unknown as Array<{ kwh_faturado: number; valor_cve: number }>).reduce((s, f) => s + f.valor_cve, 0);
+      const totalInjetadoAnt = castRows<InjecaoRow>(injecoesAnt).reduce((s, i) => s + i.total_kwh_injetado, 0);
+      const totalFaturadoAnt = castRows<FaturacaoRow>(faturacaoAnt).reduce((s, f) => s + f.kwh_faturado, 0);
+      const totalCVEFaturadoAnt = castRows<FaturacaoRow>(faturacaoAnt).reduce((s, f) => s + f.valor_cve, 0);
       const tarifaMediaAnt = totalFaturadoAnt > 0 ? totalCVEFaturadoAnt / totalFaturadoAnt : tarifaMedia;
       const perdaKwhAnt = totalInjetadoAnt - totalFaturadoAnt;
       const perdaCVEAnt = perdaKwhAnt * tarifaMediaAnt;

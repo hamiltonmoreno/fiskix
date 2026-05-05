@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatCVE } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DEFAULT_PRICE_CVE_PER_KWH } from "@/modules/balanco/lib/balanco";
+import { castRows } from "@/lib/supabase/types";
 
 interface TendenciaProps {
   mesAno: string;
@@ -104,12 +105,12 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
 
       // Aggregate by month
       const injetadoPorMes: Record<string, number> = {};
-      for (const i of (injecoes ?? []) as unknown as Array<{ mes_ano: string; total_kwh_injetado: number }>) {
+      for (const i of castRows<{ mes_ano: string; total_kwh_injetado: number }>(injecoes)) {
         injetadoPorMes[i.mes_ano] = (injetadoPorMes[i.mes_ano] ?? 0) + i.total_kwh_injetado;
       }
 
       const faturadoPorMes: Record<string, { kwh: number; cve: number }> = {};
-      for (const f of (faturacao ?? []) as unknown as Array<{ mes_ano: string; kwh_faturado: number; valor_cve: number }>) {
+      for (const f of castRows<{ mes_ano: string; kwh_faturado: number; valor_cve: number }>(faturacao)) {
         const prev = faturadoPorMes[f.mes_ano] ?? { kwh: 0, cve: 0 };
         faturadoPorMes[f.mes_ano] = { kwh: prev.kwh + f.kwh_faturado, cve: prev.cve + f.valor_cve };
       }
