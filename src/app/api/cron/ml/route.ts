@@ -4,6 +4,7 @@ import { logger } from "@/lib/observability/logger";
 import { runPool } from "@/lib/concurrency";
 import { calcularRMSE, type ParRMSE, type ResultadoRMSE } from "@/lib/ml/rmse";
 import { attemptAutoPromote, type AutoPromoteOutcome } from "@/lib/ml/auto-promote";
+import { verifyCronAuth } from "@/lib/security/cron-auth";
 
 // Resultados que contam como inspeção confirmada para auto-promote (R7).
 // Nota: vai ser substituído por RESULTADOS_REINCIDENCIA do constants partilhado
@@ -83,15 +84,17 @@ export async function GET(request: Request) {
   const startedAt = Date.now();
 
   const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
-    log.error("cron.config_missing", { missing: "CRON_SECRET" });
-    return withRequestId({ error: "CRON_SECRET não configurado" }, 500, requestId);
-  }
-
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    log.warn("cron.ml.unauthorized");
-    return withRequestId({ error: "Unauthorized" }, 401, requestId);
+  const authResult = verifyCronAuth(request, cronSecret);
+  if (!authResult.ok) {
+    if (authResult.reason === "missing_secret") {
+      log.error("cron.config_missing", { missing: "CRON_SECRET" });
+      return withRequestId({ error: "CRON_SECRET não configurado" }, 500, requestId);
+    }
+    log.warn("cron.ml.unauthorized", {
+      reason: authResult.reason,
+      user_agent: request.headers.get("user-agent") ?? null,
+    });
+    return withRequestId({ error: "Unauthorized" }, authResult.status, requestId);
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

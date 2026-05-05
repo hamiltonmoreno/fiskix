@@ -13,6 +13,16 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/** Constant-time string compare — Deno-compatible inline. */
+function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -49,9 +59,10 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Configuração de ambiente incompleta" }, 500);
     }
 
-    // Apenas service role pode chamar esta função
-    const authHeader = req.headers.get("Authorization") ?? req.headers.get("authorization");
-    if (authHeader !== `Bearer ${serviceRoleKey}`) {
+    // Apenas service role pode chamar esta função.
+    // Timing-safe compare (defesa contra recovery byte-a-byte do service_role_key).
+    const authHeader = req.headers.get("Authorization") ?? req.headers.get("authorization") ?? "";
+    if (!constantTimeEqual(authHeader, `Bearer ${serviceRoleKey}`)) {
       return jsonResponse({ error: "Não autorizado" }, 401);
     }
 
