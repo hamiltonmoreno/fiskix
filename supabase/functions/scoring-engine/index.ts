@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
     // Clientes da subestação
     const { data: clientes } = await supabase
       .from("clientes")
-      .select("id, numero_contador, nome_titular, tipo_tarifa, id_subestacao")
+      .select("id, numero_contador, nome_titular, tipo_tarifa, id_subestacao, potencia_contratada_w")
       .eq("id_subestacao", subestacao_id)
       .eq("ativo", true);
 
@@ -188,9 +188,11 @@ Deno.serve(async (req) => {
     }
 
     // 3. ETAPA B: Histórico de faturação (36 meses) para scoring
+    // Inclui campos enriquecidos da fatura EDEC (R10/R11) — NULL para registos
+    // antigos pré-021, regras retornam 0 nesses casos.
     const { data: faturacaoHistorico } = await supabase
       .from("faturacao_clientes")
-      .select("id_cliente, mes_ano, kwh_faturado, valor_cve")
+      .select("id_cliente, mes_ano, kwh_faturado, valor_cve, tipo_leitura, saldo_atual_cve")
       .in("id_cliente", clienteIds)
       .order("mes_ano", { ascending: true });
 
@@ -262,12 +264,21 @@ Deno.serve(async (req) => {
     const alertasParaInserir = [];
 
     for (const cliente of clientes) {
-      const fHist = (faturacaoHistorico ?? [])
-        .filter((f) => f.id_cliente === cliente.id)
-        .map((f) => ({ mes_ano: f.mes_ano, kwh_faturado: f.kwh_faturado, valor_cve: f.valor_cve }));
+      const histRows = (faturacaoHistorico ?? []).filter((f) => f.id_cliente === cliente.id);
+      const fHist = histRows.map((f) => ({ mes_ano: f.mes_ano, kwh_faturado: f.kwh_faturado, valor_cve: f.valor_cve }));
 
       const fAtual = faturacaoMesMap[cliente.id];
       if (!fAtual || fHist.length < 3) continue;
+
+      // Meta-fatura para R10/R11: extrair do mês atual (saldo) + últimos 6 meses (tipos leitura).
+      // R12: potência do cliente já vem no select.
+      const histRecente = [...histRows].sort((a, b) => b.mes_ano.localeCompare(a.mes_ano));
+      const fAtualRow = histRecente.find((r) => r.mes_ano === mes_ano);
+      const saldoAtualCve = fAtualRow?.saldo_atual_cve ?? null;
+      const tiposLeituraRecentes = histRecente
+        .slice(0, 6)
+        .map((r) => r.tipo_leitura as "real" | "estimada" | "empresa" | "cliente" | null);
+      const potenciaContratadaWatts = (cliente as { potencia_contratada_w?: number | null }).potencia_contratada_w ?? null;
 
       // Cluster info para este cliente
       const grupoTarifa = clusterPorTarifa[cliente.tipo_tarifa] ?? [];
@@ -310,6 +321,9 @@ Deno.serve(async (req) => {
           tendenciaSubestacao,
           alertasAnteriores: alertasPorCliente[cliente.id] ?? 0,
           multiplicadorZona: multiplicador_zona,
+          saldoAtualCve,
+          tiposLeituraRecentes,
+          potenciaContratadaWatts,
         },
         limiares
       );
