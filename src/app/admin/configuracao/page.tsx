@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { haptics } from "@/lib/haptics";
 import { Icon } from "@/components/Icon";
+import { OcrProviderCard } from "./OcrProviderCard";
 
 interface Configuracao {
   chave: string;
@@ -247,6 +248,8 @@ export default function ConfiguracaoPage() {
           })}
         </div>
       )}
+
+      <OcrProviderCard />
     </div>
   );
 }
