@@ -3,11 +3,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // ── Mocks ──────────────────────────────────────────────────────────────────────
 //
 // A chain Supabase usada por verificarApiKey é:
-//   from(table).select(cols).like(col, pattern).in(col, [vals]).maybeSingle()
+//   from(table).select(cols).like(col, pattern).eq(col, hash).maybeSingle()
 
 const mockMaybeSingle = vi.fn();
-const mockIn = vi.fn(() => ({ maybeSingle: mockMaybeSingle }));
-const mockLike = vi.fn(() => ({ in: mockIn }));
+const mockEq = vi.fn(() => ({ maybeSingle: mockMaybeSingle }));
+const mockLike = vi.fn(() => ({ eq: mockEq }));
 const mockSelect = vi.fn(() => ({ like: mockLike }));
 const mockFrom = vi.fn(() => ({ select: mockSelect }));
 
@@ -66,7 +66,7 @@ describe("verificarApiKey", () => {
     expect(result).toBe("electra");
   });
 
-  it("hash do input é incluído na query .in() (transition: aceita hash OU plaintext)", async () => {
+  it("hash do input é usado na query .eq() (apenas hash, sem plaintext)", async () => {
     mockMaybeSingle.mockResolvedValue({
       data: { chave: "api_key_electra" },
       error: null,
@@ -75,13 +75,10 @@ describe("verificarApiKey", () => {
     const { verificarApiKey } = await import("@/lib/api/auth");
     await verificarApiKey(buildRequest("Bearer chave-x"));
 
-    const inCallArgs = mockIn.mock.calls[0] as unknown as [string, string[]];
-    expect(inCallArgs[0]).toBe("valor");
-    const valoresProcurados = inCallArgs[1];
-    expect(valoresProcurados).toHaveLength(2);
-    expect(valoresProcurados).toContain("chave-x"); // plaintext fallback
-    // SHA-256("chave-x") = primeiro elemento (hash)
-    expect(valoresProcurados[0]).toMatch(/^[0-9a-f]{64}$/);
+    const eqCallArgs = mockEq.mock.calls[0] as unknown as [string, string];
+    expect(eqCallArgs[0]).toBe("valor");
+    expect(eqCallArgs[1]).toMatch(/^[0-9a-f]{64}$/); // SHA-256 hex
+    expect(eqCallArgs[1]).not.toBe("chave-x"); // plaintext NÃO é enviado
   });
 
   it("retorna null quando a query Supabase falha", async () => {
