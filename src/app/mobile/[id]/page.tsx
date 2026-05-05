@@ -71,12 +71,12 @@ export default async function FichaPage({ params }: Props) {
 
   // Calcular mediana do kWh do cluster
   const clusterKwh = (clusterFaturacao ?? []).map((r) => r.kwh_faturado).sort((a, b) => a - b);
-  const medianaCluster =
+  const medianaCluster: number | null =
     clusterKwh.length === 0
       ? null
       : clusterKwh.length % 2 === 0
-      ? (clusterKwh[clusterKwh.length / 2 - 1] + clusterKwh[clusterKwh.length / 2]) / 2
-      : clusterKwh[Math.floor(clusterKwh.length / 2)];
+      ? (clusterKwh[clusterKwh.length / 2 - 1]! + clusterKwh[clusterKwh.length / 2]!) / 2
+      : clusterKwh[Math.floor(clusterKwh.length / 2)]!;
 
   return (
     <FichaInteligencia

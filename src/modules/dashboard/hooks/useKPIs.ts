@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { SCORE_CRITICO } from "@/modules/scoring/constants";
 import { castRows } from "@/lib/supabase/types";
+import { parseMesAno } from "@/lib/utils";
 import type { KPIData } from "../types";
 
 type InjecaoRow = { total_kwh_injetado: number };
@@ -79,7 +80,7 @@ export function useKPIs(mesAno: string, zona?: string) {
       });
 
       // Receita recuperada YTD (fraudes confirmadas no ano corrente)
-      const ano = mesAno.split("-")[0];
+      const ano = mesAno.split("-")[0]!;
       let recQuery = supabase
         .from("relatorios_inspecao")
         .select(
@@ -127,7 +128,7 @@ export function useKPIs(mesAno: string, zona?: string) {
 
       // Perda CVE total estimada — mês atual e mês anterior para calcular variação
       const mesAnterior = (() => {
-        const [y, m] = mesAno.split("-").map(Number);
+        const [y, m] = parseMesAno(mesAno);
         const d = new Date(y, m - 2, 1);
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       })();

@@ -108,7 +108,7 @@ export default function ConfiguracaoPage() {
     }
 
     setSucesso(true);
-    setConfigs((prev) => prev.map((c) => editado[c.chave] !== undefined ? { ...c, valor: editado[c.chave] } : c));
+    setConfigs((prev) => prev.map((c) => editado[c.chave] !== undefined ? { ...c, valor: editado[c.chave]! } : c));
     setEditado({});
     setTimeout(() => setSucesso(false), 3000);
   }

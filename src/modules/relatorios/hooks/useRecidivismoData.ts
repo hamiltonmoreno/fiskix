@@ -42,7 +42,7 @@ export function useRecidivismoData(filtros: RelatoriosFiltros, active: boolean) 
             meses: [],
           };
         }
-        clientMap[a.id_cliente].meses.push(a.mes_ano);
+        clientMap[a.id_cliente]!.meses.push(a.mes_ano);
       }
 
       const reincidentes = Object.entries(clientMap)
@@ -57,7 +57,7 @@ export function useRecidivismoData(filtros: RelatoriosFiltros, active: boolean) 
             zona: v.zona,
             total_alertas: v.meses.length,
             confirmados: v.meses.length,
-            ultimo_mes: formatMesAno(sortedMeses[sortedMeses.length - 1]),
+            ultimo_mes: formatMesAno(sortedMeses[sortedMeses.length - 1]!),
           };
         })
         .sort((a, b) => b.total_alertas - a.total_alertas);
@@ -67,7 +67,9 @@ export function useRecidivismoData(filtros: RelatoriosFiltros, active: boolean) 
       for (const [, v] of Object.entries(clientMap)) {
         if (v.meses.length >= 2) {
           const secondAlert = [...v.meses].sort()[1];
-          if (meses.includes(secondAlert)) mensalNovos[secondAlert] = (mensalNovos[secondAlert] ?? 0) + 1;
+          if (secondAlert && meses.includes(secondAlert)) {
+            mensalNovos[secondAlert] = (mensalNovos[secondAlert] ?? 0) + 1;
+          }
         }
       }
 

@@ -100,8 +100,8 @@ export function LoginForm() {
           {EDGES.map(([from, to], i) => (
             <line
               key={`base-${i}`}
-              x1={NODES[from].x} y1={NODES[from].y}
-              x2={NODES[to].x}   y2={NODES[to].y}
+              x1={NODES[from!]!.x} y1={NODES[from!]!.y}
+              x2={NODES[to!]!.x}   y2={NODES[to!]!.y}
               stroke="#0058bc"
               strokeWidth="1"
               strokeOpacity="0.22"
@@ -112,8 +112,8 @@ export function LoginForm() {
           {EDGES.map(([from, to], i) => (
             <line
               key={`pulse-${i}`}
-              x1={NODES[from].x} y1={NODES[from].y}
-              x2={NODES[to].x}   y2={NODES[to].y}
+              x1={NODES[from!]!.x} y1={NODES[from!]!.y}
+              x2={NODES[to!]!.x}   y2={NODES[to!]!.y}
               stroke="#60a5fa"
               strokeWidth="1.5"
               strokeLinecap="round"

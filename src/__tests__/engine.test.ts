@@ -25,7 +25,7 @@ function mkf(mes_ano: string, kwh: number, pricePerKwh = 25): FaturacaoMensal {
 
 /** Gera N meses consecutivos a partir de startMes ('YYYY-MM') */
 function genMeses(startMes: string, n: number): string[] {
-  const [y, m] = startMes.split("-").map(Number);
+  const [y, m] = startMes.split("-").map(Number) as [number, number];
   return Array.from({ length: n }, (_, i) => {
     const month = ((m - 1 + i) % 12) + 1;
     const year = y + Math.floor((m - 1 + i) / 12);
@@ -47,7 +47,7 @@ function makeCliente(
     nome_titular: "Teste",
     tipo_tarifa: "Residencial",
     id_subestacao: "sub-001",
-    faturacao: meses.map((m, i) => mkf(m, kwhValues[i], pricePerKwh)),
+    faturacao: meses.map((m, i) => mkf(m, kwhValues[i]!, pricePerKwh)),
     alertas_anteriores: alertasAnteriores,
   };
 }

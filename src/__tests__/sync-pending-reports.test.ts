@@ -139,7 +139,7 @@ describe("syncPendingReports", () => {
     expect(getPublicUrl).toHaveBeenCalledOnce();
 
     expect(insert).toHaveBeenCalledOnce();
-    const insertedRow = insert.mock.calls[0][0];
+    const insertedRow = insert.mock.calls[0]![0];
     expect(insertedRow).toMatchObject({
       id_alerta: "alerta-1",
       id_fiscal: "fiscal-1",
@@ -171,7 +171,7 @@ describe("syncPendingReports", () => {
 
     expect(res.synced).toBe(1);
     expect(upload).not.toHaveBeenCalled();
-    expect(insert.mock.calls[0][0].foto_url).toBeNull();
+    expect(insert.mock.calls[0]![0].foto_url).toBeNull();
   });
 
   it("processes multiple reports independently", async () => {

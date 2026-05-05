@@ -25,21 +25,21 @@ describe("AlertasQuerySchema", () => {
     const r = parseQuery(AlertasQuerySchema, searchParams({ mes_ano: "2026-13" }));
     expect(r.ok).toBe(false);
     if (r.ok) return;
-    expect(r.errors[0].path).toBe("mes_ano");
+    expect(r.errors[0]!.path).toBe("mes_ano");
   });
 
   it("rejeita min_score fora de 0-100", () => {
     const r = parseQuery(AlertasQuerySchema, searchParams({ min_score: "150" }));
     expect(r.ok).toBe(false);
     if (r.ok) return;
-    expect(r.errors[0].path).toBe("min_score");
+    expect(r.errors[0]!.path).toBe("min_score");
   });
 
   it("rejeita min_score=abc (não numérico — captura silent NaN bug)", () => {
     const r = parseQuery(AlertasQuerySchema, searchParams({ min_score: "abc" }));
     expect(r.ok).toBe(false);
     if (r.ok) return;
-    expect(r.errors[0].path).toBe("min_score");
+    expect(r.errors[0]!.path).toBe("min_score");
   });
 
   it("aceita status enum válido e rejeita inválido", () => {
@@ -62,14 +62,14 @@ describe("AlertasQuerySchema", () => {
     const r = parseQuery(AlertasQuerySchema, searchParams({ limit: "999" }));
     expect(r.ok).toBe(false);
     if (r.ok) return;
-    expect(r.errors[0].path).toBe("limit");
+    expect(r.errors[0]!.path).toBe("limit");
   });
 
   it("rejeita subestacao_id que não é UUID", () => {
     const r = parseQuery(AlertasQuerySchema, searchParams({ subestacao_id: "abc" }));
     expect(r.ok).toBe(false);
     if (r.ok) return;
-    expect(r.errors[0].path).toBe("subestacao_id");
+    expect(r.errors[0]!.path).toBe("subestacao_id");
   });
 });
 
@@ -90,7 +90,7 @@ describe("BalancoQuerySchema", () => {
     const r = parseQuery(BalancoQuerySchema, searchParams({}));
     expect(r.ok).toBe(false);
     if (r.ok) return;
-    expect(r.errors[0].path).toBe("mes_ano");
+    expect(r.errors[0]!.path).toBe("mes_ano");
   });
 
   it("aceita mes_ano + subestacao_id opcional UUID", () => {

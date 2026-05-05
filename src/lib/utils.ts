@@ -25,9 +25,20 @@ export function formatKWh(value: number): string {
 
 /** Formata mes_ano de 'YYYY-MM' para 'Mês Ano' */
 export function formatMesAno(mesAno: string): string {
-  const [year, month] = mesAno.split("-");
-  const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+  const [y, m] = parseMesAno(mesAno);
+  const date = new Date(y, m - 1, 1);
   return date.toLocaleDateString("pt-CV", { month: "long", year: "numeric" });
+}
+
+/**
+ * Parse 'YYYY-MM' para tuple `[year, month]`. Caller é responsável por
+ * passar formato válido — devolve `[NaN, NaN]` em formato malformado.
+ * Substituiu o `split("-").map(Number)` literal espalhado pelo código,
+ * que produzia `(number | undefined)[]` sob noUncheckedIndexedAccess.
+ */
+export function parseMesAno(mesAno: string): [number, number] {
+  const parts = mesAno.split("-");
+  return [Number(parts[0] ?? NaN), Number(parts[1] ?? NaN)];
 }
 
 /** Retorna cor do badge baseado no score */

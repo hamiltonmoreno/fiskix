@@ -39,15 +39,15 @@ export function DashboardCard06({ mesAno, zona }: DashboardCard06Props) {
 
         (alertas || []).forEach((a) => {
           const status = String(a.status);
-          if (status === "Pendente_Inspecao") contagem["Pendente Inspecao"]++;
-          else if (status === "Fraude_Confirmada" || status === "Alerta_Fraude") contagem["Fraude Confirmada"]++;
-          else if (status === "Inspecao_Sem_Fraude") contagem["Inspecao Sem Fraude"]++;
+          if (status === "Pendente_Inspecao") contagem["Pendente Inspecao"]!++;
+          else if (status === "Fraude_Confirmada" || status === "Alerta_Fraude") contagem["Fraude Confirmada"]!++;
+          else if (status === "Inspecao_Sem_Fraude") contagem["Inspecao Sem Fraude"]!++;
         });
 
         const chartData = [
-          { name: "Fraude Confirmada", value: contagem["Fraude Confirmada"], color: appColors.danger },
-          { name: "Pendente", value: contagem["Pendente Inspecao"], color: appColors.warning },
-          { name: "Sem Fraude", value: contagem["Inspecao Sem Fraude"], color: appColors.success },
+          { name: "Fraude Confirmada", value: contagem["Fraude Confirmada"]!, color: appColors.danger },
+          { name: "Pendente", value: contagem["Pendente Inspecao"]!, color: appColors.warning },
+          { name: "Sem Fraude", value: contagem["Inspecao Sem Fraude"]!, color: appColors.success },
         ].filter((d) => d.value > 0);
 
         setData(chartData);
@@ -63,7 +63,7 @@ export function DashboardCard06({ mesAno, zona }: DashboardCard06Props) {
 
   const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: { name: string; value: number; color: string } }> }) => {
     if (!active || !payload?.length) return null;
-    const { name, value, color } = payload[0].payload;
+    const { name, value, color } = payload[0]!.payload;
     const pct = total > 0 ? Math.round((value / total) * 100) : 0;
 
     return (
