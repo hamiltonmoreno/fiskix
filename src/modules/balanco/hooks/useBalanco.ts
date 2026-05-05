@@ -37,6 +37,8 @@ export interface BalancoData {
   evolucao: EvolucaoMensalRow[];
   /** Same KPIs computed for the same calendar month one year before, for YoY. */
   yoy?: { perdaPct: number; perdaKwh: number; deltaPct: number };
+  /** Same KPIs computed for the previous calendar month, for MoM. */
+  mom?: { perdaPct: number; perdaKwh: number; deltaPct: number };
 }
 
 export interface DrillDownData {
@@ -58,7 +60,8 @@ export function useBalanco(filtros: BalancoFiltros) {
     // truncated the window for historical selections.
     const meses = buildMesesRange(filtros.mesAno, nMeses);
     const yoyMes = shiftMesAno(filtros.mesAno, -12);
-    const mesesPlusYoy = Array.from(new Set([...meses, yoyMes]));
+    const momMes = shiftMesAno(filtros.mesAno, -1);
+    const mesesPlusYoy = Array.from(new Set([...meses, yoyMes, momMes]));
 
     const [injecaoRes, faturacaoRes, configRes] = await Promise.all([
       supabase
@@ -142,7 +145,20 @@ export function useBalanco(filtros: BalancoFiltros) {
         }
       : undefined;
 
-    setData({ kpis, porSubestacao, evolucao, yoy });
+    // MoM comparison
+    const injMoM = allInjecoes.filter((r) => r.mes_ano === momMes);
+    const fatMoM = allFaturacoes.filter((r) => r.mes_ano === momMes);
+    const porSubMoM = calcularBalancoPorSubestacao(injMoM, fatMoM, sharedOpts);
+    const kpisMoM = agregarKPIs(porSubMoM, sharedOpts);
+    const mom = porSubMoM.length > 0
+      ? {
+          perdaPct: kpisMoM.perdaPct,
+          perdaKwh: kpisMoM.perdaKwh,
+          deltaPct: Math.round((kpis.perdaPct - kpisMoM.perdaPct) * 10) / 10,
+        }
+      : undefined;
+
+    setData({ kpis, porSubestacao, evolucao, yoy, mom });
     } finally {
       setLoading(false);
     }

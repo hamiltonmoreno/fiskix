@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Zap, AlertTriangle, TrendingDown, Activity } from "lucide-react";
+import { exportToExcel } from "@/lib/export";
+import { Zap, AlertTriangle, TrendingDown, Activity, Download } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 interface SubRow {
@@ -123,6 +124,20 @@ export function SubestacoesClient() {
             <option value="ativo">Ativas</option>
             <option value="inativo">Inativas</option>
           </select>
+          <button
+            onClick={() => exportToExcel("subestacoes", ["Nome", "Ilha", "Zona", "Capacidade (kWh)", "Última injeção (kWh)", "Utilização %", "Alertas críticos", "Estado"],
+              subsStats.map((s) => ({
+                "Nome": s.nome, "Ilha": s.ilha, "Zona": s.zona_bairro,
+                "Capacidade (kWh)": s.capacidade_kwh ?? "", "Última injeção (kWh)": s.ultimaInjecao ?? "",
+                "Utilização %": s.utilizacaoPct ?? "", "Alertas críticos": s.totalAlertasCriticos,
+                "Estado": s.ativo ? "Ativa" : "Inativa",
+              }))
+            )}
+            disabled={subsStats.length === 0}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+          >
+            <Download className="w-4 h-4" /> Excel
+          </button>
         </div>
       </div>
 

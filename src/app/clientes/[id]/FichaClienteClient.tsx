@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { ArrowLeft, User, Zap, TrendingDown, AlertTriangle, Brain } from "lucide-react";
+import { ArrowLeft, User, Zap, TrendingDown, AlertTriangle, Brain, MessageSquare } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { StatusBadge } from "@/components/ui/status-badge";
 
@@ -151,6 +151,29 @@ export function FichaClienteClient({ cliente, faturacao, alertas, mlPredicoes }:
                 <p className="text-xs font-semibold text-slate-700 dark:text-gray-200">{(val * 100).toFixed(0)}%</p>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Histórico de SMS */}
+      {alertas.some((a) => ["Notificado_SMS", "Pendente_Inspecao", "Inspecionado"].includes(a.status)) && (
+        <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 p-5 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <MessageSquare className="w-4 h-4 text-blue-500" />
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-gray-200">Notificações SMS enviadas</h2>
+          </div>
+          <div className="space-y-2">
+            {alertas
+              .filter((a) => ["Notificado_SMS", "Pendente_Inspecao", "Inspecionado"].includes(a.status))
+              .map((a) => (
+                <div key={a.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/10">
+                  <MessageSquare className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                  <span className="text-xs text-slate-600 dark:text-gray-300 font-mono">{a.mes_ano}</span>
+                  <span className="text-xs text-slate-500 dark:text-gray-400 flex-1">SMS de alerta enviado · score {a.score_risco} pts</span>
+                  <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/20 px-2 py-0.5 rounded-full">Notificado</span>
+                </div>
+              ))
+            }
           </div>
         </div>
       )}

@@ -15,14 +15,17 @@ const MONITORAMENTO: NavItem[] = [
   { label: "Reincidência", href: "/relatorios/reincidencia",    icon: "repeat" },
   { label: "Fraudes",      href: "/relatorios/fraudes",         icon: "shield" },
   { label: "Modelo ML",    href: "/relatorios/ml",              icon: "psychology" },
+  { label: "Previsão",     href: "/relatorios/previsao",        icon: "query_stats" },
+  { label: "Observações",  href: "/relatorios/observacoes",     icon: "comment" },
 ];
 
 const OPERACOES: NavItem[] = [
-  { label: "Inspeções",        href: "/inspecoes",         icon: "fact_check" },
-  { label: "Mapa de Inspeções",href: "/inspecoes/mapa",    icon: "map" },
-  { label: "Notificações SMS", href: "/notificacoes",      icon: "sms" },
-  { label: "Recuperação",      href: "/recuperacao",       icon: "savings" },
-  { label: "Motor de Scoring", href: "/admin/scoring",     icon: "analytics" },
+  { label: "Inspeções",        href: "/inspecoes",                  icon: "fact_check" },
+  { label: "Calendário",       href: "/inspecoes/calendario",       icon: "calendar_month" },
+  { label: "Mapa de Inspeções",href: "/inspecoes/mapa",             icon: "map" },
+  { label: "Notificações SMS", href: "/notificacoes",               icon: "sms" },
+  { label: "Recuperação",      href: "/recuperacao",                icon: "savings" },
+  { label: "Motor de Scoring", href: "/admin/scoring",              icon: "analytics" },
   { label: "Distribuição",     href: "/admin/scoring/distribuicao", icon: "bar_chart" },
 ];
 
@@ -53,7 +56,7 @@ export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, on
 
   // Build monitored items with live badge on Alertas
   const monitoramentoItems = MONITORAMENTO.filter((item) => {
-    if (["/relatorios", "/balanco", "/relatorios/fiscais", "/relatorios/reincidencia", "/relatorios/fraudes", "/relatorios/ml"].includes(item.href)) return isRelatorios;
+    if (["/relatorios", "/balanco", "/relatorios/fiscais", "/relatorios/reincidencia", "/relatorios/fraudes", "/relatorios/ml", "/relatorios/previsao", "/relatorios/observacoes"].includes(item.href)) return isRelatorios;
     if (item.href === "/clientes") return hasOps;
     return true;
   }).map((item) =>

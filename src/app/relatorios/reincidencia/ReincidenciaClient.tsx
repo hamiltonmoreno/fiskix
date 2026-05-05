@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { RepeatIcon, AlertTriangle } from "lucide-react";
+import { exportToExcel } from "@/lib/export";
+import { RepeatIcon, AlertTriangle, Download } from "lucide-react";
 
 interface AlertaRaw {
   id: string;
@@ -84,6 +85,20 @@ export function ReincidenciaClient() {
             className="px-3 py-2 border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-slate-900 dark:text-gray-100 rounded-lg text-sm">
             {[1, 2, 3].map((v) => <option key={v} value={v}>{v}+</option>)}
           </select>
+          <button
+            onClick={() => {
+              const headers = ["Cliente", "Contador", "Zona", "Confirmados", "Total alertas", "Score máx.", "Último mês"];
+              exportToExcel("reincidencia", headers, reincidentes.map((c) => ({
+                "Cliente": c.nome, "Contador": c.contador, "Zona": c.zona,
+                "Confirmados": c.confirmados, "Total alertas": c.totalAlertas,
+                "Score máx.": c.scoreMax, "Último mês": c.ultimoMes,
+              })));
+            }}
+            disabled={reincidentes.length === 0}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+          >
+            <Download className="w-4 h-4" /> Excel
+          </button>
         </div>
       </div>
 

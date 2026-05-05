@@ -62,7 +62,7 @@ export function AuditoriaClient() {
         if (filtroChave) q = q.eq("chave", filtroChave);
 
         const { data, count } = await q;
-        setRows((data ?? []) as AuditRow[]);
+        setRows((data ?? []) as unknown as AuditRow[]);
         setTotal(count ?? 0);
       } finally {
         setLoading(false);

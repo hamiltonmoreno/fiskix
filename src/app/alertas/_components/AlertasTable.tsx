@@ -44,6 +44,9 @@ interface AlertasTableProps {
   pageSize: number;
   actionLoading: string | null;
   sortDir?: "asc" | "desc";
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
+  onToggleAll: (allIds: string[]) => void;
   onRowClick: (alerta: Alerta) => void;
   onEnviarSMS: (alertaId: string) => void;
   onGerarOrdem: (alertaId: string) => void;
@@ -62,6 +65,9 @@ export function AlertasTable({
   pageSize,
   actionLoading,
   sortDir,
+  selectedIds,
+  onToggleSelect,
+  onToggleAll,
   onRowClick,
   onEnviarSMS,
   onGerarOrdem,
@@ -70,6 +76,9 @@ export function AlertasTable({
   onSortChange,
 }: AlertasTableProps) {
   const totalPages = Math.ceil(total / pageSize);
+  const allPageIds = alertas.map((a) => a.id);
+  const allSelected = allPageIds.length > 0 && allPageIds.every((id) => selectedIds.has(id));
+  const someSelected = !allSelected && allPageIds.some((id) => selectedIds.has(id));
 
   return (
     <div className="overflow-hidden">
@@ -77,7 +86,17 @@ export function AlertasTable({
         <table className="w-full text-sm text-left whitespace-nowrap">
           <thead className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/50 uppercase border-b border-gray-200 dark:border-gray-700/60">
             <tr>
-              <th className="px-8 py-4 font-semibold tracking-wider">
+              <th className="px-4 py-4">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                  onChange={() => onToggleAll(allPageIds)}
+                  aria-label="Selecionar todos"
+                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 cursor-pointer"
+                />
+              </th>
+              <th className="px-4 py-4 font-semibold tracking-wider">
                 {onSortChange ? (
                   <button
                     onClick={() => onSortChange(sortDir === "asc" ? "desc" : "asc")}
@@ -98,7 +117,7 @@ export function AlertasTable({
             {loading ? (
               Array.from({ length: 8 }).map((_, i) => (
                 <tr key={i}>
-                  {Array.from({ length: 8 }).map((_, j) => (
+                  {Array.from({ length: 9 }).map((_, j) => (
                     <td key={j} className="px-6 py-5">
                       <Skeleton className="h-4 w-full rounded" />
                     </td>
@@ -107,7 +126,7 @@ export function AlertasTable({
               ))
             ) : alertas.length === 0 ? (
               <tr>
-                <td colSpan={8}>
+                <td colSpan={9}>
                   <EmptyState
                     icon={ClipboardList}
                     title="Nenhum alerta para os filtros selecionados"
@@ -120,14 +139,24 @@ export function AlertasTable({
                 const regrasPontuadas = alerta.motivo.filter((r) => r.pontos > 0);
                 const isLoading = actionLoading === alerta.id;
                 const isFinal = ESTADOS_FINAIS.includes(alerta.resultado ?? "");
+                const isSelected = selectedIds.has(alerta.id);
 
                 return (
                   <tr
                     key={alerta.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800/80 transition-colors cursor-pointer"
+                    className={`hover:bg-gray-50 dark:hover:bg-gray-800/80 transition-colors cursor-pointer ${isSelected ? "bg-blue-50/50 dark:bg-blue-500/5" : ""}`}
                     onClick={() => onRowClick(alerta)}
                   >
-                    <td className="px-8 py-5">
+                    <td className="px-4 py-5" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => onToggleSelect(alerta.id)}
+                        aria-label={`Selecionar ${alerta.cliente.nome_titular}`}
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 cursor-pointer"
+                      />
+                    </td>
+                    <td className="px-4 py-5">
                       <ScoreBadge score={alerta.score_risco} showScore />
                     </td>
                     <td className="px-6 py-5 font-mono text-xs font-semibold text-blue-600 dark:text-blue-400">

@@ -204,11 +204,14 @@ export function BalancoClient({ profile }: { profile: Profile }) {
             label="% Perda"
             value={data ? `${data.kpis.perdaPct}%` : "—"}
             subtitle={
-              data?.yoy
-                ? `${data.yoy.deltaPct >= 0 ? "+" : ""}${data.yoy.deltaPct} pp vs ano anterior`
+              data?.yoy || data?.mom
+                ? [
+                    data.yoy ? `${data.yoy.deltaPct >= 0 ? "+" : ""}${data.yoy.deltaPct}pp YoY` : null,
+                    data.mom ? `${data.mom.deltaPct >= 0 ? "+" : ""}${data.mom.deltaPct}pp MoM` : null,
+                  ].filter(Boolean).join(" · ")
                 : "—"
             }
-            icon={data?.yoy && data.yoy.deltaPct < 0 ? TrendingDown : TrendingUp}
+            icon={data?.mom && data.mom.deltaPct < 0 ? TrendingDown : TrendingUp}
             color={(data?.kpis.perdaPct ?? 0) > 15 ? "red" : "amber"}
             loading={loading}
             highlight={(data?.kpis.perdaPct ?? 0) > 15}

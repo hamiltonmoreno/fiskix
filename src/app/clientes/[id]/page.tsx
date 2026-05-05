@@ -51,8 +51,8 @@ export default async function FichaClientePage({ params }: { params: Promise<{ i
     <FichaClienteClient
       cliente={cliente as never}
       faturacao={faturacao ?? []}
-      alertas={alertas ?? []}
-      mlPredicoes={mlPredicoes ?? []}
+      alertas={(alertas ?? []) as never}
+      mlPredicoes={(mlPredicoes ?? []) as never}
     />
   );
 }

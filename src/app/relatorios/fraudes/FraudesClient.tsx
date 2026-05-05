@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { ShieldAlert } from "lucide-react";
+import { exportToExcel } from "@/lib/export";
+import { ShieldAlert, Download } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from "recharts";
 
 interface InspecaoRaw {
@@ -12,7 +13,7 @@ interface InspecaoRaw {
 }
 
 const TIPOS = ["Bypass", "Contador_adulterado", "Ligacao_vizinha", "Ima", "Outro"];
-const RESULTADOS = ["Fraude_Confirmada", "Anomalia_Tecnica"];
+const RESULTADOS = ["Fraude_Confirmada", "Anomalia_Tecnica"] as const;
 const COLORS: Record<string, string> = {
   Fraude_Confirmada: "#ef4444", Anomalia_Tecnica: "#f59e0b",
 };
@@ -79,11 +80,27 @@ export function FraudesClient() {
           <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Matriz Resultado × Tipo de Fraude</h1>
           <p className="text-sm text-slate-500 dark:text-gray-400 mt-1">Calibração das regras · padrões de fraude por tipo</p>
         </div>
-        <select value={mesFiltro} onChange={(e) => setMesFiltro(e.target.value)}
-          className="px-3 py-2 border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-slate-900 dark:text-gray-100 rounded-lg text-sm">
-          <option value="">Todos os meses</option>
-          {meses.map((m) => <option key={m} value={m}>{m}</option>)}
-        </select>
+        <div className="flex items-center gap-2">
+          <select value={mesFiltro} onChange={(e) => setMesFiltro(e.target.value)}
+            className="px-3 py-2 border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-slate-900 dark:text-gray-100 rounded-lg text-sm">
+            <option value="">Todos os meses</option>
+            {meses.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <button
+            onClick={() => exportToExcel("fraudes", ["Tipo de fraude", "Resultado", "Score risco", "Mês"],
+              rows.map((r) => ({
+                "Tipo de fraude": r.tipo_fraude ?? "Sem tipo",
+                "Resultado": r.resultado,
+                "Score risco": r.alertas_fraude?.score_risco ?? "",
+                "Mês": r.alertas_fraude?.mes_ano ?? "",
+              }))
+            )}
+            disabled={rows.length === 0}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+          >
+            <Download className="w-4 h-4" /> Excel
+          </button>
+        </div>
       </div>
 
       {/* Resumo */}
