@@ -1,10 +1,18 @@
 import { createClient } from "@supabase/supabase-js";
+import { sha256Hex } from "@/lib/security/constant-time";
 
 /**
  * Verifica se o request tem uma API key válida.
- * As chaves são guardadas em configuracoes com prefixo "api_key_".
  *
- * Header esperado: Authorization: Bearer <key>
+ * As chaves são guardadas em `configuracoes` com prefixo `api_key_`. Desde
+ * a migration 017, o `valor` armazena o **hash SHA-256** da key (plaintext
+ * fica só no cliente B2B). O servidor hasha o input e faz query indexed:
+ *   - Se encontra row → key válida
+ *   - Se não encontra → null
+ *
+ * Lookup é via índice na tabela; sem iteração em JS que possa expor timing.
+ *
+ * Header esperado: `Authorization: Bearer <key>`
  * Retorna o nome do cliente se válida, null se inválida.
  */
 export async function verificarApiKey(request: Request): Promise<string | null> {
@@ -20,16 +28,24 @@ export async function verificarApiKey(request: Request): Promise<string | null> 
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+  // Hashar o input antes de qualquer DB call (consistente independentemente
+  // da validade da key — sem early-exit baseado em conteúdo da key).
+  const inputHash = await sha256Hex(key);
+
+  // Migration 017 já aplicada → DB armazena APENAS hash SHA-256. Cliente B2B
+  // continua a enviar plaintext; servidor hasha e compara.
+  // Para revogar/rotacionar uma key, admin executa em /admin/api-keys o SQL
+  // que faz UPDATE com encode(digest('<plaintext>','sha256'),'hex') — nunca
+  // se guarda plaintext em DB.
   const { data, error } = await supabase
     .from("configuracoes")
-    .select("chave, valor")
-    .like("chave", "api_key_%");
+    .select("chave")
+    .like("chave", "api_key_%")
+    .eq("valor", inputHash)
+    .maybeSingle();
 
   if (error || !data) return null;
 
-  const match = data.find((row) => row.valor === key);
-  if (!match) return null;
-
   // Retorna o nome do cliente (ex: "api_key_electra" → "electra")
-  return match.chave.replace("api_key_", "");
+  return data.chave.replace("api_key_", "");
 }

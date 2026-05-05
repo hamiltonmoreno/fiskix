@@ -2,6 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 import { verificarApiKey } from "@/lib/api/auth";
 import { apiError, apiCors, parsePaginacao } from "@/lib/api/response";
 import { checkRateLimit } from "@/lib/api/rateLimit";
+import { corsHeadersFor } from "@/lib/api/cors";
+import { getClientIp } from "@/lib/api/client-ip";
 
 /**
  * GET /api/v1/predicoes
@@ -14,16 +16,21 @@ import { checkRateLimit } from "@/lib/api/rateLimit";
  *
  * Headers: Authorization: Bearer <api_key>
  */
-export async function OPTIONS() {
-  return apiCors();
+export async function OPTIONS(request: Request) {
+  return apiCors(request);
 }
 
 export async function GET(request: Request) {
   const cliente = await verificarApiKey(request);
-  if (!cliente) return apiError("API key inválida ou ausente", 401);
+  if (!cliente) {
+    const ip = getClientIp(request);
+    const rl = await checkRateLimit(`unauth:${ip}`);
+    if (!rl.allowed) return apiError("Rate limit exceeded", 429, request);
+    return apiError("API key inválida ou ausente", 401, request);
+  }
 
-  const { allowed, remaining } = checkRateLimit(cliente);
-  if (!allowed) return apiError("Rate limit excedido.", 429);
+  const { allowed, remaining } = await checkRateLimit(`key:${cliente}`);
+  if (!allowed) return apiError("Rate limit excedido.", 429, request);
 
   const { searchParams } = new URL(request.url);
   const { limit, offset, page } = parsePaginacao(searchParams);
@@ -50,16 +57,16 @@ export async function GET(request: Request) {
 
   const { data, error, count } = await query;
 
-  if (error) return apiError("Erro ao consultar predições ML", 500);
+  if (error) return apiError("Erro ao consultar predições ML", 500, request);
 
+  const corsHeaders = await corsHeadersFor(request);
   return new Response(
     JSON.stringify({ data: data ?? [], meta: { total: count ?? 0, page, limit } }),
     {
       status: 200,
       headers: {
+        ...corsHeaders,
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Cache-Control": "no-store",
         "X-RateLimit-Remaining": String(remaining),
       },
     }

@@ -1,5 +1,19 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": [".next", "node_modules", "supabase/functions"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "supabase/functions/_shared/**/*.ts",
+    "supabase/functions/scoring-engine/pure.ts"
+  ],
+  "exclude": [
+    ".next",
+    "node_modules",
+    "supabase/functions/balanco-energetico",
+    "supabase/functions/ingest-data",
+    "supabase/functions/ml-scoring",
+    "supabase/functions/send-sms",
+    "supabase/functions/scoring-engine/index.ts"
+  ]
 }

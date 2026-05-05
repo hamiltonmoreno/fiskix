@@ -7,9 +7,24 @@ vi.mock("@/lib/api/auth", () => ({
   verificarApiKey: vi.fn(),
 }));
 
-// Mock do rate limiter — por defeito permite tudo
+// Mock do rate limiter — por defeito permite tudo. Nota: agora async.
 vi.mock("@/lib/api/rateLimit", () => ({
-  checkRateLimit: vi.fn(() => ({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 })),
+  checkRateLimit: vi.fn(async () => ({
+    allowed: true,
+    remaining: 59,
+    resetAt: Date.now() + 60000,
+    backend: "memory" as const,
+  })),
+}));
+
+// Mock do CORS — evita hit DB por route test (testado isoladamente em cors.test.ts).
+vi.mock("@/lib/api/cors", () => ({
+  corsHeadersFor: vi.fn(async () => ({
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "authorization, content-type",
+    "Cache-Control": "no-store",
+  })),
+  resolveAllowOrigin: vi.fn(async () => "*"),
 }));
 
 // Mock do Supabase
@@ -46,7 +61,7 @@ describe("GET /api/v1/alertas", () => {
     const { verificarApiKey } = await import("@/lib/api/auth");
     vi.mocked(verificarApiKey).mockResolvedValue("electra");
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
-    vi.mocked(checkRateLimit).mockReturnValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 });
+    vi.mocked(checkRateLimit).mockResolvedValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000, backend: "memory" });
   });
 
   afterEach(() => {
@@ -67,7 +82,7 @@ describe("GET /api/v1/alertas", () => {
 
   it("retorna 429 quando rate limit é excedido", async () => {
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
-    vi.mocked(checkRateLimit).mockReturnValue({ allowed: false, remaining: 0, resetAt: Date.now() + 60000 });
+    vi.mocked(checkRateLimit).mockResolvedValue({ allowed: false, remaining: 0, resetAt: Date.now() + 60000, backend: "memory" });
 
     const { GET } = await import("@/app/api/v1/alertas/route");
     const res = await GET(buildRequest("http://localhost/api/v1/alertas"));
@@ -115,7 +130,7 @@ describe("GET /api/v1/alertas", () => {
 
   it("responde ao preflight OPTIONS com 204", async () => {
     const { OPTIONS } = await import("@/app/api/v1/alertas/route");
-    const res = await OPTIONS();
+    const res = await OPTIONS(buildRequest("http://localhost/api/v1/alertas"));
     expect(res.status).toBe(204);
   });
 });
@@ -129,7 +144,7 @@ describe("GET /api/v1/alertas/:id", () => {
     const { verificarApiKey } = await import("@/lib/api/auth");
     vi.mocked(verificarApiKey).mockResolvedValue("electra");
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
-    vi.mocked(checkRateLimit).mockReturnValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 });
+    vi.mocked(checkRateLimit).mockResolvedValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000, backend: "memory" });
   });
 
   afterEach(() => {
@@ -194,7 +209,7 @@ describe("GET /api/v1/balanco", () => {
     const { verificarApiKey } = await import("@/lib/api/auth");
     vi.mocked(verificarApiKey).mockResolvedValue("electra");
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
-    vi.mocked(checkRateLimit).mockReturnValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 });
+    vi.mocked(checkRateLimit).mockResolvedValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000, backend: "memory" });
   });
 
   afterEach(() => {
@@ -284,7 +299,7 @@ describe("GET /api/v1/predicoes", () => {
     const { verificarApiKey } = await import("@/lib/api/auth");
     vi.mocked(verificarApiKey).mockResolvedValue("electra");
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
-    vi.mocked(checkRateLimit).mockReturnValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 });
+    vi.mocked(checkRateLimit).mockResolvedValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000, backend: "memory" });
   });
 
   afterEach(() => {

@@ -115,15 +115,23 @@ export default async function ApiKeysPage() {
             Como gerar uma nova chave
           </p>
           <p className="text-[13px] text-amber-800 dark:text-amber-300 mb-4 font-semibold">
-            Execute no terminal e guarde o resultado no Supabase SQL Editor:
+            1. Gerar plaintext (entregar ao cliente, não guardar em parte alguma):
+          </p>
+          <pre className="bg-amber-100/50 dark:bg-gray-900/50 rounded-lg p-4 text-[13px] font-mono text-amber-900 dark:text-amber-100 overflow-x-auto border border-amber-200/50 dark:border-amber-500/20 shadow-inner mb-4">
+{`openssl rand -hex 32`}
+          </pre>
+          <p className="text-[13px] text-amber-800 dark:text-amber-300 mb-4 font-semibold">
+            2. Guardar APENAS o hash em DB (Supabase SQL Editor):
           </p>
           <pre className="bg-amber-100/50 dark:bg-gray-900/50 rounded-lg p-4 text-[13px] font-mono text-amber-900 dark:text-amber-100 overflow-x-auto border border-amber-200/50 dark:border-amber-500/20 shadow-inner">
-{`openssl rand -hex 32
-
-UPDATE configuracoes
-SET valor = '<nova_chave>'
+{`UPDATE configuracoes
+SET valor = encode(extensions.digest('<plaintext_da_etapa_1>', 'sha256'), 'hex')
 WHERE chave = 'api_key_electra';`}
           </pre>
+          <p className="text-[12px] text-amber-700 dark:text-amber-400 mt-4 italic">
+            O servidor hasha o input recebido e compara com o hash guardado.
+            Plaintext nunca volta a ser visível após a etapa 1.
+          </p>
         </div>
 
       </div>

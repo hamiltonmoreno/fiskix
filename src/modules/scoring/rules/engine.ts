@@ -4,7 +4,47 @@
  *
  * Etapa A: Balanço Energético (Filtro Macro)
  * Etapa B: 9 Regras Graduais por cliente (Filtro Micro)
+ *
+ * Constantes vêm de `src/modules/scoring/constants.ts` (fonte única partilhada
+ * com a edge function via mirror em `supabase/functions/_shared/`).
  */
+
+import {
+  LIMIAR_QUEDA_PCT,
+  LIMIAR_CV_MAXIMO,
+  LIMIAR_MU_MINIMO,
+  LIMIAR_ZSCORE_CLUSTER,
+  LIMIAR_DIV_SAZONAL,
+  LIMIAR_SLOPE_TENDENCIA,
+  LIMIAR_RATIO_RACIO,
+  LIMIAR_PICO_RATIO,
+  LIMIAR_PERDA_ZONA_PCT,
+  R1_WINDOW_MAX,
+  R1_MIN_INDEX,
+  R1_PONTOS_MAX,
+  R1_FACTOR,
+  R2_WINDOW,
+  R2_PONTOS_MAX,
+  R3_PONTOS_MAX,
+  R3_FACTOR,
+  R4_PONTOS_MAX,
+  R4_FACTOR,
+  R5_WINDOW,
+  R5_MIN_MESES_CONSECUTIVOS,
+  R5_PONTOS_MAX,
+  R5_FACTOR,
+  R6_PONTOS_MAX,
+  R6_FACTOR,
+  R7_BONUS,
+  R8_MIN_INDEX,
+  R8_LOOKBACK_MAX,
+  R8_PONTOS_MAX,
+  R8_FACTOR,
+  R9_MULT_BASE,
+  R9_MULT_MAX_DELTA,
+  R9_MULT_FACTOR,
+  SCORE_MAX,
+} from "../constants";
 
 export interface FaturacaoMensal {
   mes_ano: string;
@@ -56,7 +96,7 @@ export interface BalancoResult {
 export function calcularBalanco(
   kwh_injetado: number,
   kwh_faturado_total: number,
-  limiar_perda_pct = 15
+  limiar_perda_pct = LIMIAR_PERDA_ZONA_PCT
 ): BalancoResult & { id_subestacao: string; mes_ano: string } {
   const perda_percentual =
     kwh_injetado > 0
@@ -65,10 +105,14 @@ export function calcularBalanco(
 
   const zona_vermelha = perda_percentual > limiar_perda_pct;
 
-  // R9: multiplicador = 1 + min(0.3, (perda_zona - 0.15) * 2)
+  // R9: multiplicador = R9_MULT_BASE + min(R9_MULT_MAX_DELTA, (perda_zona - limiar) * R9_MULT_FACTOR)
   const multiplicador = zona_vermelha
-    ? 1 + Math.min(0.3, ((perda_percentual / 100) - (limiar_perda_pct / 100)) * 2)
-    : 1.0;
+    ? R9_MULT_BASE +
+      Math.min(
+        R9_MULT_MAX_DELTA,
+        (perda_percentual / 100 - limiar_perda_pct / 100) * R9_MULT_FACTOR
+      )
+    : R9_MULT_BASE;
 
   return {
     id_subestacao: "",
@@ -93,19 +137,19 @@ export function calcularBalanco(
 function r1QuedaSubitaGraduada(
   faturacao: FaturacaoMensal[],
   mesAtual: string,
-  limiar = 30
+  limiar = LIMIAR_QUEDA_PCT
 ): RegraResultado {
   const sorted = [...faturacao].sort((a, b) =>
     a.mes_ano.localeCompare(b.mes_ano)
   );
   const idx = sorted.findIndex((f) => f.mes_ano === mesAtual);
 
-  if (idx < 3) {
+  if (idx < R1_MIN_INDEX) {
     return { regra: "R1", pontos: 0, descricao: "Dados insuficientes (< 3 meses)" };
   }
 
   // Janela adaptativa: 3-12 meses antes do mês atual
-  const windowSize = Math.min(idx, 6);
+  const windowSize = Math.min(idx, R1_WINDOW_MAX);
   const historico = sorted.slice(idx - windowSize, idx);
   const media = historico.reduce((s, f) => s + f.kwh_faturado, 0) / historico.length;
   const atual = sorted[idx].kwh_faturado;
@@ -126,7 +170,7 @@ function r1QuedaSubitaGraduada(
     };
   }
 
-  const pontos = Math.min(25, Math.floor((delta - limiar) * 0.625));
+  const pontos = Math.min(R1_PONTOS_MAX, Math.floor((delta - limiar) * R1_FACTOR));
   return {
     regra: "R1",
     pontos,
@@ -144,19 +188,21 @@ function r1QuedaSubitaGraduada(
 function r2VarianciaZeroContextualizada(
   faturacao: FaturacaoMensal[],
   mesAtual: string,
-  limiar_cv = 0.03,
-  limiar_mu = 15
+  limiar_cv = LIMIAR_CV_MAXIMO,
+  limiar_mu = LIMIAR_MU_MINIMO
 ): RegraResultado {
   const sorted = [...faturacao].sort((a, b) =>
     a.mes_ano.localeCompare(b.mes_ano)
   );
   const idx = sorted.findIndex((f) => f.mes_ano === mesAtual);
 
-  if (idx < 4) {
+  if (idx < R2_WINDOW) {
     return { regra: "R2", pontos: 0, descricao: "Dados insuficientes (< 4 meses)" };
   }
 
-  const janela = sorted.slice(idx - 3, idx + 1).map((f) => f.kwh_faturado);
+  const janela = sorted
+    .slice(idx - (R2_WINDOW - 1), idx + 1)
+    .map((f) => f.kwh_faturado);
   const media = janela.reduce((s, v) => s + v, 0) / janela.length;
 
   if (media <= limiar_mu) {
@@ -179,7 +225,7 @@ function r2VarianciaZeroContextualizada(
   }
 
   // Pontuação gradual: quanto menor o CV, maior a pontuação
-  const pontos = Math.min(15, Math.round((1 - cv / limiar_cv) * 15));
+  const pontos = Math.min(R2_PONTOS_MAX, Math.round((1 - cv / limiar_cv) * R2_PONTOS_MAX));
   return {
     regra: "R2",
     pontos,
@@ -198,7 +244,7 @@ function r3DesvioClusterSegmentado(
   consumoAtual: number,
   medianaCluster: number,
   madCluster: number,
-  limiar_zscore = -2
+  limiar_zscore = LIMIAR_ZSCORE_CLUSTER
 ): RegraResultado {
   if (madCluster === 0) {
     return { regra: "R3", pontos: 0, descricao: "MAD do cluster = 0 (sem variação no cluster)" };
@@ -217,7 +263,7 @@ function r3DesvioClusterSegmentado(
   }
 
   // Pontuação gradual: Z-score mais negativo = mais pontos
-  const pontos = Math.min(20, Math.round(Math.abs(z - limiar_zscore) * 5));
+  const pontos = Math.min(R3_PONTOS_MAX, Math.round(Math.abs(z - limiar_zscore) * R3_FACTOR));
   return {
     regra: "R3",
     pontos,
@@ -236,7 +282,7 @@ function r4DivergenciaSazonal(
   faturacao: FaturacaoMensal[],
   mesAtual: string,
   tendenciaSubestacao: number, // % variação da subestação vs mesmo período
-  limiar = 20
+  limiar = LIMIAR_DIV_SAZONAL
 ): RegraResultado {
   const sorted = [...faturacao].sort((a, b) =>
     a.mes_ano.localeCompare(b.mes_ano)
@@ -267,7 +313,7 @@ function r4DivergenciaSazonal(
     };
   }
 
-  const pontos = Math.min(15, Math.round((divergencia - limiar) * 0.5));
+  const pontos = Math.min(R4_PONTOS_MAX, Math.round((divergencia - limiar) * R4_FACTOR));
   return {
     regra: "R4",
     pontos,
@@ -285,18 +331,18 @@ function r4DivergenciaSazonal(
 function r5TendenciaDescendente(
   faturacao: FaturacaoMensal[],
   mesAtual: string,
-  limiar_slope = -5
+  limiar_slope = LIMIAR_SLOPE_TENDENCIA
 ): RegraResultado {
   const sorted = [...faturacao].sort((a, b) =>
     a.mes_ano.localeCompare(b.mes_ano)
   );
   const idx = sorted.findIndex((f) => f.mes_ano === mesAtual);
 
-  if (idx < 6) {
+  if (idx < R5_WINDOW) {
     return { regra: "R5", pontos: 0, descricao: "Dados insuficientes (< 6 meses)" };
   }
 
-  const janela = sorted.slice(idx - 5, idx + 1);
+  const janela = sorted.slice(idx - (R5_WINDOW - 1), idx + 1);
   const n = janela.length;
   const xs = janela.map((_, i) => i);
   const ys = janela.map((f) => f.kwh_faturado);
@@ -319,7 +365,7 @@ function r5TendenciaDescendente(
     }
   }
 
-  if (slope >= limiar_slope || mesesConsecutivos < 3) {
+  if (slope >= limiar_slope || mesesConsecutivos < R5_MIN_MESES_CONSECUTIVOS) {
     return {
       regra: "R5",
       pontos: 0,
@@ -329,7 +375,7 @@ function r5TendenciaDescendente(
     };
   }
 
-  const pontos = Math.min(10, Math.round(Math.abs(slope - limiar_slope) * 0.8));
+  const pontos = Math.min(R5_PONTOS_MAX, Math.round(Math.abs(slope - limiar_slope) * R5_FACTOR));
   return {
     regra: "R5",
     pontos,
@@ -349,7 +395,7 @@ function r6RacioCVEkWh(
   mesAtual: string,
   mediaRacioTarifa: number,
   sigmaRacioTarifa: number,
-  limiar = 2
+  limiar = LIMIAR_RATIO_RACIO
 ): RegraResultado {
   const f = faturacao.find((f) => f.mes_ano === mesAtual);
 
@@ -370,7 +416,7 @@ function r6RacioCVEkWh(
     };
   }
 
-  const pontos = Math.min(5, Math.round((desvio - limiar) * 2));
+  const pontos = Math.min(R6_PONTOS_MAX, Math.round((desvio - limiar) * R6_FACTOR));
   return {
     regra: "R6",
     pontos,
@@ -391,8 +437,8 @@ function r7Reincidencia(alertasAnteriores: number): RegraResultado {
 
   return {
     regra: "R7",
-    pontos: 5,
-    descricao: `${alertasAnteriores} alerta(s) confirmado(s) nos últimos 12 meses (reincidente) (+5 pts bónus)`,
+    pontos: R7_BONUS,
+    descricao: `${alertasAnteriores} alerta(s) confirmado(s) nos últimos 12 meses (reincidente) (+${R7_BONUS} pts bónus)`,
     valor: alertasAnteriores,
   };
 }
@@ -405,20 +451,20 @@ function r7Reincidencia(alertasAnteriores: number): RegraResultado {
 function r8PicoHistoricoVsAtual(
   faturacao: FaturacaoMensal[],
   mesAtual: string,
-  limiar_ratio = 0.20
+  limiar_ratio = LIMIAR_PICO_RATIO
 ): RegraResultado {
   const sorted = [...faturacao].sort((a, b) =>
     a.mes_ano.localeCompare(b.mes_ano)
   );
   const idx = sorted.findIndex((f) => f.mes_ano === mesAtual);
 
-  if (idx < 6) {
+  if (idx < R8_MIN_INDEX) {
     return { regra: "R8", pontos: 0, descricao: "Histórico insuficiente (< 6 meses)" };
   }
 
-  // Bound to last 24 months — avoids penalising customers who legitimately
-  // downsized years ago (e.g. industrial site that became residential).
-  const historico = sorted.slice(Math.max(0, idx - 24), idx);
+  // Bound to last R8_LOOKBACK_MAX months — avoids penalising customers who
+  // legitimately downsized years ago (e.g. industrial site → residential).
+  const historico = sorted.slice(Math.max(0, idx - R8_LOOKBACK_MAX), idx);
   const picoHistorico = Math.max(...historico.map((f) => f.kwh_faturado));
   const atual = sorted[idx].kwh_faturado;
 
@@ -438,7 +484,7 @@ function r8PicoHistoricoVsAtual(
     };
   }
 
-  const pontos = Math.min(5, Math.round((limiar_ratio - ratio) * 20));
+  const pontos = Math.min(R8_PONTOS_MAX, Math.round((limiar_ratio - ratio) * R8_FACTOR));
   return {
     regra: "R8",
     pontos,
@@ -479,14 +525,14 @@ export function calcularScore(
   limiares: Limiares = {}
 ): ScoreResult {
   const {
-    limiar_queda_pct = 30,
-    limiar_cv_maximo = 0.03,
-    limiar_mu_minimo = 15,
-    limiar_zscore_cluster = -2,
-    limiar_div_sazonal = 20,
-    limiar_slope_tendencia = -5,
-    limiar_ratio_racio = 2,
-    limiar_pico_ratio = 0.2,
+    limiar_queda_pct = LIMIAR_QUEDA_PCT,
+    limiar_cv_maximo = LIMIAR_CV_MAXIMO,
+    limiar_mu_minimo = LIMIAR_MU_MINIMO,
+    limiar_zscore_cluster = LIMIAR_ZSCORE_CLUSTER,
+    limiar_div_sazonal = LIMIAR_DIV_SAZONAL,
+    limiar_slope_tendencia = LIMIAR_SLOPE_TENDENCIA,
+    limiar_ratio_racio = LIMIAR_RATIO_RACIO,
+    limiar_pico_ratio = LIMIAR_PICO_RATIO,
   } = limiares;
 
   const faturacaoAtual = cliente.faturacao.find((f) => f.mes_ano === mesAtual);
@@ -536,7 +582,7 @@ export function calcularScore(
   const score_base = regras.reduce((sum, r) => sum + r.pontos, 0);
 
   // R9: Multiplicador de zona (já calculado no balanço energético)
-  const score_final = Math.min(100, Math.round(score_base * multiplicadorZona));
+  const score_final = Math.min(SCORE_MAX, Math.round(score_base * multiplicadorZona));
 
   return {
     id_cliente: cliente.id,

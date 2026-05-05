@@ -10,6 +10,7 @@ import type { AlertaStatus, InspecaoResultado } from "@/types/database";
 import { AlertasFilters } from "./_components/AlertasFilters";
 import { AlertasTable } from "./_components/AlertasTable";
 import { AlertasConfirmDialog } from "./_components/AlertasConfirmDialog";
+import { logger } from "@/lib/observability/logger";
 
 interface Alerta {
   id: string;
@@ -149,7 +150,10 @@ export default function AlertasPage() {
         toast.success("SMS enviado com sucesso.");
       }
       await load();
-    } catch {
+    } catch (err) {
+      logger({ page: "alertas" }).error("sms_send_failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
       toast.error("Falha ao enviar SMS. Tente novamente.");
     } finally {
       setActionLoading(null);

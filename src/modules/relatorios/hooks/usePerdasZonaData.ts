@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { RelatoriosFiltros, PerdasZonaData, SubestacaoPerdasRow } from "../types";
 import { getMesesRange } from "./_shared";
+import { DEFAULT_PRICE_CVE_PER_KWH } from "@/modules/balanco/lib/balanco";
 
 export function usePerdasZonaData(filtros: RelatoriosFiltros, active: boolean) {
   const supabase = createClient();
@@ -49,7 +50,7 @@ export function usePerdasZonaData(filtros: RelatoriosFiltros, active: boolean) {
         const fat = fatMap[id] ?? 0;
         const perda_kwh = Math.max(0, inj - fat);
         const perda_pct = inj > 0 ? parseFloat(((perda_kwh / inj) * 100).toFixed(1)) : 0;
-        return { id, nome, ilha, kwh_injetado: Math.round(inj), kwh_faturado: Math.round(fat), perda_kwh: Math.round(perda_kwh), perda_pct, cve_estimado: Math.round(perda_kwh * 15) };
+        return { id, nome, ilha, kwh_injetado: Math.round(inj), kwh_faturado: Math.round(fat), perda_kwh: Math.round(perda_kwh), perda_pct, cve_estimado: Math.round(perda_kwh * DEFAULT_PRICE_CVE_PER_KWH) };
       });
       tabela.sort((a, b) => b.perda_kwh - a.perda_kwh);
 

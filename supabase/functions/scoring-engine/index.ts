@@ -4,9 +4,31 @@
  *
  * POST /scoring-engine
  * Body: { subestacao_id: string, mes_ano: string }
+ *
+ * A lógica das regras vive em ./pure.ts (testada em paridade com engine.ts).
+ * Este ficheiro é apenas o adaptador Deno: auth, leituras Supabase, persistência.
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  LIMIAR_QUEDA_PCT,
+  LIMIAR_CV_MAXIMO,
+  LIMIAR_MU_MINIMO,
+  LIMIAR_ZSCORE_CLUSTER,
+  LIMIAR_DIV_SAZONAL,
+  LIMIAR_SLOPE_TENDENCIA,
+  LIMIAR_RATIO_RACIO,
+  LIMIAR_PICO_RATIO,
+  LIMIAR_PERDA_ZONA_PCT,
+  R6_MIN_CLUSTER_SIZE,
+  R7_LOOKBACK_MESES,
+  R9_MULT_BASE,
+  R9_MULT_MAX_DELTA,
+  R9_MULT_FACTOR,
+  RESULTADOS_REINCIDENCIA,
+  SCORE_LIMIAR_ALERTA,
+} from "../_shared/scoring-constants.ts";
+import { calcularScoreEdge } from "./pure.ts";
 
 type UserRole = "admin_fiskix" | "diretor" | "gestor_perdas" | "supervisor" | "fiscal";
 
@@ -96,15 +118,15 @@ Deno.serve(async (req) => {
     }
 
     const limiares = {
-      limiar_queda_pct: config.limiar_queda_pct ?? 30,
-      limiar_cv_maximo: config.limiar_cv_maximo ?? 0.03,
-      limiar_mu_minimo: config.limiar_mu_minimo ?? 15,
-      limiar_zscore_cluster: config.limiar_zscore_cluster ?? -2,
-      limiar_div_sazonal: config.limiar_div_sazonal ?? 20,
-      limiar_slope_tendencia: config.limiar_slope_tendencia ?? -5,
-      limiar_ratio_racio: config.limiar_ratio_racio ?? 2,
-      limiar_pico_ratio: config.limiar_pico_ratio ?? 0.20,
-      limiar_perda_zona_pct: config.limiar_perda_zona_pct ?? 15,
+      limiar_queda_pct: config.limiar_queda_pct ?? LIMIAR_QUEDA_PCT,
+      limiar_cv_maximo: config.limiar_cv_maximo ?? LIMIAR_CV_MAXIMO,
+      limiar_mu_minimo: config.limiar_mu_minimo ?? LIMIAR_MU_MINIMO,
+      limiar_zscore_cluster: config.limiar_zscore_cluster ?? LIMIAR_ZSCORE_CLUSTER,
+      limiar_div_sazonal: config.limiar_div_sazonal ?? LIMIAR_DIV_SAZONAL,
+      limiar_slope_tendencia: config.limiar_slope_tendencia ?? LIMIAR_SLOPE_TENDENCIA,
+      limiar_ratio_racio: config.limiar_ratio_racio ?? LIMIAR_RATIO_RACIO,
+      limiar_pico_ratio: config.limiar_pico_ratio ?? LIMIAR_PICO_RATIO,
+      limiar_perda_zona_pct: config.limiar_perda_zona_pct ?? LIMIAR_PERDA_ZONA_PCT,
     };
 
     // 2. ETAPA A: Balanço Energético
@@ -150,8 +172,12 @@ Deno.serve(async (req) => {
       : 0;
     const zona_vermelha = perda_pct > limiares.limiar_perda_zona_pct;
     const multiplicador_zona = zona_vermelha
-      ? 1 + Math.min(0.3, ((perda_pct / 100) - (limiares.limiar_perda_zona_pct / 100)) * 2)
-      : 1.0;
+      ? R9_MULT_BASE +
+        Math.min(
+          R9_MULT_MAX_DELTA,
+          (perda_pct / 100 - limiares.limiar_perda_zona_pct / 100) * R9_MULT_FACTOR
+        )
+      : R9_MULT_BASE;
 
     // Se zona não é vermelha, não pontuar clientes individuais
     if (!zona_vermelha) {
@@ -160,7 +186,7 @@ Deno.serve(async (req) => {
         mes_ano,
         perda_pct: perda_pct.toFixed(2),
         zona_vermelha: false,
-        multiplicador_zona: 1.0,
+        multiplicador_zona: R9_MULT_BASE,
         message: "Zona verde — sem scoring individual necessário",
         duracao_ms: Date.now() - start,
       });
@@ -173,11 +199,11 @@ Deno.serve(async (req) => {
       .in("id_cliente", clienteIds)
       .order("mes_ano", { ascending: true });
 
-    // Alertas anteriores por cliente (não falso-positivos, últimos 12 meses)
-    // month é 1-indexed; Date espera 0-indexed; subtrair 1 para alinhar antes do
-    // -12 — caso contrário a janela perde o mês mais antigo (apenas 11 meses).
+    // Alertas anteriores por cliente (não falso-positivos, últimos R7_LOOKBACK_MESES meses)
+    // month é 1-indexed; Date espera 0-indexed; já é considerado pelo offset
+    // R7_LOOKBACK_MESES (definido em scoring/constants.ts).
     const [year, month] = mes_ano.split("-").map(Number);
-    const mes12Atras = new Date(year, month - 1 - 12, 1);
+    const mes12Atras = new Date(year, month - R7_LOOKBACK_MESES, 1);
     const mes12AtrasFmt = `${mes12Atras.getFullYear()}-${String(mes12Atras.getMonth() + 1).padStart(2, "0")}`;
 
     const { data: alertasHist } = await supabase
@@ -186,7 +212,7 @@ Deno.serve(async (req) => {
       .in("id_cliente", clienteIds)
       .gte("mes_ano", mes12AtrasFmt)
       .lt("mes_ano", mes_ano)
-      .in("resultado", ["Fraude_Confirmada", "Anomalia_Tecnica"]);
+      .in("resultado", RESULTADOS_REINCIDENCIA);
 
     const alertasPorCliente: Record<string, number> = {};
     for (const a of (alertasHist ?? [])) {
@@ -237,7 +263,7 @@ Deno.serve(async (req) => {
       ? ((kwh_injetado - injecaoAnt.total_kwh_injetado) / injecaoAnt.total_kwh_injetado) * 100
       : 0;
 
-    // 5. Pontuar cada cliente
+    // 5. Pontuar cada cliente — delega na lógica pura de pure.ts
     const alertasParaInserir = [];
 
     for (const cliente of clientes) {
@@ -265,181 +291,35 @@ Deno.serve(async (req) => {
       const mediaRacio = raciosPorTarifa.length
         ? raciosPorTarifa.reduce((s, r) => s + r, 0) / raciosPorTarifa.length
         : 0;
-      // R6 needs at least 3 customers in the same tariff group to compute a
-      // meaningful sigma; below that, leave it as 0 so the rule is bypassed
-      // (avoids the previous fallback `sigma=1` triggering on tiny clusters).
-      const sigmaRacio = raciosPorTarifa.length >= 3
+      // R6 needs at least R6_MIN_CLUSTER_SIZE customers in the same tariff
+      // group to compute a meaningful sigma; abaixo disso `sigma=0` faz a regra
+      // ser ignorada (evita fallback `sigma=1` em clusters minúsculos).
+      const sigmaRacio = raciosPorTarifa.length >= R6_MIN_CLUSTER_SIZE
         ? Math.sqrt(
           raciosPorTarifa.reduce((s, r) => s + Math.pow(r - mediaRacio, 2), 0) /
           raciosPorTarifa.length
         )
         : 0;
 
-      // Executar as 9 regras inline (versão simplificada para Edge Function)
-      const regras = [];
-      let score_base = 0;
+      const { regras, score_final } = calcularScoreEdge(
+        {
+          faturacao: fHist,
+          mesAtual: mes_ano,
+          kwhAtual: fAtual.kwh,
+          cveAtual: fAtual.cve,
+          medianaCluster: med,
+          madCluster: madVal,
+          mediaRacio,
+          sigmaRacio,
+          clusterSize: raciosPorTarifa.length,
+          tendenciaSubestacao,
+          alertasAnteriores: alertasPorCliente[cliente.id] ?? 0,
+          multiplicadorZona: multiplicador_zona,
+        },
+        limiares
+      );
 
-      // R1: Queda Súbita
-      {
-        const sorted = fHist.slice().sort((a, b) => a.mes_ano.localeCompare(b.mes_ano));
-        const idx = sorted.findIndex((f) => f.mes_ano === mes_ano);
-        if (idx >= 3) {
-          const wSize = Math.min(idx, 6);
-          const hist = sorted.slice(idx - wSize, idx);
-          const media = hist.reduce((s, f) => s + f.kwh_faturado, 0) / hist.length;
-          const atual = sorted[idx].kwh_faturado;
-          if (media > 0) {
-            const delta = ((media - atual) / media) * 100;
-            const limiar = limiares.limiar_queda_pct;
-            if (delta >= limiar) {
-              const pts = Math.min(25, Math.floor((delta - limiar) * 0.625));
-              score_base += pts;
-              regras.push({ regra: "R1", pontos: pts, descricao: `Queda de ${delta.toFixed(1)}% vs média ${wSize} meses`, valor: delta, threshold: limiar });
-            } else {
-              regras.push({ regra: "R1", pontos: 0, descricao: `Queda de ${delta.toFixed(1)}% — normal` });
-            }
-          }
-        }
-      }
-
-      // R2: Variância Zero
-      {
-        const sorted = fHist.slice().sort((a, b) => a.mes_ano.localeCompare(b.mes_ano));
-        const idx = sorted.findIndex((f) => f.mes_ano === mes_ano);
-        if (idx >= 4) {
-          const janela = sorted.slice(idx - 3, idx + 1).map((f) => f.kwh_faturado);
-          const media = janela.reduce((s, v) => s + v, 0) / janela.length;
-          if (media > limiares.limiar_mu_minimo) {
-            const variancia = janela.reduce((s, v) => s + Math.pow(v - media, 2), 0) / janela.length;
-            const cv = Math.sqrt(variancia) / media;
-            if (cv < limiares.limiar_cv_maximo) {
-              const pts = Math.min(15, Math.round((1 - cv / limiares.limiar_cv_maximo) * 15));
-              score_base += pts;
-              regras.push({ regra: "R2", pontos: pts, descricao: `Contador anormalmente constante (CV=${cv.toFixed(4)})`, valor: cv, threshold: limiares.limiar_cv_maximo });
-            } else {
-              regras.push({ regra: "R2", pontos: 0, descricao: "Variação normal" });
-            }
-          }
-        }
-      }
-
-      // R3: Desvio Cluster
-      {
-        if (madVal > 0) {
-          const z = (fAtual.kwh - med) / madVal;
-          if (z < limiares.limiar_zscore_cluster) {
-            const pts = Math.min(20, Math.round(Math.abs(z - limiares.limiar_zscore_cluster) * 5));
-            score_base += pts;
-            regras.push({ regra: "R3", pontos: pts, descricao: `Z-score ${z.toFixed(2)} abaixo da mediana da tarifa`, valor: z, threshold: limiares.limiar_zscore_cluster });
-          } else {
-            regras.push({ regra: "R3", pontos: 0, descricao: `Z-score ${z.toFixed(2)} — normal` });
-          }
-        }
-      }
-
-      // R4: Divergência Sazonal
-      {
-        const sorted = fHist.slice().sort((a, b) => a.mes_ano.localeCompare(b.mes_ano));
-        const idx = sorted.findIndex((f) => f.mes_ano === mes_ano);
-        if (idx >= 2) {
-          const atual = sorted[idx].kwh_faturado;
-          const ant = sorted[idx - 1].kwh_faturado;
-          if (ant > 0) {
-            const tendCli = ((atual - ant) / ant) * 100;
-            const div = tendenciaSubestacao - tendCli;
-            if (div > limiares.limiar_div_sazonal) {
-              const pts = Math.min(15, Math.round((div - limiares.limiar_div_sazonal) * 0.5));
-              score_base += pts;
-              regras.push({ regra: "R4", pontos: pts, descricao: `Divergência sazonal ${div.toFixed(1)}%`, valor: div, threshold: limiares.limiar_div_sazonal });
-            } else {
-              regras.push({ regra: "R4", pontos: 0, descricao: `Divergência ${div.toFixed(1)}% — normal` });
-            }
-          }
-        }
-      }
-
-      // R5: Tendência Descendente
-      {
-        const sorted = fHist.slice().sort((a, b) => a.mes_ano.localeCompare(b.mes_ano));
-        const idx = sorted.findIndex((f) => f.mes_ano === mes_ano);
-        if (idx >= 6) {
-          const janela = sorted.slice(idx - 5, idx + 1);
-          const n = janela.length;
-          const xs = janela.map((_, i) => i);
-          const ys = janela.map((f) => f.kwh_faturado);
-          const sumX = xs.reduce((s, x) => s + x, 0);
-          const sumY = ys.reduce((s, y) => s + y, 0);
-          const sumXY = xs.reduce((s, x, i) => s + x * ys[i], 0);
-          const sumX2 = xs.reduce((s, x) => s + x * x, 0);
-          const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-          let meses = 0;
-          for (let i = janela.length - 1; i > 0; i--) {
-            if (janela[i].kwh_faturado < janela[i - 1].kwh_faturado) meses++;
-            else break;
-          }
-          if (slope < limiares.limiar_slope_tendencia && meses >= 3) {
-            const pts = Math.min(10, Math.round(Math.abs(slope - limiares.limiar_slope_tendencia) * 0.8));
-            score_base += pts;
-            regras.push({ regra: "R5", pontos: pts, descricao: `Slow bleed: ${slope.toFixed(1)} kWh/mês por ${meses} meses`, valor: slope, threshold: limiares.limiar_slope_tendencia });
-          } else {
-            regras.push({ regra: "R5", pontos: 0, descricao: "Sem tendência descendente persistente" });
-          }
-        }
-      }
-
-      // R6: Rácio CVE/kWh
-      {
-        if (fAtual.kwh > 0 && sigmaRacio > 0) {
-          const racio = fAtual.cve / fAtual.kwh;
-          const desvio = Math.abs(racio - mediaRacio) / sigmaRacio;
-          if (desvio > limiares.limiar_ratio_racio) {
-            const pts = Math.min(5, Math.round((desvio - limiares.limiar_ratio_racio) * 2));
-            score_base += pts;
-            regras.push({ regra: "R6", pontos: pts, descricao: `Rácio CVE/kWh anómalo (${racio.toFixed(2)} vs ${mediaRacio.toFixed(2)})`, valor: desvio, threshold: limiares.limiar_ratio_racio });
-          } else {
-            regras.push({ regra: "R6", pontos: 0, descricao: "Rácio CVE/kWh normal" });
-          }
-        }
-      }
-
-      // R7: Reincidência
-      {
-        const nAlertas = alertasPorCliente[cliente.id] ?? 0;
-        if (nAlertas > 0) {
-          score_base += 5;
-          regras.push({ regra: "R7", pontos: 5, descricao: `${nAlertas} alerta(s) anterior(es) confirmado(s) — reincidente`, valor: nAlertas });
-        } else {
-          regras.push({ regra: "R7", pontos: 0, descricao: "Sem reincidência" });
-        }
-      }
-
-      // R8: Pico Histórico vs Atual
-      {
-        const sorted = fHist.slice().sort((a, b) => a.mes_ano.localeCompare(b.mes_ano));
-        const idx = sorted.findIndex((f) => f.mes_ano === mes_ano);
-        if (idx >= 6) {
-          // Bound the historic peak to the last 24 months — avoids permanently
-          // penalising a customer who legitimately downsized years ago.
-          const hist = sorted.slice(Math.max(0, idx - 24), idx);
-          const pico = Math.max(...hist.map((f) => f.kwh_faturado));
-          const atual = sorted[idx].kwh_faturado;
-          if (pico > 0) {
-            const ratio = atual / pico;
-            if (ratio < limiares.limiar_pico_ratio) {
-              const pts = Math.min(5, Math.round((limiares.limiar_pico_ratio - ratio) * 20));
-              score_base += pts;
-              regras.push({ regra: "R8", pontos: pts, descricao: `Atual é ${(ratio * 100).toFixed(1)}% do pico histórico (${pico} kWh)`, valor: ratio, threshold: limiares.limiar_pico_ratio });
-            } else {
-              regras.push({ regra: "R8", pontos: 0, descricao: `Atual é ${(ratio * 100).toFixed(1)}% do pico — normal` });
-            }
-          }
-        }
-      }
-
-      // R9: Aplicar multiplicador de zona
-      const score_final = Math.min(100, Math.round(score_base * multiplicador_zona));
-
-      if (score_final >= 50) {
+      if (score_final >= SCORE_LIMIAR_ALERTA) {
         alertasParaInserir.push({
           id_cliente: cliente.id,
           score_risco: score_final,

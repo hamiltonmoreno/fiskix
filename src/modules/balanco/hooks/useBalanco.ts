@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { logger } from "@/lib/observability/logger";
 import {
   agregarKPIs,
   buildMesesRange,
@@ -50,6 +51,7 @@ export function useBalanco(filtros: BalancoFiltros) {
 
   const load = useCallback(async () => {
     setLoading(true);
+    try {
     const nMeses = filtros.nMeses ?? 12;
     // Anchor the trend window at the *selected* month, not at "now". The
     // previous getLastNMonths(...).filter(<= mesAno) approach silently
@@ -78,12 +80,13 @@ export function useBalanco(filtros: BalancoFiltros) {
         ]),
     ]);
 
-    // Surface partial query failures to the console so they're not silently
+    // Surface partial query failures via logger so they're not silently
     // swallowed. We continue with whatever data did load (config falls back
     // to defaults below) but the operator can debug from logs.
-    if (injecaoRes.error) console.error("useBalanco: injecao_energia query failed", injecaoRes.error);
-    if (faturacaoRes.error) console.error("useBalanco: faturacao_clientes query failed", faturacaoRes.error);
-    if (configRes.error) console.error("useBalanco: configuracoes query failed", configRes.error);
+    const log = logger({ hook: "useBalanco" });
+    if (injecaoRes.error) log.error("query_failed", { table: "injecao_energia", error: injecaoRes.error.message });
+    if (faturacaoRes.error) log.error("query_failed", { table: "faturacao_clientes", error: faturacaoRes.error.message });
+    if (configRes.error) log.error("query_failed", { table: "configuracoes", error: configRes.error.message });
 
     const cfg: Record<string, number> = {};
     for (const row of configRes.data ?? []) cfg[row.chave] = parseFloat(row.valor);
@@ -140,7 +143,9 @@ export function useBalanco(filtros: BalancoFiltros) {
       : undefined;
 
     setData({ kpis, porSubestacao, evolucao, yoy });
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   }, [filtros.mesAno, filtros.zona, filtros.tipoTarifa, filtros.nMeses]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Rely on the memoized `load` callback identity (which only changes when one

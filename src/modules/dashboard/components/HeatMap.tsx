@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import type { SubestacaoMapa } from "../types";
 import { createClient } from "@/lib/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { joinedRow } from "@/lib/supabase/types";
 
 interface HeatMapProps {
   mesAno: string;
@@ -49,10 +50,7 @@ export function HeatMap({ mesAno, zona }: HeatMapProps) {
         const kwh_injetado = inj?.total_kwh_injetado ?? 0;
 
         const kwh_faturado = (fatClientes ?? [])
-          .filter((f) => {
-            const c = f.clientes as unknown as { id_subestacao: string };
-            return c?.id_subestacao === s.id;
-          })
+          .filter((f) => joinedRow<{ id_subestacao: string }>(f.clientes)?.id_subestacao === s.id)
           .reduce((sum, f) => sum + f.kwh_faturado, 0);
 
         const perda_pct =
@@ -60,10 +58,9 @@ export function HeatMap({ mesAno, zona }: HeatMapProps) {
             ? ((kwh_injetado - kwh_faturado) / kwh_injetado) * 100
             : 0;
 
-        const alertas_criticos = (alertas ?? []).filter((a) => {
-          const c = a.clientes as unknown as { id_subestacao: string };
-          return c?.id_subestacao === s.id;
-        }).length;
+        const alertas_criticos = (alertas ?? []).filter(
+          (a) => joinedRow<{ id_subestacao: string }>(a.clientes)?.id_subestacao === s.id,
+        ).length;
 
         return {
           id: s.id,

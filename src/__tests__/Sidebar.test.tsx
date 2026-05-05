@@ -28,10 +28,26 @@ vi.mock("next/link", () => ({
 }));
 
 // ── Mock Supabase client ───────────────────────────────────────────────────────
+// O Sidebar subscreve a um canal de realtime para o badge `criticalCount`,
+// pelo que o mock precisa expor `.channel()` com a chain on().subscribe()
+// e `removeChannel()` para o cleanup do useEffect.
+const mockChannel = {
+  on: vi.fn().mockReturnThis(),
+  subscribe: vi.fn().mockReturnThis(),
+};
 const mockSupabase = {
   auth: {
     signOut: vi.fn().mockResolvedValue({}),
   },
+  channel: vi.fn(() => mockChannel),
+  removeChannel: vi.fn(),
+  from: vi.fn(() => ({
+    select: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        gte: vi.fn().mockResolvedValue({ count: 0, data: [], error: null }),
+      })),
+    })),
+  })),
 };
 
 vi.mock("@/lib/supabase/client", () => ({
@@ -167,7 +183,7 @@ describe("Sidebar — Collapse com localStorage", () => {
   it("lê o estado collapsed do localStorage na montagem", () => {
     localStorage.setItem("sidebar-collapsed", "true");
     const { aside } = renderSidebar("gestor_perdas");
-    expect(aside.className).toContain("w-[4.5rem]");
+    expect(aside.className).toContain("w-16");
   });
 
   it("ao clicar no botão de recolher, persiste 'true' no localStorage", () => {

@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScoreBadge } from "@/components/ui/score-badge";
+import { logger } from "@/lib/observability/logger";
 
 interface RoteiroDiaProps {
   fiscalId: string;
@@ -116,7 +117,12 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
       try {
         localStorage.setItem("fiskix_ordens", JSON.stringify(mapped));
         localStorage.setItem("fiskix_ordens_ts", Date.now().toString());
-      } catch {}
+      } catch (err) {
+        // QuotaExceeded ou private mode — fallback ao Supabase no próximo refresh
+        logger({ module: "RoteiroDia" }).warn("localstorage_write_failed", {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
 
       setOrdens(mapped);
     } finally {
@@ -137,7 +143,12 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
             if (cached) {
               setOrdens(JSON.parse(cached) as OrdemFiscal[]);
             }
-          } catch {}
+          } catch (err) {
+            // Cache corrupto ou inacessível — UI mostra estado vazio
+            logger({ module: "RoteiroDia" }).warn("localstorage_read_failed", {
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
         }
       } finally {
         setLoading(false);
@@ -387,6 +398,14 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
               <p className="text-amber-700 text-sm">Modo offline — a mostrar dados guardados</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Aviso de zona não atribuída */}
+      {zonaError && (
+        <div className="mx-4 mb-4 bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+          <p className="text-red-700 text-sm">{zonaError}</p>
         </div>
       )}
 

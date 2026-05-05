@@ -5,6 +5,7 @@ import { formatMesAno } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { RelatoriosFiltros, BalancoEnergeticoData, BalancoSubRow } from "../types";
 import { getMesesRange } from "./_shared";
+import { DEFAULT_PRICE_CVE_PER_KWH } from "@/modules/balanco/lib/balanco";
 
 export function useBalancoEnergeticoData(filtros: RelatoriosFiltros, active: boolean) {
   const supabase = createClient();
@@ -54,7 +55,7 @@ export function useBalancoEnergeticoData(filtros: RelatoriosFiltros, active: boo
         const fat = fatSubMap[id] ?? 0;
         const perda_kwh = Math.max(0, inj - fat);
         const perda_pct = inj > 0 ? parseFloat(((perda_kwh / inj) * 100).toFixed(1)) : 0;
-        return { id, nome: nome.slice(0, 12), ilha, kwh_injetado: Math.round(inj), kwh_faturado: Math.round(fat), perda_kwh: Math.round(perda_kwh), perda_pct, cve_estimado: Math.round(perda_kwh * 15) };
+        return { id, nome: nome.slice(0, 12), ilha, kwh_injetado: Math.round(inj), kwh_faturado: Math.round(fat), perda_kwh: Math.round(perda_kwh), perda_pct, cve_estimado: Math.round(perda_kwh * DEFAULT_PRICE_CVE_PER_KWH) };
       });
 
       const porSubFiltrada = filtros.zona

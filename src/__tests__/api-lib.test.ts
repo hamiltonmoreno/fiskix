@@ -1,9 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
+//
+// A chain Supabase usada por verificarApiKey é:
+//   from(table).select(cols).like(col, pattern).eq(col, hash).maybeSingle()
 
-const mockSelect = vi.fn();
-const mockLike = vi.fn();
+const mockMaybeSingle = vi.fn();
+const mockEq = vi.fn(() => ({ maybeSingle: mockMaybeSingle }));
+const mockLike = vi.fn(() => ({ eq: mockEq }));
+const mockSelect = vi.fn(() => ({ like: mockLike }));
 const mockFrom = vi.fn(() => ({ select: mockSelect }));
 
 vi.mock("@supabase/supabase-js", () => ({
@@ -43,8 +48,7 @@ describe("verificarApiKey", () => {
   });
 
   it("retorna null quando a chave não existe na BD", async () => {
-    mockSelect.mockReturnValue({ like: mockLike });
-    mockLike.mockResolvedValue({ data: [], error: null });
+    mockMaybeSingle.mockResolvedValue({ data: null, error: null });
 
     const { verificarApiKey } = await import("@/lib/api/auth");
     const result = await verificarApiKey(buildRequest("Bearer chave-invalida"));
@@ -52,9 +56,8 @@ describe("verificarApiKey", () => {
   });
 
   it("retorna o nome do cliente quando a chave é válida", async () => {
-    mockSelect.mockReturnValue({ like: mockLike });
-    mockLike.mockResolvedValue({
-      data: [{ chave: "api_key_electra", valor: "chave-valida-123" }],
+    mockMaybeSingle.mockResolvedValue({
+      data: { chave: "api_key_electra" },
       error: null,
     });
 
@@ -63,9 +66,23 @@ describe("verificarApiKey", () => {
     expect(result).toBe("electra");
   });
 
+  it("hash do input é usado na query .eq() (apenas hash, sem plaintext)", async () => {
+    mockMaybeSingle.mockResolvedValue({
+      data: { chave: "api_key_electra" },
+      error: null,
+    });
+
+    const { verificarApiKey } = await import("@/lib/api/auth");
+    await verificarApiKey(buildRequest("Bearer chave-x"));
+
+    const eqCallArgs = mockEq.mock.calls[0] as unknown as [string, string];
+    expect(eqCallArgs[0]).toBe("valor");
+    expect(eqCallArgs[1]).toMatch(/^[0-9a-f]{64}$/); // SHA-256 hex
+    expect(eqCallArgs[1]).not.toBe("chave-x"); // plaintext NÃO é enviado
+  });
+
   it("retorna null quando a query Supabase falha", async () => {
-    mockSelect.mockReturnValue({ like: mockLike });
-    mockLike.mockResolvedValue({ data: null, error: { message: "connection error" } });
+    mockMaybeSingle.mockResolvedValue({ data: null, error: { message: "connection error" } });
 
     const { verificarApiKey } = await import("@/lib/api/auth");
     const result = await verificarApiKey(buildRequest("Bearer qualquer-chave"));
@@ -82,19 +99,23 @@ describe("verificarApiKey", () => {
 });
 
 // ── Tests: lib/api/rateLimit.ts ────────────────────────────────────────────────
+//
+// Estes testes cobrem o backend in-memory (default sem env vars Upstash).
+// O backend Upstash é testado em rateLimit-upstash.test.ts com mocks dedicados.
 
-describe("checkRateLimit", () => {
+describe("checkRateLimit (memory backend)", () => {
   it("permite o primeiro request", async () => {
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
-    const { allowed } = checkRateLimit(`key-${Date.now()}-1`);
+    const { allowed, backend } = await checkRateLimit(`key-${Date.now()}-1`);
     expect(allowed).toBe(true);
+    expect(backend).toBe("memory");
   });
 
   it("decrementa o remaining a cada chamada", async () => {
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
     const key = `key-${Date.now()}-2`;
-    const r1 = checkRateLimit(key);
-    const r2 = checkRateLimit(key);
+    const r1 = await checkRateLimit(key);
+    const r2 = await checkRateLimit(key);
     expect(r2.remaining).toBe(r1.remaining - 1);
   });
 
@@ -102,8 +123,8 @@ describe("checkRateLimit", () => {
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
     const key = `key-${Date.now()}-3`;
     // Consumir todos os 60 slots
-    for (let i = 0; i < 60; i++) checkRateLimit(key);
-    const { allowed, remaining } = checkRateLimit(key);
+    for (let i = 0; i < 60; i++) await checkRateLimit(key);
+    const { allowed, remaining } = await checkRateLimit(key);
     expect(allowed).toBe(false);
     expect(remaining).toBe(0);
   });
@@ -111,7 +132,7 @@ describe("checkRateLimit", () => {
   it("fornece resetAt como timestamp futuro", async () => {
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
     const key = `key-${Date.now()}-4`;
-    const { resetAt } = checkRateLimit(key);
+    const { resetAt } = await checkRateLimit(key);
     expect(resetAt).toBeGreaterThan(Date.now());
   });
 
@@ -119,8 +140,8 @@ describe("checkRateLimit", () => {
     const { checkRateLimit } = await import("@/lib/api/rateLimit");
     const keyA = `key-${Date.now()}-A`;
     const keyB = `key-${Date.now()}-B`;
-    for (let i = 0; i < 60; i++) checkRateLimit(keyA);
-    const { allowed } = checkRateLimit(keyB);
+    for (let i = 0; i < 60; i++) await checkRateLimit(keyA);
+    const { allowed } = await checkRateLimit(keyB);
     expect(allowed).toBe(true); // B não foi afectado por A
   });
 });
@@ -164,7 +185,7 @@ describe("parsePaginacao", () => {
 describe("apiError", () => {
   it("retorna response com status correcto e corpo JSON", async () => {
     const { apiError } = await import("@/lib/api/response");
-    const res = apiError("Não encontrado", 404);
+    const res = await apiError("Não encontrado", 404);
     expect(res.status).toBe(404);
     const body = await res.json();
     expect(body.error).toBe("Não encontrado");
@@ -172,13 +193,13 @@ describe("apiError", () => {
 
   it("usa 400 como status por defeito", async () => {
     const { apiError } = await import("@/lib/api/response");
-    const res = apiError("Parâmetro inválido");
+    const res = await apiError("Parâmetro inválido");
     expect(res.status).toBe(400);
   });
 
-  it("inclui header CORS", async () => {
+  it("usa wildcard CORS quando request não é fornecido (legacy callsites)", async () => {
     const { apiError } = await import("@/lib/api/response");
-    const res = apiError("erro");
+    const res = await apiError("erro");
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
   });
 });
