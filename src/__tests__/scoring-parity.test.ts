@@ -54,6 +54,8 @@ describe("scoring constants — paridade entre canónico e mirror Deno", () => {
     "LIMIAR_RATIO_RACIO",
     "LIMIAR_PICO_RATIO",
     "LIMIAR_PERDA_ZONA_PCT",
+    "SCORE_CRITICO",
+    "SCORE_MEDIO",
     "R1_WINDOW_MAX",
     "R1_MIN_INDEX",
     "R1_PONTOS_MAX",

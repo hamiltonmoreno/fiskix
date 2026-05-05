@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { SCORE_CRITICO } from "@/modules/scoring/constants";
 import type { KPIData } from "../types";
 
 export function useKPIs(mesAno: string, zona?: string) {
@@ -40,7 +41,7 @@ export function useKPIs(mesAno: string, zona?: string) {
         clientes: { subestacoes: { zona_bairro: string } };
       }>;
 
-      const criticos = filtrados.filter((a) => a.score_risco >= 75).length;
+      const criticos = filtrados.filter((a) => a.score_risco >= SCORE_CRITICO).length;
       const pendentes = filtrados.filter(
         (a) => a.status === "Pendente_Inspecao"
       ).length;
