@@ -119,7 +119,8 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
               Sem dados para o período selecionado
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height={260}>
+            <div className="h-44 sm:h-64">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data?.porSubestacao.slice(0, 10)} margin={{ top: 5, right: 10, left: -10, bottom: 35 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis
@@ -138,6 +139,7 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
                 <Bar dataKey="perda_comercial_kwh" name="Comercial" fill="#EF4444" stackId="a" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            </div>
           )}
         </div>
 
@@ -147,7 +149,8 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
           {loading ? (
             <Skeleton className="h-64 rounded-lg" />
           ) : (
-            <ResponsiveContainer width="100%" height={260}>
+            <div className="h-44 sm:h-64">
+            <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data?.evolucaoComercial} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} tickLine={false} />
@@ -164,6 +167,7 @@ export function TabAnaliseAvancada({ filtros, active, onExportReady }: Props) {
                 <Area type="monotone" dataKey="pct_comercial" name="Comercial %" stroke="#EF4444" fill="#FEE2E2" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
+            </div>
           )}
         </div>
       </div>

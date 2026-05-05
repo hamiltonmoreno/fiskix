@@ -155,7 +155,7 @@ export function ParseFaturaClient({ provider, claudeReady }: Props) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700/60 shadow-sm">
           <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3">
             {provider === "text-paste" ? "1. Cola o texto da fatura" : "1. Upload da imagem"}
@@ -205,12 +205,12 @@ export function ParseFaturaClient({ provider, claudeReady }: Props) {
                 </div>
               )}
 
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 {Object.entries(parseResult.parsed)
                   .filter(([k]) => k !== "warnings")
                   .map(([k, v]) => (
                     <div key={k} className="flex flex-col py-1 border-b border-gray-100 dark:border-gray-700/60 last:border-0">
-                      <dt className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{k}</dt>
+                      <dt className="text-xs sm:text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{k}</dt>
                       <dd className={`font-mono text-xs ${v === null ? "text-gray-300" : "text-gray-900 dark:text-gray-100"}`}>
                         {v === null ? "—" : String(v)}
                       </dd>
