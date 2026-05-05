@@ -188,7 +188,7 @@ describe("parsePaginacao", () => {
 describe("apiError", () => {
   it("retorna response com status correcto e corpo JSON", async () => {
     const { apiError } = await import("@/lib/api/response");
-    const res = apiError("Não encontrado", 404);
+    const res = await apiError("Não encontrado", 404);
     expect(res.status).toBe(404);
     const body = await res.json();
     expect(body.error).toBe("Não encontrado");
@@ -196,13 +196,13 @@ describe("apiError", () => {
 
   it("usa 400 como status por defeito", async () => {
     const { apiError } = await import("@/lib/api/response");
-    const res = apiError("Parâmetro inválido");
+    const res = await apiError("Parâmetro inválido");
     expect(res.status).toBe(400);
   });
 
-  it("inclui header CORS", async () => {
+  it("usa wildcard CORS quando request não é fornecido (legacy callsites)", async () => {
     const { apiError } = await import("@/lib/api/response");
-    const res = apiError("erro");
+    const res = await apiError("erro");
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
   });
 });
