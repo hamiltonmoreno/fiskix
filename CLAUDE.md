@@ -1,5 +1,8 @@
 # Fiskix — Contexto para Claude Code
 
+> **Tarefas pendentes**: ver [`.claude/TODO.md`](.claude/TODO.md) — verificar
+> no início de cada sessão e apagar itens concluídos.
+
 ## Workflow Orchestration
 
 ### 1. Plan Mode por defeito
