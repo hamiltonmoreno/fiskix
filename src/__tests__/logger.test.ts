@@ -1,16 +1,23 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { logger } from "@/lib/observability/logger";
+import {
+  logger,
+  registerLogTransport,
+  _resetLogTransportsForTests,
+  type LogRecord,
+} from "@/lib/observability/logger";
 
 // ── Suite ──────────────────────────────────────────────────────────────────────
 
 describe("logger", () => {
   beforeEach(() => {
+    _resetLogTransportsForTests();
     vi.spyOn(console, "info").mockImplementation(() => {});
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
+    _resetLogTransportsForTests();
     vi.restoreAllMocks();
   });
 
@@ -87,5 +94,34 @@ describe("logger", () => {
     const linha = JSON.parse((console.info as ReturnType<typeof vi.fn>).mock.calls[0][0] as string);
     expect(() => new Date(linha.ts).toISOString()).not.toThrow();
     expect(new Date(linha.ts).getFullYear()).toBeGreaterThanOrEqual(2026);
+  });
+
+  it("registerLogTransport recebe records de todos os níveis", () => {
+    const records: LogRecord[] = [];
+    registerLogTransport((r) => records.push(r));
+
+    logger({ ctx: 1 }).info("a");
+    logger().warn("b", { x: true });
+    logger().error("c");
+
+    expect(records.map((r) => r.event)).toEqual(["a", "b", "c"]);
+    expect(records.map((r) => r.level)).toEqual(["info", "warn", "error"]);
+    expect(records[0].payload.ctx).toBe(1);
+    expect(records[1].payload.x).toBe(true);
+  });
+
+  it("transport que falha não interrompe outros transports", () => {
+    const bom: LogRecord[] = [];
+    registerLogTransport(() => {
+      throw new Error("boom");
+    });
+    registerLogTransport((r) => bom.push(r));
+
+    logger().info("evt");
+
+    expect(bom).toHaveLength(1);
+    expect(bom[0].event).toBe("evt");
+    // erro do transport reportado via console.error directo (não loop)
+    expect(console.error).toHaveBeenCalled();
   });
 });
