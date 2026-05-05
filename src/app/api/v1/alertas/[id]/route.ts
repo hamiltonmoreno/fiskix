@@ -2,6 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 import { verificarApiKey } from "@/lib/api/auth";
 import { apiError, apiCors } from "@/lib/api/response";
 import { checkRateLimit } from "@/lib/api/rateLimit";
+import { corsHeadersFor } from "@/lib/api/cors";
+import { getClientIp } from "@/lib/api/client-ip";
 
 /**
  * GET /api/v1/alertas/:id
@@ -9,8 +11,8 @@ import { checkRateLimit } from "@/lib/api/rateLimit";
  * Retorna o detalhe de um alerta com motivo e dados do cliente.
  * Headers: Authorization: Bearer <api_key>
  */
-export async function OPTIONS() {
-  return apiCors();
+export async function OPTIONS(request: Request) {
+  return apiCors(request);
 }
 
 export async function GET(
@@ -18,10 +20,15 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const cliente = await verificarApiKey(request);
-  if (!cliente) return apiError("API key inválida ou ausente", 401);
+  if (!cliente) {
+    const ip = getClientIp(request);
+    const rl = await checkRateLimit(`unauth:${ip}`);
+    if (!rl.allowed) return apiError("Rate limit exceeded", 429, request);
+    return apiError("API key inválida ou ausente", 401, request);
+  }
 
-  const { allowed, remaining } = await checkRateLimit(cliente);
-  if (!allowed) return apiError("Rate limit excedido.", 429);
+  const { allowed, remaining } = await checkRateLimit(`key:${cliente}`);
+  if (!allowed) return apiError("Rate limit excedido.", 429, request);
 
   const { id } = await params;
 
@@ -41,18 +48,15 @@ export async function GET(
     .eq("id", id)
     .single();
 
-  if (error || !data) return apiError("Alerta não encontrado", 404);
+  if (error || !data) return apiError("Alerta não encontrado", 404, request);
 
-  return new Response(
-    JSON.stringify({ data }),
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Cache-Control": "no-store",
-        "X-RateLimit-Remaining": String(remaining),
-      },
-    }
-  );
+  const corsHeaders = await corsHeadersFor(request);
+  return new Response(JSON.stringify({ data }), {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+      "X-RateLimit-Remaining": String(remaining),
+    },
+  });
 }

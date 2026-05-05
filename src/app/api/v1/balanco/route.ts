@@ -2,6 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 import { verificarApiKey } from "@/lib/api/auth";
 import { apiError, apiCors } from "@/lib/api/response";
 import { checkRateLimit } from "@/lib/api/rateLimit";
+import { corsHeadersFor } from "@/lib/api/cors";
+import { getClientIp } from "@/lib/api/client-ip";
 
 /**
  * GET /api/v1/balanco
@@ -12,23 +14,28 @@ import { checkRateLimit } from "@/lib/api/rateLimit";
  *
  * Headers: Authorization: Bearer <api_key>
  */
-export async function OPTIONS() {
-  return apiCors();
+export async function OPTIONS(request: Request) {
+  return apiCors(request);
 }
 
 export async function GET(request: Request) {
   const cliente = await verificarApiKey(request);
-  if (!cliente) return apiError("API key inválida ou ausente", 401);
+  if (!cliente) {
+    const ip = getClientIp(request);
+    const rl = await checkRateLimit(`unauth:${ip}`);
+    if (!rl.allowed) return apiError("Rate limit exceeded", 429, request);
+    return apiError("API key inválida ou ausente", 401, request);
+  }
 
-  const { allowed, remaining } = await checkRateLimit(cliente);
-  if (!allowed) return apiError("Rate limit excedido.", 429);
+  const { allowed, remaining } = await checkRateLimit(`key:${cliente}`);
+  if (!allowed) return apiError("Rate limit excedido.", 429, request);
 
   const { searchParams } = new URL(request.url);
   const mes_ano = searchParams.get("mes_ano");
   const subestacao_id = searchParams.get("subestacao_id");
 
   if (!mes_ano || !/^\d{4}-\d{2}$/.test(mes_ano)) {
-    return apiError("mes_ano é obrigatório no formato YYYY-MM", 400);
+    return apiError("mes_ano é obrigatório no formato YYYY-MM", 400, request);
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -50,7 +57,7 @@ export async function GET(request: Request) {
   let subQuery = supabase.from("subestacoes").select("id, nome, zona_bairro, ilha").eq("ativo", true);
   if (subestacao_id) subQuery = subQuery.eq("id", subestacao_id);
   const { data: subestacoes, error: subErr } = await subQuery;
-  if (subErr || !subestacoes?.length) return apiError("Subestações não encontradas", 404);
+  if (subErr || !subestacoes?.length) return apiError("Subestações não encontradas", 404, request);
 
   const subIds = subestacoes.map((s) => s.id);
 
@@ -108,14 +115,14 @@ export async function GET(request: Request) {
     zonas_vermelhas: resultados.filter((r) => r.zona_vermelha).length,
   };
 
+  const corsHeaders = await corsHeadersFor(request);
   return new Response(
     JSON.stringify({ data: { mes_ano, totais, subestacoes: resultados } }),
     {
       status: 200,
       headers: {
+        ...corsHeaders,
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Cache-Control": "no-store",
         "X-RateLimit-Remaining": String(remaining),
       },
     }

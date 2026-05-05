@@ -17,6 +17,16 @@ vi.mock("@/lib/api/rateLimit", () => ({
   })),
 }));
 
+// Mock do CORS — evita hit DB por route test (testado isoladamente em cors.test.ts).
+vi.mock("@/lib/api/cors", () => ({
+  corsHeadersFor: vi.fn(async () => ({
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "authorization, content-type",
+    "Cache-Control": "no-store",
+  })),
+  resolveAllowOrigin: vi.fn(async () => "*"),
+}));
+
 // Mock do Supabase
 const mockRange = vi.fn();
 const mockOrder = vi.fn(() => ({ range: mockRange }));
@@ -120,7 +130,7 @@ describe("GET /api/v1/alertas", () => {
 
   it("responde ao preflight OPTIONS com 204", async () => {
     const { OPTIONS } = await import("@/app/api/v1/alertas/route");
-    const res = await OPTIONS();
+    const res = await OPTIONS(buildRequest("http://localhost/api/v1/alertas"));
     expect(res.status).toBe(204);
   });
 });
