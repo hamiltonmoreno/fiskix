@@ -4,6 +4,7 @@ import { apiError, apiCors } from "@/lib/api/response";
 import { checkRateLimit } from "@/lib/api/rateLimit";
 import { corsHeadersFor } from "@/lib/api/cors";
 import { getClientIp } from "@/lib/api/client-ip";
+import { BalancoQuerySchema, parseQuery } from "@/lib/api/schemas";
 
 /**
  * GET /api/v1/balanco
@@ -31,12 +32,11 @@ export async function GET(request: Request) {
   if (!allowed) return apiError("Rate limit excedido.", 429, request);
 
   const { searchParams } = new URL(request.url);
-  const mes_ano = searchParams.get("mes_ano");
-  const subestacao_id = searchParams.get("subestacao_id");
-
-  if (!mes_ano || !/^\d{4}-\d{2}$/.test(mes_ano)) {
-    return apiError("mes_ano é obrigatório no formato YYYY-MM", 400, request);
+  const parsed = parseQuery(BalancoQuerySchema, searchParams);
+  if (!parsed.ok) {
+    return apiError("Parâmetros inválidos", 400, request, parsed.errors);
   }
+  const { mes_ano, subestacao_id } = parsed.data;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;

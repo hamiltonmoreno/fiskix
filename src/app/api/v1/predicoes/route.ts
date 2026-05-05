@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import { verificarApiKey } from "@/lib/api/auth";
-import { apiError, apiCors, parsePaginacao } from "@/lib/api/response";
+import { apiError, apiCors } from "@/lib/api/response";
 import { checkRateLimit } from "@/lib/api/rateLimit";
 import { corsHeadersFor } from "@/lib/api/cors";
 import { getClientIp } from "@/lib/api/client-ip";
+import { PredicoesQuerySchema, parseQuery } from "@/lib/api/schemas";
 
 /**
  * GET /api/v1/predicoes
@@ -33,9 +34,12 @@ export async function GET(request: Request) {
   if (!allowed) return apiError("Rate limit excedido.", 429, request);
 
   const { searchParams } = new URL(request.url);
-  const { limit, offset, page } = parsePaginacao(searchParams);
-  const mes_ano = searchParams.get("mes_ano");
-  const min_score_ml = parseFloat(searchParams.get("min_score_ml") ?? "0");
+  const parsed = parseQuery(PredicoesQuerySchema, searchParams);
+  if (!parsed.ok) {
+    return apiError("Parâmetros inválidos", 400, request, parsed.errors);
+  }
+  const { mes_ano, min_score_ml, page, limit } = parsed.data;
+  const offset = (page - 1) * limit;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;

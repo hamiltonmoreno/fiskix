@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import { verificarApiKey } from "@/lib/api/auth";
-import { apiError, apiCors, parsePaginacao } from "@/lib/api/response";
+import { apiError, apiCors } from "@/lib/api/response";
 import { checkRateLimit } from "@/lib/api/rateLimit";
 import { corsHeadersFor } from "@/lib/api/cors";
 import { getClientIp } from "@/lib/api/client-ip";
+import { AlertasQuerySchema, parseQuery } from "@/lib/api/schemas";
 
 /**
  * GET /api/v1/alertas
@@ -42,11 +43,12 @@ export async function GET(request: Request) {
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
   const { searchParams } = new URL(request.url);
-  const { limit, offset, page } = parsePaginacao(searchParams);
-  const mes_ano = searchParams.get("mes_ano");
-  const status = searchParams.get("status");
-  const min_score = searchParams.get("min_score");
-  const subestacao_id = searchParams.get("subestacao_id");
+  const parsed = parseQuery(AlertasQuerySchema, searchParams);
+  if (!parsed.ok) {
+    return apiError("Parâmetros inválidos", 400, request, parsed.errors);
+  }
+  const { mes_ano, status, min_score, subestacao_id, page, limit } = parsed.data;
+  const offset = (page - 1) * limit;
 
   let query = supabase
     .from("alertas_fraude")
@@ -61,7 +63,7 @@ export async function GET(request: Request) {
 
   if (mes_ano) query = query.eq("mes_ano", mes_ano);
   if (status) query = query.eq("status", status);
-  if (min_score) query = query.gte("score_risco", parseInt(min_score));
+  if (min_score !== undefined) query = query.gte("score_risco", min_score);
   if (subestacao_id) query = query.eq("clientes.subestacoes.id", subestacao_id);
 
   const { data, error, count } = await query;
