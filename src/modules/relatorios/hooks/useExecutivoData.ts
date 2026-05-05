@@ -5,6 +5,7 @@ import { formatMesAno } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { RelatoriosFiltros, ExecutivoData } from "../types";
 import { PLATAFORMA_CUSTO_MENSAL, getMesesRange } from "./_shared";
+import { DEFAULT_PRICE_CVE_PER_KWH } from "@/modules/balanco/lib/balanco";
 
 export function useExecutivoData(filtros: RelatoriosFiltros, active: boolean) {
   const supabase = createClient();
@@ -51,7 +52,7 @@ export function useExecutivoData(filtros: RelatoriosFiltros, active: boolean) {
         const inj = injecaoPorMes[m] ?? 0;
         const fat = faturacaoPorMes[m] ?? 0;
         const perdaKwh = Math.max(0, inj - fat);
-        const perdaCVE = perdaKwh * 15;
+        const perdaCVE = perdaKwh * DEFAULT_PRICE_CVE_PER_KWH;
         const recuperado = recuperadoPorMes[m] ?? 0;
         const roi = recuperado - PLATAFORMA_CUSTO_MENSAL;
         roiAcumulado += roi;

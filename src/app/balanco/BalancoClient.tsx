@@ -537,10 +537,9 @@ function DrillDownModal({
       return;
     }
     setLoading(true);
-    fetchDrillDown(sub.id, mesAno).then((d) => {
-      setData(d);
-      setLoading(false);
-    });
+    fetchDrillDown(sub.id, mesAno)
+      .then((d) => setData(d))
+      .finally(() => setLoading(false));
   }, [open, sub, mesAno]);
 
   return (

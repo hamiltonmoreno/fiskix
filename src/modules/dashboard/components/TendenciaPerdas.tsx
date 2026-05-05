@@ -14,6 +14,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { formatCVE } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DEFAULT_PRICE_CVE_PER_KWH } from "@/modules/balanco/lib/balanco";
 
 interface TendenciaProps {
   mesAno: string;
@@ -119,7 +120,7 @@ export function TendenciaPerdas({ mesAno, zona }: TendenciaProps) {
         const { kwh: kwh_faturado, cve: cve_faturado } = faturadoPorMes[m] ?? { kwh: 0, cve: 0 };
         const perda_kwh = Math.max(0, kwh_injetado - kwh_faturado);
         const perda_pct = kwh_injetado > 0 ? (perda_kwh / kwh_injetado) * 100 : 0;
-        const tarifa_media = kwh_faturado > 0 ? cve_faturado / kwh_faturado : 15;
+        const tarifa_media = kwh_faturado > 0 ? cve_faturado / kwh_faturado : DEFAULT_PRICE_CVE_PER_KWH;
 
         return {
           mes: MESES_PT[month - 1],

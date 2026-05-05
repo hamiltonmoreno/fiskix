@@ -7,6 +7,7 @@ import { ArrowLeft, Camera, Upload, CheckCircle, Loader2, AlertTriangle } from "
 import { createClient } from "@/lib/supabase/client";
 import { openDB } from "idb";
 import { useOnlineStatus } from "@/lib/hooks/useOnlineStatus";
+import { logger } from "@/lib/observability/logger";
 import type { RelatorioOffline } from "../types";
 
 const MAX_FOTO_LONG_EDGE = 1280;
@@ -106,7 +107,10 @@ export function RelatorioInspecao({
         await videoRef.current.play();
       }
       setCamAtiva(true);
-    } catch {
+    } catch (err) {
+      logger({ module: "RelatorioInspecao" }).warn("camera_access_failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
       setFeedback({ type: "error", message: "Não foi possível aceder à câmara. Verifique as permissões." });
     }
   }, []);
@@ -249,7 +253,10 @@ export function RelatorioInspecao({
         .eq("id", alertaId);
 
       setSucesso(true);
-    } catch {
+    } catch (err) {
+      logger({ module: "RelatorioInspecao" }).warn("submit_online_failed_fallback_offline", {
+        error: err instanceof Error ? err.message : String(err),
+      });
       // Fallback offline — keep the photo data URL so syncPendingReports can
       // re-upload it later (otherwise the legal evidence would be lost).
       await salvarOffline(relatorioData);
