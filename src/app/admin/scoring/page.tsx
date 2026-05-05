@@ -106,7 +106,7 @@ export default function ScoringPage() {
             Motor de Scoring
           </h1>
           <p className="text-sm text-gray-500 mt-1 uppercase tracking-wider font-semibold">
-            9 Regras Graduais v2 · Execução manual ou cron automático
+            12 Regras Graduais v3 · Execução manual ou cron automático
           </p>
         </div>
       </div>

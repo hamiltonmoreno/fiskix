@@ -179,7 +179,7 @@ export function LoginForm() {
               em Energia
             </h2>
             <p className="text-sm text-slate-400 mt-4 leading-relaxed max-w-[260px]">
-              Motor de scoring com 9 regras. Perdas comerciais detectadas em tempo real.
+              Motor de scoring com 12 regras. Perdas comerciais detectadas em tempo real.
             </p>
           </div>
 

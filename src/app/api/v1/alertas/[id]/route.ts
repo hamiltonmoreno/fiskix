@@ -48,16 +48,35 @@ export async function GET(
       `id, score_risco, status, resultado, motivo, mes_ano, criado_em, atualizado_em,
        clientes!inner(
          id, numero_contador, nome_titular, tipo_tarifa, morada, telemovel,
+         nif, cil, numero_conta, potencia_contratada_w, unidade_comercial,
          subestacoes!inner(id, nome, zona_bairro, ilha)
        )`
     )
     .eq("id", id)
     .single();
 
+  // Enriquecimento: buscar a fatura do mes_ano do alerta para expor saldo/tipo_leitura.
+  // Falha silenciosa quando ausentes (deployments pré-021).
+  let fatura = null;
+  if (data) {
+    const cliente = Array.isArray(data.clientes) ? data.clientes[0] : data.clientes;
+    if (cliente?.id) {
+      const { data: f } = await supabase
+        .from("faturacao_clientes")
+        .select("kwh_faturado, valor_cve, saldo_atual_cve, tipo_leitura, leitura_inicial, leitura_final, periodo_inicio, periodo_fim")
+        .eq("id_cliente", cliente.id)
+        .eq("mes_ano", data.mes_ano)
+        .maybeSingle();
+      fatura = f;
+    }
+  }
+
   if (error || !data) return apiError("Alerta não encontrado", 404, request);
 
+  const enrichedData = { ...data, fatura };
+
   const corsHeaders = await corsHeadersFor(request);
-  return new Response(JSON.stringify({ data }), {
+  return new Response(JSON.stringify({ data: enrichedData }), {
     status: 200,
     headers: {
       ...corsHeaders,
