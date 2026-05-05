@@ -25,6 +25,7 @@ interface Alerta {
   status: string;
   mes_ano: string;
   resultado: string | null;
+  criado_em?: string;
   motivo: Array<{ regra: string; pontos: number; descricao: string }>;
   cliente: {
     numero_contador: string;
@@ -44,12 +45,15 @@ interface AlertasTableProps {
   pageSize: number;
   actionLoading: string | null;
   sortDir?: "asc" | "desc";
+  selectedIds?: Set<string>;
   onRowClick: (alerta: Alerta) => void;
   onEnviarSMS: (alertaId: string) => void;
   onGerarOrdem: (alertaId: string) => void;
   onSetPendingStatus: (update: { alertaId: string; novoStatus: InspecaoResultado; label: string }) => void;
   onPageChange: (page: number) => void;
   onSortChange?: (dir: "asc" | "desc") => void;
+  onToggleSelect?: (alertaId: string) => void;
+  onToggleSelectAll?: () => void;
 }
 
 const ESTADOS_FINAIS = ["Fraude_Confirmada", "Anomalia_Tecnica", "Falso_Positivo"];
@@ -62,14 +66,22 @@ export function AlertasTable({
   pageSize,
   actionLoading,
   sortDir,
+  selectedIds,
   onRowClick,
   onEnviarSMS,
   onGerarOrdem,
   onSetPendingStatus,
   onPageChange,
   onSortChange,
+  onToggleSelect,
+  onToggleSelectAll,
 }: AlertasTableProps) {
   const totalPages = Math.ceil(total / pageSize);
+  const showCheckbox = !!onToggleSelect;
+  const allSelected =
+    showCheckbox && alertas.length > 0 && alertas.every((a) => selectedIds?.has(a.id));
+  const someSelected =
+    showCheckbox && alertas.some((a) => selectedIds?.has(a.id)) && !allSelected;
 
   return (
     <div className="overflow-hidden">
@@ -77,6 +89,20 @@ export function AlertasTable({
         <table className="w-full text-sm text-left whitespace-nowrap">
           <thead className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/50 uppercase border-b border-gray-200 dark:border-gray-700/60">
             <tr>
+              {showCheckbox && (
+                <th className="pl-6 pr-2 py-4 w-10">
+                  <input
+                    type="checkbox"
+                    aria-label={allSelected ? "Desselecionar tudo" : "Selecionar tudo"}
+                    checked={allSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = someSelected;
+                    }}
+                    onChange={() => onToggleSelectAll?.()}
+                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  />
+                </th>
+              )}
               <th className="px-8 py-4 font-semibold tracking-wider">
                 {onSortChange ? (
                   <button
@@ -98,7 +124,7 @@ export function AlertasTable({
             {loading ? (
               Array.from({ length: 8 }).map((_, i) => (
                 <tr key={i}>
-                  {Array.from({ length: 8 }).map((_, j) => (
+                  {Array.from({ length: showCheckbox ? 9 : 8 }).map((_, j) => (
                     <td key={j} className="px-6 py-5">
                       <Skeleton className="h-4 w-full rounded" />
                     </td>
@@ -107,7 +133,7 @@ export function AlertasTable({
               ))
             ) : alertas.length === 0 ? (
               <tr>
-                <td colSpan={8}>
+                <td colSpan={showCheckbox ? 9 : 8}>
                   <EmptyState
                     icon={ClipboardList}
                     title="Nenhum alerta para os filtros selecionados"
@@ -121,12 +147,24 @@ export function AlertasTable({
                 const isLoading = actionLoading === alerta.id;
                 const isFinal = ESTADOS_FINAIS.includes(alerta.resultado ?? "");
 
+                const isSelected = selectedIds?.has(alerta.id) ?? false;
                 return (
                   <tr
                     key={alerta.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800/80 transition-colors cursor-pointer"
+                    className={`transition-colors cursor-pointer ${isSelected ? "bg-blue-50/60 dark:bg-blue-950/30 hover:bg-blue-50 dark:hover:bg-blue-950/40" : "hover:bg-gray-50 dark:hover:bg-gray-800/80"}`}
                     onClick={() => onRowClick(alerta)}
                   >
+                    {showCheckbox && (
+                      <td className="pl-6 pr-2 py-5 w-10" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          aria-label={`Selecionar alerta ${alerta.cliente.numero_contador}`}
+                          checked={isSelected}
+                          onChange={() => onToggleSelect?.(alerta.id)}
+                          className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        />
+                      </td>
+                    )}
                     <td className="px-8 py-5">
                       <ScoreBadge score={alerta.score_risco} showScore />
                     </td>
