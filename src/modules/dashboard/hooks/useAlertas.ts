@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { AlertaTabela } from "../types";
 import type { AlertaStatus, InspecaoResultado } from "@/types/database";
@@ -23,7 +23,7 @@ export function useAlertas({
   const [data, setData] = useState<AlertaTabela[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -136,25 +136,26 @@ export function useAlertas({
   }, [supabase]);
 
   async function enviarSMS(alertaId: string, tipo: "amarelo" | "vermelho") {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-sms`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({ alerta_id: alertaId, tipo }),
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-sms`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({ alerta_id: alertaId, tipo }),
+        }
+      );
+      const json = await res.json().catch(() => ({} as Record<string, unknown>));
+      if (!res.ok || (json as { mensagem_enviada?: boolean }).mensagem_enviada === false) {
+        return { ...(json as object), error: (json as { error?: string }).error ?? "Falha ao enviar SMS" };
       }
-    );
-    const json = await res.json().catch(() => ({} as Record<string, unknown>));
-    // The edge function returns 4xx/5xx when Twilio fails. Surface that as an
-    // error in the result so the UI can warn the user instead of pretending
-    // the SMS went out.
-    if (!res.ok || (json as { mensagem_enviada?: boolean }).mensagem_enviada === false) {
-      return { ...(json as object), error: (json as { error?: string }).error ?? "Falha ao enviar SMS" };
+      return json;
+    } catch {
+      return { error: "Erro de rede ao enviar SMS" };
     }
-    return json;
   }
 
   async function gerarOrdem(alertaId: string) {

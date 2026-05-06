@@ -44,45 +44,48 @@ export function ClienteFichaSheet({ clienteId, open, onClose }: Props) {
     setLoading(true);
 
     (async () => {
-      const [clienteRes, faturacaoRes, alertasRes, inspecoesRes] = await Promise.all([
-        supabase
-          .from("clientes")
-          .select("nome_titular, numero_contador, morada, tipo_tarifa, telemovel, subestacoes!inner(nome, zona_bairro)")
-          .eq("id", clienteId)
-          .single(),
-        supabase
-          .from("faturacao_clientes")
-          .select("mes_ano, kwh_faturado, valor_cve")
-          .eq("id_cliente", clienteId)
-          .order("mes_ano", { ascending: true })
-          .limit(24),
-        supabase
-          .from("alertas_fraude")
-          .select("id, mes_ano, score_risco, status, resultado")
-          .eq("id_cliente", clienteId)
-          .order("mes_ano", { ascending: false })
-          .limit(20),
-        supabase
-          .from("relatorios_inspecao")
-          .select("id, criado_em, resultado, foto_url, observacoes, alertas_fraude!inner(id_cliente)")
-          .eq("alertas_fraude.id_cliente", clienteId)
-          .order("criado_em", { ascending: false })
-          .limit(10),
-      ]);
+      try {
+        const [clienteRes, faturacaoRes, alertasRes, inspecoesRes] = await Promise.all([
+          supabase
+            .from("clientes")
+            .select("nome_titular, numero_contador, morada, tipo_tarifa, telemovel, subestacoes!inner(nome, zona_bairro)")
+            .eq("id", clienteId)
+            .single(),
+          supabase
+            .from("faturacao_clientes")
+            .select("mes_ano, kwh_faturado, valor_cve")
+            .eq("id_cliente", clienteId)
+            .order("mes_ano", { ascending: true })
+            .limit(24),
+          supabase
+            .from("alertas_fraude")
+            .select("id, mes_ano, score_risco, status, resultado")
+            .eq("id_cliente", clienteId)
+            .order("mes_ano", { ascending: false })
+            .limit(20),
+          supabase
+            .from("relatorios_inspecao")
+            .select("id, criado_em, resultado, foto_url, observacoes, alertas_fraude!inner(id_cliente)")
+            .eq("alertas_fraude.id_cliente", clienteId)
+            .order("criado_em", { ascending: false })
+            .limit(10),
+        ]);
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      if (clienteRes.data) {
-        const alertas = (alertasRes.data ?? []) as FichaData["alertas"];
-        setData({
-          cliente: clienteRes.data as unknown as FichaData["cliente"],
-          faturacao: (faturacaoRes.data ?? []) as FichaData["faturacao"],
-          alertas,
-          inspecoes: (inspecoesRes.data ?? []) as unknown as FichaData["inspecoes"],
-          smsCount: alertas.filter((a) => a.status === "Notificado_SMS" || a.status === "Pendente_Inspecao" || a.status === "Inspecionado").length,
-        });
+        if (clienteRes.data) {
+          const alertas = (alertasRes.data ?? []) as FichaData["alertas"];
+          setData({
+            cliente: clienteRes.data as unknown as FichaData["cliente"],
+            faturacao: (faturacaoRes.data ?? []) as FichaData["faturacao"],
+            alertas,
+            inspecoes: (inspecoesRes.data ?? []) as unknown as FichaData["inspecoes"],
+            smsCount: alertas.filter((a) => a.status === "Notificado_SMS" || a.status === "Pendente_Inspecao" || a.status === "Inspecionado").length,
+          });
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      setLoading(false);
     })();
 
     return () => { cancelled = true; };
