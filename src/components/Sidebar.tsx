@@ -158,7 +158,7 @@ export function Sidebar({ profile }: SidebarProps) {
           </button>
         </div>
         <div className="h-[calc(100%-4rem)]">
-          <SidebarNav {...navProps} />
+          <SidebarNav {...navProps} hideHeader />
         </div>
       </div>
 
