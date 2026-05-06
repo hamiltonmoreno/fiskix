@@ -3,6 +3,7 @@
 import { useState, useMemo, Fragment } from "react";
 import { Plus, UserCheck, UserX, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 import type { UserRole } from "@/types/database";
 
 interface Utilizador {
@@ -60,10 +61,11 @@ export function UtilizadoresClient({
       });
 
       if (error) {
-        alert(`Erro: ${error.message}`);
+        toast.error(`Erro ao criar utilizador: ${error.message}`);
       } else {
         setShowModal(false);
         setNovoUser({ email: "", password: "", nome_completo: "", role: "fiscal", id_zona: "" });
+        toast.success("Utilizador criado com sucesso.");
         const { data } = await supabase
           .from("perfis")
           .select("id, nome_completo, role, id_zona, ativo, criado_em")
@@ -89,7 +91,7 @@ export function UtilizadoresClient({
         .eq("id", editUser.id);
 
       if (error) {
-        alert(`Erro: ${error.message}`);
+        toast.error(`Erro ao editar utilizador: ${error.message}`);
       } else {
         setUtilizadores((prev) =>
           prev.map((u) =>
@@ -99,6 +101,7 @@ export function UtilizadoresClient({
           )
         );
         setEditUser(null);
+        toast.success("Utilizador atualizado.");
       }
     } finally {
       setLoading(false);
@@ -115,10 +118,11 @@ export function UtilizadoresClient({
     try {
       const { error } = await supabase.auth.admin.deleteUser(id);
       if (error) {
-        alert(`Erro: ${error.message}`);
+        toast.error(`Erro ao eliminar utilizador: ${error.message}`);
       } else {
         setUtilizadores((prev) => prev.filter((u) => u.id !== id));
         setConfirmDelete(null);
+        toast.success("Utilizador eliminado.");
       }
     } finally {
       setLoadingDelete(false);
