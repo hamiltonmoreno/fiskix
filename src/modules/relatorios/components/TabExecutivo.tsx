@@ -18,19 +18,12 @@ import {
   CheckCircle2,
   TrendingUp,
   Target,
-  Download,
 } from "lucide-react";
 import { formatCVE } from "@/lib/utils";
 import { useExecutivoData } from "../hooks/useRelatoriosData";
 import type { RelatoriosFiltros } from "../types";
 import type { ExportRow } from "@/lib/export";
 
-const HISTORICO_MOCK = [
-  { id: "REL-2026-003", tipo: "Mensal", periodo: "mar. 2026", gerado_em: "01/04/2026", gerado_por: "Admin Fiskix" },
-  { id: "REL-2026-002", tipo: "Trimestral", periodo: "Q1 2026", gerado_em: "02/04/2026", gerado_por: "Admin Fiskix" },
-  { id: "REL-2026-001", tipo: "Mensal", periodo: "fev. 2026", gerado_em: "03/03/2026", gerado_por: "Admin Fiskix" },
-  { id: "REL-2025-012", tipo: "Mensal", periodo: "dez. 2025", gerado_em: "02/01/2026", gerado_por: "Admin Fiskix" },
-];
 
 interface Props {
   filtros: RelatoriosFiltros;
@@ -180,46 +173,6 @@ export function TabExecutivo({ filtros, active, onExportReady }: Props) {
         </div>
       </div>
 
-      {/* Histórico de relatórios */}
-      <div className="bg-card rounded-xl border border-border">
-        <div className="px-5 py-4 border-b border-border">
-          <h3 className="text-sm font-semibold text-foreground">Histórico de Relatórios Gerados</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
-                <th className="px-5 py-3 text-left font-medium">ID</th>
-                <th className="px-5 py-3 text-left font-medium">Tipo</th>
-                <th className="px-5 py-3 text-left font-medium">Período</th>
-                <th className="px-5 py-3 text-left font-medium">Gerado Em</th>
-                <th className="px-5 py-3 text-left font-medium">Gerado Por</th>
-                <th className="px-5 py-3 text-right font-medium">Ação</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {HISTORICO_MOCK.map((r) => (
-                <tr key={r.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-5 py-3 font-mono text-xs text-foreground">{r.id}</td>
-                  <td className="px-5 py-3">
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                      {r.tipo}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-foreground">{r.periodo}</td>
-                  <td className="px-5 py-3 text-muted-foreground">{r.gerado_em}</td>
-                  <td className="px-5 py-3 text-muted-foreground">{r.gerado_por}</td>
-                  <td className="px-5 py-3 text-right">
-                    <button className="p-1.5 rounded-lg hover:bg-blue-50 text-muted-foreground hover:text-blue-600 transition-colors" title="Descarregar">
-                      <Download className="w-3.5 h-3.5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   );
 }
