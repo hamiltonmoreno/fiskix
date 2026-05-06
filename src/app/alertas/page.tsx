@@ -11,7 +11,7 @@ import { AlertasFilters } from "./_components/AlertasFilters";
 import { AlertasTable } from "./_components/AlertasTable";
 import { AlertasConfirmDialog } from "./_components/AlertasConfirmDialog";
 import { logger } from "@/lib/observability/logger";
-import { MessageSquare, ClipboardList, Download, X } from "lucide-react";
+import { MessageSquare, Mail, ClipboardList, Download, X } from "lucide-react";
 
 interface Alerta {
   id: string;
@@ -27,6 +27,7 @@ interface Alerta {
     morada: string;
     tipo_tarifa: string;
     telemovel: string | null;
+    email: string | null;
   };
   subestacao: { nome: string; zona_bairro: string };
 }
@@ -76,7 +77,7 @@ export default function AlertasPage() {
         .from("alertas_fraude")
         .select(
           `id, score_risco, status, mes_ano, resultado, motivo, criado_em,
-           clientes!inner(numero_contador, nome_titular, morada, tipo_tarifa, telemovel,
+           clientes!inner(numero_contador, nome_titular, morada, tipo_tarifa, telemovel, email,
              subestacoes!inner(nome, zona_bairro))`,
           { count: "exact" }
         )
@@ -111,6 +112,7 @@ export default function AlertasPage() {
           morada: string;
           tipo_tarifa: string;
           telemovel: string | null;
+          email: string | null;
           subestacoes: { nome: string; zona_bairro: string };
         };
         return {
@@ -127,6 +129,7 @@ export default function AlertasPage() {
             morada: c.morada,
             tipo_tarifa: c.tipo_tarifa,
             telemovel: c.telemovel,
+            email: c.email,
           },
           subestacao: { nome: c.subestacoes.nome, zona_bairro: c.subestacoes.zona_bairro },
         };
@@ -166,6 +169,34 @@ export default function AlertasPage() {
         error: err instanceof Error ? err.message : String(err),
       });
       toast.error("Falha ao enviar SMS. Tente novamente.");
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleEnviarEmail(alertaId: string) {
+    const alerta = alertas.find((a) => a.id === alertaId);
+    if (!alerta) return;
+    setActionLoading(alertaId);
+    try {
+      const tipo = alerta.score_risco >= 75 ? "vermelho" : "amarelo";
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-email`,
+        { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ alerta_id: alertaId, tipo }) }
+      );
+      const json = await res.json();
+      if (!json.mensagem_enviada) {
+        toast.error(`Erro ao enviar email: ${json.erro ?? "Desconhecido"}`);
+      } else {
+        toast.success("Email enviado com sucesso.");
+      }
+    } catch (err) {
+      logger({ page: "alertas" }).error("email_send_failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      toast.error("Falha ao enviar email. Tente novamente.");
     } finally {
       setActionLoading(null);
     }
@@ -263,6 +294,38 @@ export default function AlertasPage() {
     }
   }
 
+  async function handleBulkEmail() {
+    const alvos = alertas.filter((a) => selectedIds.has(a.id) && a.status === "Pendente" && a.cliente.email);
+    if (alvos.length === 0) {
+      toast.error("Nenhum alerta selecionado elegível para email (requer estado Pendente e email registado).");
+      return;
+    }
+    setBulkLoading(true);
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      let ok = 0;
+      let fail = 0;
+      for (const alerta of alvos) {
+        const tipo = alerta.score_risco >= 75 ? "vermelho" : "amarelo";
+        try {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-email`,
+            { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ alerta_id: alerta.id, tipo }) }
+          );
+          const json = await res.json();
+          if (json.mensagem_enviada) ok++; else fail++;
+        } catch {
+          fail++;
+        }
+      }
+      toast.success(`Email em lote: ${ok} enviados${fail > 0 ? `, ${fail} falharam` : ""}.`);
+      setSelectedIds(new Set());
+    } finally {
+      setBulkLoading(false);
+    }
+  }
+
   async function handleBulkGerarOrdem() {
     const alvos = alertas.filter((a) => selectedIds.has(a.id) && (a.status === "Pendente" || a.status === "Notificado_SMS"));
     if (alvos.length === 0) {
@@ -321,6 +384,14 @@ export default function AlertasPage() {
             SMS em lote
           </button>
           <button
+            onClick={handleBulkEmail}
+            disabled={bulkLoading}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-600 text-white rounded-md text-xs font-semibold hover:bg-violet-700 disabled:opacity-50 transition-colors"
+          >
+            <Mail className="w-3.5 h-3.5" />
+            Email em lote
+          </button>
+          <button
             onClick={handleBulkGerarOrdem}
             disabled={bulkLoading}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md text-xs font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
@@ -369,6 +440,7 @@ export default function AlertasPage() {
           })}
           onRowClick={(a) => { setAlertaSheet(a); setSheetOpen(true); }}
           onEnviarSMS={handleEnviarSMS}
+          onEnviarEmail={handleEnviarEmail}
           onGerarOrdem={handleGerarOrdem}
           onSetPendingStatus={setPendingStatusUpdate}
           onPageChange={setPage}
@@ -382,6 +454,7 @@ export default function AlertasPage() {
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         onEnviarSMS={handleEnviarSMS}
+        onEnviarEmail={handleEnviarEmail}
         onGerarOrdem={handleGerarOrdem}
         actionLoading={actionLoading}
       />

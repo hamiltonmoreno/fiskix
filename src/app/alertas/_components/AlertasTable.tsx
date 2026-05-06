@@ -2,6 +2,7 @@
 
 import {
   MessageSquare,
+  Mail,
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
@@ -44,6 +45,7 @@ interface Alerta {
     morada: string;
     tipo_tarifa: string;
     telemovel: string | null;
+    email: string | null;
   };
   subestacao: { nome: string; zona_bairro: string };
 }
@@ -61,6 +63,7 @@ interface AlertasTableProps {
   onToggleAll: (allIds: string[]) => void;
   onRowClick: (alerta: Alerta) => void;
   onEnviarSMS: (alertaId: string) => void;
+  onEnviarEmail: (alertaId: string) => void;
   onGerarOrdem: (alertaId: string) => void;
   onSetPendingStatus: (update: { alertaId: string; novoStatus: InspecaoResultado; label: string }) => void;
   onPageChange: (page: number) => void;
@@ -82,6 +85,7 @@ export function AlertasTable({
   onToggleAll,
   onRowClick,
   onEnviarSMS,
+  onEnviarEmail,
   onGerarOrdem,
   onSetPendingStatus,
   onPageChange,
@@ -218,15 +222,26 @@ export function AlertasTable({
                     <td className="px-8 py-5">
                       <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                         {!isFinal && alerta.status === "Pendente" && (
-                          <button
-                            onClick={() => { haptics.medium(); onEnviarSMS(alerta.id); }}
-                            disabled={isLoading || !alerta.cliente.telemovel}
-                            title={alerta.cliente.telemovel ? "Enviar SMS" : "Sem telemóvel registado"}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-md text-[11px] font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            SMS
-                          </button>
+                          <>
+                            <button
+                              onClick={() => { haptics.medium(); onEnviarSMS(alerta.id); }}
+                              disabled={isLoading || !alerta.cliente.telemovel}
+                              title={alerta.cliente.telemovel ? "Enviar SMS" : "Sem telemóvel registado"}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-md text-[11px] font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              SMS
+                            </button>
+                            <button
+                              onClick={() => { haptics.medium(); onEnviarEmail(alerta.id); }}
+                              disabled={isLoading || !alerta.cliente.email}
+                              title={alerta.cliente.email ? "Enviar Email" : "Sem email registado"}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-600 text-white rounded-md text-[11px] font-semibold hover:bg-violet-700 disabled:opacity-50 transition-colors shadow-sm"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                              Email
+                            </button>
+                          </>
                         )}
                         {!isFinal && (alerta.status === "Pendente" || alerta.status === "Notificado_SMS") && (
                           <button

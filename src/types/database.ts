@@ -64,42 +64,60 @@ export type Database = {
       clientes: {
         Row: {
           ativo: boolean
+          cil: string | null
           criado_em: string
+          email: string | null
           id: string
           id_subestacao: string
           lat: number | null
           lng: number | null
           morada: string
+          nif: string | null
           nome_titular: string
+          numero_conta: string | null
           numero_contador: string
+          potencia_contratada_w: number | null
           telemovel: string | null
           tipo_tarifa: Database["public"]["Enums"]["tipo_tarifa"]
+          unidade_comercial: string | null
         }
         Insert: {
           ativo?: boolean
+          cil?: string | null
           criado_em?: string
+          email?: string | null
           id?: string
           id_subestacao: string
           lat?: number | null
           lng?: number | null
           morada: string
+          nif?: string | null
           nome_titular: string
+          numero_conta?: string | null
           numero_contador: string
+          potencia_contratada_w?: number | null
           telemovel?: string | null
           tipo_tarifa?: Database["public"]["Enums"]["tipo_tarifa"]
+          unidade_comercial?: string | null
         }
         Update: {
           ativo?: boolean
+          cil?: string | null
           criado_em?: string
+          email?: string | null
           id?: string
           id_subestacao?: string
           lat?: number | null
           lng?: number | null
           morada?: string
+          nif?: string | null
           nome_titular?: string
+          numero_conta?: string | null
           numero_contador?: string
+          potencia_contratada_w?: number | null
           telemovel?: string | null
           tipo_tarifa?: Database["public"]["Enums"]["tipo_tarifa"]
+          unidade_comercial?: string | null
         }
         Relationships: [
           {

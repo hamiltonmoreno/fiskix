@@ -39,6 +39,7 @@ export interface AlertaTabela {
     morada: string;
     tipo_tarifa: string;
     telemovel: string | null;
+    email: string | null;
   };
   subestacao: {
     nome: string;

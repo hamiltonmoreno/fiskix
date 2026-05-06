@@ -14,6 +14,7 @@
     "supabase/functions/ingest-data",
     "supabase/functions/ml-scoring",
     "supabase/functions/send-sms",
+    "supabase/functions/send-email",
     "supabase/functions/scoring-engine/index.ts"
   ]
 }

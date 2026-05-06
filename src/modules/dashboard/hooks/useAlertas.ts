@@ -34,7 +34,7 @@ export function useAlertas({
         `
         id, id_cliente, score_risco, status, mes_ano, resultado, motivo,
         clientes!inner (
-          numero_contador, nome_titular, morada, tipo_tarifa, telemovel,
+          numero_contador, nome_titular, morada, tipo_tarifa, telemovel, email,
           subestacoes!inner (nome, zona_bairro)
         )
 `,
@@ -74,6 +74,7 @@ export function useAlertas({
         morada: string;
         tipo_tarifa: string;
         telemovel: string | null;
+        email: string | null;
         subestacoes: { nome: string; zona_bairro: string };
       };
 
@@ -91,6 +92,7 @@ export function useAlertas({
           morada: cliente.morada,
           tipo_tarifa: cliente.tipo_tarifa,
           telemovel: cliente.telemovel,
+          email: cliente.email,
         },
         subestacao: {
           nome: cliente.subestacoes.nome,
