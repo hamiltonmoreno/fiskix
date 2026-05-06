@@ -19,6 +19,7 @@ interface Alerta {
   status: string;
   mes_ano: string;
   resultado: string | null;
+  criado_em: string;
   motivo: Array<{ regra: string; pontos: number; descricao: string }>;
   cliente: {
     numero_contador: string;
@@ -39,6 +40,7 @@ export default function AlertasPage() {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [zona, setZona] = useState("todas");
   const [zonas, setZonas] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -73,7 +75,7 @@ export default function AlertasPage() {
       let query = supabase
         .from("alertas_fraude")
         .select(
-          `id, score_risco, status, mes_ano, resultado, motivo,
+          `id, score_risco, status, mes_ano, resultado, motivo, criado_em,
            clientes!inner(numero_contador, nome_titular, morada, tipo_tarifa, telemovel,
              subestacoes!inner(nome, zona_bairro))`,
           { count: "exact" }
@@ -81,6 +83,11 @@ export default function AlertasPage() {
         .eq("mes_ano", mesAno)
         .order("score_risco", { ascending: sortDir === "asc" })
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+      if (search.trim()) {
+        const term = `%${search.trim()}%`;
+        query = query.or(`clientes.nome_titular.ilike.${term},clientes.numero_contador.ilike.${term}`);
+      }
 
       if (statusFilter !== "todos") {
         const ESTADOS_FINAIS: InspecaoResultado[] = ["Fraude_Confirmada", "Anomalia_Tecnica", "Falso_Positivo"];
@@ -112,6 +119,7 @@ export default function AlertasPage() {
           status: r.status,
           mes_ano: r.mes_ano,
           resultado: r.resultado,
+          criado_em: r.criado_em,
           motivo: (r.motivo as Alerta["motivo"]) ?? [],
           cliente: {
             numero_contador: c.numero_contador,
@@ -129,10 +137,10 @@ export default function AlertasPage() {
     } finally {
       setLoading(false);
     }
-  }, [mesAno, statusFilter, zona, page, sortDir, supabase]);
+  }, [mesAno, statusFilter, zona, search, page, sortDir, supabase]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { setPage(0); setSelectedIds(new Set()); }, [mesAno, statusFilter, zona]);
+  useEffect(() => { setPage(0); setSelectedIds(new Set()); }, [mesAno, statusFilter, zona, search]);
 
   async function handleEnviarSMS(alertaId: string) {
     const alerta = alertas.find((a) => a.id === alertaId);
@@ -282,12 +290,14 @@ export default function AlertasPage() {
         statusFilter={statusFilter}
         zona={zona}
         zonas={zonas}
+        search={search}
         hasAlertas={alertas.length > 0}
         defaultMesAno={getCurrentMesAno()}
         onMesAnoChange={setMesAno}
         onStatusChange={(v) => { setStatusFilter(v); setPage(0); }}
         onZonaChange={(v) => { setZona(v); setPage(0); }}
-        onClear={() => { setMesAno(getCurrentMesAno()); setStatusFilter("todos"); setZona("todas"); setPage(0); }}
+        onSearchChange={(v) => { setSearch(v); setPage(0); }}
+        onClear={() => { setMesAno(getCurrentMesAno()); setStatusFilter("todos"); setZona("todas"); setSearch(""); setPage(0); }}
         onExport={handleExportExcel}
         onRefresh={load}
       />

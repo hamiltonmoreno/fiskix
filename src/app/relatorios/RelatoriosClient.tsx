@@ -8,6 +8,8 @@ import { getCurrentMesAno, getLastNMonths } from "@/lib/utils";
 import { exportToExcel, type ExportRow } from "@/lib/export";
 import type { RelatoriosFiltros, Periodo, TipoTarifa } from "@/modules/relatorios/types";
 import { haptics } from "@/lib/haptics";
+import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -74,6 +76,7 @@ interface RelatoriosClientProps {
 }
 
 export function RelatoriosClient({ profile }: RelatoriosClientProps) {
+  const supabase = useMemo(() => createClient(), []);
   const [activeTab, setActiveTab] = useState<TabId>("executivo");
   const [periodo, setPeriodo] = useState<Periodo>("mes");
   const [mesAno, setMesAno] = useState(getCurrentMesAno());
@@ -107,9 +110,19 @@ export function RelatoriosClient({ profile }: RelatoriosClientProps) {
     exportToExcel(`relatorio_${activeTab}_${mesAno}`, exportPayload.headers, exportPayload.rows);
   }
 
-  function handleAgendarSubmit(e: React.FormEvent) {
+  async function handleAgendarSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setAgendarSuccess(true);
+    try {
+      const valor = JSON.stringify({ email: agendarEmail, frequencia: agendarFreq, ativo: true, criado_em: new Date().toISOString() });
+      const { error } = await supabase
+        .from("configuracoes")
+        .upsert({ chave: "relatorio_schedule", valor }, { onConflict: "chave" });
+      if (error) throw error;
+      setAgendarSuccess(true);
+      toast.success(`Agendamento guardado: relatório ${agendarFreq} para ${agendarEmail}`);
+    } catch {
+      toast.error("Falha ao guardar agendamento. Tente novamente.");
+    }
   }
 
   const mesesDisponiveis = getLastNMonths(24);

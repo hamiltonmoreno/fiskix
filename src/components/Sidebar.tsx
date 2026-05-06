@@ -42,7 +42,7 @@ export function Sidebar({ profile }: SidebarProps) {
         .from("alertas_fraude")
         .select("id", { count: "exact", head: true })
         .eq("status", "Pendente")
-        .gte("score", 75);
+        .gte("score_risco", 75);
       if (!cancelled) setCriticalCount(count ?? 0);
     }
     fetchCount();

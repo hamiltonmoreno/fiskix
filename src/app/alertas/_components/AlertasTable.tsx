@@ -19,12 +19,24 @@ import type { InspecaoResultado } from "@/types/database";
 import { haptics } from "@/lib/haptics";
 import { Icon } from "@/components/Icon";
 
+function diasPendente(criado_em: string): number {
+  return Math.floor((Date.now() - new Date(criado_em).getTime()) / 86_400_000);
+}
+
+function diasColor(dias: number, status: string): string {
+  if (["Fraude_Confirmada", "Anomalia_Tecnica", "Falso_Positivo"].includes(status)) return "text-gray-400 dark:text-gray-500";
+  if (dias > 30) return "text-red-600 dark:text-red-400 font-semibold";
+  if (dias > 14) return "text-amber-600 dark:text-amber-400 font-semibold";
+  return "text-emerald-600 dark:text-emerald-400";
+}
+
 interface Alerta {
   id: string;
   score_risco: number;
   status: string;
   mes_ano: string;
   resultado: string | null;
+  criado_em: string;
   motivo: Array<{ regra: string; pontos: number; descricao: string }>;
   cliente: {
     numero_contador: string;
@@ -110,6 +122,7 @@ export function AlertasTable({
               {["Contador", "Titular", "Zona", "Tarifa", "Regras", "Estado"].map((h) => (
                 <th key={h} className="px-6 py-4 font-semibold tracking-wider">{h}</th>
               ))}
+              <th className="px-4 py-4 font-semibold tracking-wider" title="Dias desde a criação do alerta">Dias</th>
               <th className="px-8 py-4 font-semibold tracking-wider text-right">Ações</th>
             </tr>
           </thead>
@@ -117,7 +130,7 @@ export function AlertasTable({
             {loading ? (
               Array.from({ length: 8 }).map((_, i) => (
                 <tr key={i}>
-                  {Array.from({ length: 9 }).map((_, j) => (
+                  {Array.from({ length: 10 }).map((_, j) => (
                     <td key={j} className="px-6 py-5">
                       <Skeleton className="h-4 w-full rounded" />
                     </td>
@@ -126,7 +139,7 @@ export function AlertasTable({
               ))
             ) : alertas.length === 0 ? (
               <tr>
-                <td colSpan={9}>
+                <td colSpan={10}>
                   <EmptyState
                     icon={ClipboardList}
                     title="Nenhum alerta para os filtros selecionados"
@@ -191,6 +204,16 @@ export function AlertasTable({
                     </td>
                     <td className="px-6 py-5">
                       <StatusBadge status={(alerta.status === "Inspecionado" && alerta.resultado) ? alerta.resultado : alerta.status} />
+                    </td>
+                    <td className="px-4 py-5">
+                      {(() => {
+                        const dias = diasPendente(alerta.criado_em);
+                        return (
+                          <span className={`text-xs tabular-nums ${diasColor(dias, alerta.resultado ?? alerta.status)}`} title={`Criado em ${new Date(alerta.criado_em).toLocaleDateString("pt-CV")}`}>
+                            {dias}d
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-8 py-5">
                       <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>

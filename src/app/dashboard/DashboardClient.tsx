@@ -28,6 +28,10 @@ const DashboardCard07 = dynamic(
   () => import("@/components/mosaic/cards/DashboardCard07").then((m) => m.DashboardCard07),
   { ssr: false, loading: () => <Skeleton className="h-[268px] rounded-xl" /> }
 );
+const DashboardCardTopRiscos = dynamic(
+  () => import("@/components/mosaic/cards/DashboardCardTopRiscos").then((m) => m.DashboardCardTopRiscos),
+  { ssr: false, loading: () => <Skeleton className="col-span-full xl:col-span-4 h-[340px] rounded-xl" /> }
+);
 
 interface DashboardClientProps {
   profile: {
@@ -151,7 +155,8 @@ export function DashboardClient({ profile }: DashboardClientProps) {
         <DashboardCardHeatMap mesAno={mesAno} zona={zona} />
         <DashboardCard06 mesAno={mesAno} zona={zona} />
 
-        {/* Row 4: Tabela de Alertas */}
+        {/* Row 4: Top Riscos + Tabela de Alertas */}
+        <DashboardCardTopRiscos mesAno={mesAno} zona={zona} />
         <DashboardCard07 mesAno={mesAno} zona={zona} />
       </div>
     </div>
