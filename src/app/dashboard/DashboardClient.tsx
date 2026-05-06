@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useKPIs } from "@/modules/dashboard/hooks/useKPIs";
-import { getCurrentMesAno } from "@/lib/utils";
+import { getCurrentMesAno, getLastNMonths } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Icon } from "@/components/Icon";
 import { DashboardCard12 } from "@/components/mosaic/cards/DashboardCard12";
@@ -49,11 +49,7 @@ const ZONAS = [
   "Plateau",
 ];
 
-const MESES = Array.from({ length: 12 }, (_, i) => {
-  const now = new Date();
-  const d = new Date(now.getFullYear(), i - 12 + now.getMonth(), 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}).reverse();
+const MESES = getLastNMonths(12).reverse();
 
 export function DashboardClient({ profile }: DashboardClientProps) {
   const [mesAno, setMesAno] = useState(getCurrentMesAno());
