@@ -11,9 +11,11 @@ interface KPICardsProps {
   loading: boolean;
 }
 
-function DeltaBadge({ pct }: { pct: number }) {
+function DeltaBadge({ pct, inverted = false }: { pct: number; inverted?: boolean }) {
   if (pct === 0) return null;
-  const isWorse = pct > 0;
+  // For loss/critical/pending KPIs, "up" is bad. For revenue, "up" is good — pass inverted=true.
+  const trendingUp = pct > 0;
+  const isWorse = inverted ? !trendingUp : trendingUp;
   return (
     <span className={cn(
       "inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold",
@@ -21,7 +23,7 @@ function DeltaBadge({ pct }: { pct: number }) {
         ? "text-[#ba1a1a] bg-[#ffdad6]"
         : "text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-950/40"
     )}>
-      <Icon name={isWorse ? "trending_up" : "trending_down"} size="xs" />
+      <Icon name={trendingUp ? "trending_up" : "trending_down"} size="xs" />
       {Math.abs(pct).toFixed(1)}% vs mês ant.
     </span>
   );
@@ -100,7 +102,10 @@ function KPICard({
       )}
 
       {!loading && (delta || sub) && (
-        <div className="text-xs text-muted-foreground">{delta ?? sub}</div>
+        <div className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
+          {delta}
+          {sub && <span>{sub}</span>}
+        </div>
       )}
     </div>
   );
@@ -123,6 +128,7 @@ export function KPICards({ data, loading }: KPICardsProps) {
         iconName="warning"
         severity="warning"
         sub="clientes · score ≥ 75"
+        delta={data ? <DeltaBadge pct={data.variacao_criticos_pct} /> : undefined}
         loading={loading}
       />
       <KPICard
@@ -131,6 +137,7 @@ export function KPICards({ data, loading }: KPICardsProps) {
         iconName="assignment"
         severity="neutral"
         sub="aguardam inspeção física"
+        delta={data ? <DeltaBadge pct={data.variacao_pendentes_pct} /> : undefined}
         loading={loading}
       />
       <KPICard
@@ -139,6 +146,7 @@ export function KPICards({ data, loading }: KPICardsProps) {
         iconName="savings"
         severity="success"
         sub="fraudes confirmadas YTD"
+        delta={data ? <DeltaBadge pct={data.variacao_receita_pct} inverted /> : undefined}
         loading={loading}
       />
     </div>

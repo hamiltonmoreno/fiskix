@@ -38,7 +38,7 @@ export function useBalancoEnergeticoData(filtros: RelatoriosFiltros, active: boo
         if (!injSubMap[r.id_subestacao]) {
           injSubMap[r.id_subestacao] = { kwh: 0, nome: r.subestacoes?.nome ?? "Desconhecida", ilha: r.subestacoes?.ilha ?? "—" };
         }
-        injSubMap[r.id_subestacao].kwh += r.total_kwh_injetado;
+        injSubMap[r.id_subestacao]!.kwh += r.total_kwh_injetado;
         injMesMap[r.mes_ano] = (injMesMap[r.mes_ano] ?? 0) + r.total_kwh_injetado;
       }
 

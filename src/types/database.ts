@@ -10,8 +10,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -185,27 +183,54 @@ export type Database = {
       }
       faturacao_clientes: {
         Row: {
+          componentes_jsonb: Json | null
           criado_em: string
           id: string
           id_cliente: string
           kwh_faturado: number
+          leitura_final: number | null
+          leitura_inicial: number | null
           mes_ano: string
+          numero_fatura: string | null
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          saldo_anterior_cve: number | null
+          saldo_atual_cve: number | null
+          tipo_leitura: Database["public"]["Enums"]["tipo_leitura_enum"] | null
           valor_cve: number
         }
         Insert: {
+          componentes_jsonb?: Json | null
           criado_em?: string
           id?: string
           id_cliente: string
           kwh_faturado: number
+          leitura_final?: number | null
+          leitura_inicial?: number | null
           mes_ano: string
+          numero_fatura?: string | null
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          saldo_anterior_cve?: number | null
+          saldo_atual_cve?: number | null
+          tipo_leitura?: Database["public"]["Enums"]["tipo_leitura_enum"] | null
           valor_cve: number
         }
         Update: {
+          componentes_jsonb?: Json | null
           criado_em?: string
           id?: string
           id_cliente?: string
           kwh_faturado?: number
+          leitura_final?: number | null
+          leitura_inicial?: number | null
           mes_ano?: string
+          numero_fatura?: string | null
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          saldo_anterior_cve?: number | null
+          saldo_atual_cve?: number | null
+          tipo_leitura?: Database["public"]["Enums"]["tipo_leitura_enum"] | null
           valor_cve?: number
         }
         Relationships: [
@@ -490,6 +515,7 @@ export type Database = {
         | "Ligacao_vizinha"
         | "Ima"
         | "Outro"
+      tipo_leitura_enum: "real" | "estimada" | "empresa" | "cliente"
       tipo_tarifa:
         | "Residencial"
         | "Comercial"
@@ -658,6 +684,7 @@ export const Constants = {
         "Ima",
         "Outro",
       ],
+      tipo_leitura_enum: ["real", "estimada", "empresa", "cliente"],
       tipo_tarifa: [
         "Residencial",
         "Comercial",
@@ -682,6 +709,7 @@ export type InspecaoResultado = Database["public"]["Enums"]["inspecao_resultado"
 export type TipoFraude = Database["public"]["Enums"]["tipo_fraude"]
 export type TipoTarifa = Database["public"]["Enums"]["tipo_tarifa"]
 export type Ilha = Database["public"]["Enums"]["ilha"]
+export type TipoLeitura = Database["public"]["Enums"]["tipo_leitura_enum"]
 
 // Application-level type for JSONB motivo field
 export type RegraMotivo = {

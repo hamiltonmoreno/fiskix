@@ -3,7 +3,10 @@ export interface KPIData {
   clientes_risco_critico: number;
   ordens_pendentes: number;
   receita_recuperada_ytd: number;
-  variacao_perda_pct: number;   // vs mês anterior
+  variacao_perda_pct: number;       // vs mês anterior
+  variacao_criticos_pct: number;    // vs mês anterior
+  variacao_pendentes_pct: number;   // vs mês anterior
+  variacao_receita_pct: number;     // YTD vs mês anterior (cumulativo até N-1)
   alertas_criticos: Array<{
     id: string;
     score_risco: number;

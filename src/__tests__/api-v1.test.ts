@@ -31,7 +31,7 @@ vi.mock("@/lib/api/cors", () => ({
 const mockRange = vi.fn();
 const mockOrder = vi.fn(() => ({ range: mockRange }));
 const mockGte = vi.fn(() => ({ order: mockOrder }));
-const mockEq = vi.fn(() => ({ order: mockOrder, gte: mockGte, single: vi.fn(), in: vi.fn() }));
+const mockEq = vi.fn<(...args: unknown[]) => Record<string, unknown>>(() => ({ order: mockOrder, gte: mockGte, single: vi.fn(), in: vi.fn() }));
 const mockLike = vi.fn();
 const mockIn = vi.fn(() => ({ eq: mockEq, gte: mockGte }));
 const mockSelect = vi.fn(() => ({ eq: mockEq, like: mockLike, order: mockOrder, in: mockIn }));
@@ -158,10 +158,19 @@ describe("GET /api/v1/alertas/:id", () => {
 
     const { GET } = await import("@/app/api/v1/alertas/[id]/route");
     const res = await GET(
-      buildRequest("http://localhost/api/v1/alertas/uuid-1", "invalida"),
-      { params: Promise.resolve({ id: "uuid-1" }) }
+      buildRequest("http://localhost/api/v1/alertas/00000000-0000-0000-0000-000000000001", "invalida"),
+      { params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000001" }) }
     );
     expect(res.status).toBe(401);
+  });
+
+  it("retorna 400 quando ID não é UUID válido", async () => {
+    const { GET } = await import("@/app/api/v1/alertas/[id]/route");
+    const res = await GET(
+      buildRequest("http://localhost/api/v1/alertas/abc"),
+      { params: Promise.resolve({ id: "abc" }) }
+    );
+    expect(res.status).toBe(400);
   });
 
   it("retorna 404 quando alerta não existe", async () => {
@@ -170,33 +179,44 @@ describe("GET /api/v1/alertas/:id", () => {
 
     const { GET } = await import("@/app/api/v1/alertas/[id]/route");
     const res = await GET(
-      buildRequest("http://localhost/api/v1/alertas/inexistente"),
-      { params: Promise.resolve({ id: "inexistente" }) }
+      buildRequest("http://localhost/api/v1/alertas/00000000-0000-0000-0000-000000000002"),
+      { params: Promise.resolve({ id: "00000000-0000-0000-0000-000000000002" }) }
     );
     expect(res.status).toBe(404);
   });
 
   it("retorna 200 com detalhe do alerta quando existe", async () => {
     const alertaMock = {
-      id: "a1", score_risco: 85, status: "Pendente", resultado: null,
+      id: "00000000-0000-0000-0000-0000000000a1", score_risco: 85, status: "Pendente", resultado: null,
       motivo: [{ regra: "R1", pontos: 20 }], mes_ano: "2026-03",
       criado_em: "2026-03-01", atualizado_em: "2026-03-01",
       clientes: { id: "c1", numero_contador: "CV-001", nome_titular: "João Silva", tipo_tarifa: "Residencial", morada: "Rua A", telemovel: "+238123456", subestacoes: { id: "s1", nome: "Sub Norte", zona_bairro: "Várzea", ilha: "Santiago" } },
     };
 
     const mockSingle = vi.fn().mockResolvedValue({ data: alertaMock, error: null });
-    mockEq.mockReturnValue({ single: mockSingle, order: vi.fn(), gte: vi.fn(), in: vi.fn() });
+    // mockEq pode ser chamado para .single() (alerta) ou .eq().maybeSingle() (faturacao enrichment)
+    const mockMaybeSingle = vi.fn().mockResolvedValue({ data: null });
+    mockEq.mockReturnValue({
+      single: mockSingle,
+      maybeSingle: mockMaybeSingle,
+      eq: vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle, single: mockSingle }),
+      order: vi.fn(),
+      gte: vi.fn(),
+      in: vi.fn(),
+    });
 
     const { GET } = await import("@/app/api/v1/alertas/[id]/route");
     const res = await GET(
-      buildRequest("http://localhost/api/v1/alertas/a1"),
-      { params: Promise.resolve({ id: "a1" }) }
+      buildRequest("http://localhost/api/v1/alertas/00000000-0000-0000-0000-0000000000a1"),
+      { params: Promise.resolve({ id: "00000000-0000-0000-0000-0000000000a1" }) }
     );
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.data.id).toBe("a1");
+    expect(body.data.id).toBe("00000000-0000-0000-0000-0000000000a1");
     expect(body.data.motivo).toHaveLength(1);
+    // Enrichment deve estar presente (null quando não há fatura)
+    expect(body.data).toHaveProperty("fatura");
   });
 });
 
@@ -222,7 +242,10 @@ describe("GET /api/v1/balanco", () => {
     const res = await GET(buildRequest("http://localhost/api/v1/balanco"));
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.error).toMatch(/mes_ano/i);
+    expect(body.error).toBe("Parâmetros inválidos");
+    expect(body.details).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: "mes_ano" })])
+    );
   });
 
   it("retorna 400 quando mes_ano tem formato inválido", async () => {

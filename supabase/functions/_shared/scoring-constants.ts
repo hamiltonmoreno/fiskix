@@ -78,6 +78,19 @@ export const R9_MULT_BASE = 1.0;
 export const R9_MULT_MAX_DELTA = 0.3;
 export const R9_MULT_FACTOR = 2;
 
+// R10 — Dívida Acumulada
+export const LIMIAR_DIVIDA_CVE = 3000;
+export const R10_PONTOS_MAX = 10;
+export const R10_FACTOR = 0.001;
+
+// R11 — Leitura Estimada Recorrente
+export const R11_MESES_MIN_ESTIMADA = 3;
+export const R11_PONTOS = 5;
+
+// R12 — Subutilização de Potência Contratada
+export const R12_THRESHOLD_PCT = 1;
+export const R12_PONTOS_MAX = 5;
+
 // Score final
 export const SCORE_MAX = 100;
 export const SCORE_LIMIAR_ALERTA = 50;

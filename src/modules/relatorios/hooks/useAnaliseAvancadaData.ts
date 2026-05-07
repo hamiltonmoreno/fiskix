@@ -48,7 +48,7 @@ export function useAnaliseAvancadaData(filtros: RelatoriosFiltros, active: boole
         if (!injSubMap[r.id_subestacao]) {
           injSubMap[r.id_subestacao] = { kwh: 0, nome: r.subestacoes?.nome ?? "—", zona_bairro: r.subestacoes?.zona_bairro ?? "—" };
         }
-        injSubMap[r.id_subestacao].kwh += r.total_kwh_injetado;
+        injSubMap[r.id_subestacao]!.kwh += r.total_kwh_injetado;
         injMesMap[r.mes_ano] = (injMesMap[r.mes_ano] ?? 0) + r.total_kwh_injetado;
       }
 

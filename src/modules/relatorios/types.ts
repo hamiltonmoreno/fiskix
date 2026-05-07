@@ -153,6 +153,45 @@ export interface AnaliseAvancadaData {
   evolucaoComercial: Array<{ mes: string; pct_comercial: number; pct_tecnica: number }>;
 }
 
+// ── Tab Inteligência Financeira ────────────────────────────────────────────────
+
+export interface InteligenciaFinanceiraKPIs {
+  /** Soma de saldo_atual_cve de todas as faturas no mês alvo. */
+  divida_total_cve: number;
+  /** Quantos clientes têm dívida >= limiar (R10). */
+  clientes_em_divida: number;
+  /** % de leituras com tipo='estimada' no período. */
+  pct_leituras_estimadas: number;
+  /** Limiar R10 actual (CVE). */
+  limiar_divida_cve: number;
+}
+
+export interface DevedorRow {
+  id_cliente: string;
+  numero_contador: string;
+  nome_titular: string;
+  zona_bairro: string;
+  saldo_atual_cve: number;
+  /** Score risco actual do cliente (último alerta no mês), 0 se não há alerta. */
+  score_risco: number;
+}
+
+export interface DividaPorSubestacaoRow {
+  id_subestacao: string;
+  nome: string;
+  zona_bairro: string;
+  divida_total_cve: number;
+  clientes_em_divida: number;
+}
+
+export interface InteligenciaFinanceiraData {
+  kpis: InteligenciaFinanceiraKPIs;
+  topDevedores: DevedorRow[];
+  porSubestacao: DividaPorSubestacaoRow[];
+  /** Distribuição tipo_leitura no período (real/estimada/empresa/cliente). */
+  distribuicaoTipoLeitura: Array<{ tipo: string; count: number; pct: number }>;
+}
+
 // ── Tab Balanço Energético ─────────────────────────────────────────────────────
 
 export interface BalancoSubRow {

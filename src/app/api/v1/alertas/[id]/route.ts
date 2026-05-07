@@ -4,6 +4,7 @@ import { apiError, apiCors } from "@/lib/api/response";
 import { checkRateLimit } from "@/lib/api/rateLimit";
 import { corsHeadersFor } from "@/lib/api/cors";
 import { getClientIp } from "@/lib/api/client-ip";
+import { AlertaIdParamSchema, parseParams } from "@/lib/api/schemas";
 
 /**
  * GET /api/v1/alertas/:id
@@ -30,7 +31,12 @@ export async function GET(
   const { allowed, remaining } = await checkRateLimit(`key:${cliente}`);
   if (!allowed) return apiError("Rate limit excedido.", 429, request);
 
-  const { id } = await params;
+  const rawParams = await params;
+  const parsed = parseParams(AlertaIdParamSchema, rawParams);
+  if (!parsed.ok) {
+    return apiError("ID inválido", 400, request, parsed.errors);
+  }
+  const { id } = parsed.data;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -42,16 +48,35 @@ export async function GET(
       `id, score_risco, status, resultado, motivo, mes_ano, criado_em, atualizado_em,
        clientes!inner(
          id, numero_contador, nome_titular, tipo_tarifa, morada, telemovel,
+         nif, cil, numero_conta, potencia_contratada_w, unidade_comercial,
          subestacoes!inner(id, nome, zona_bairro, ilha)
        )`
     )
     .eq("id", id)
     .single();
 
+  // Enriquecimento: buscar a fatura do mes_ano do alerta para expor saldo/tipo_leitura.
+  // Falha silenciosa quando ausentes (deployments pré-021).
+  let fatura = null;
+  if (data) {
+    const cliente = Array.isArray(data.clientes) ? data.clientes[0] : data.clientes;
+    if (cliente?.id) {
+      const { data: f } = await supabase
+        .from("faturacao_clientes")
+        .select("kwh_faturado, valor_cve, saldo_atual_cve, tipo_leitura, leitura_inicial, leitura_final, periodo_inicio, periodo_fim")
+        .eq("id_cliente", cliente.id)
+        .eq("mes_ano", data.mes_ano)
+        .maybeSingle();
+      fatura = f;
+    }
+  }
+
   if (error || !data) return apiError("Alerta não encontrado", 404, request);
 
+  const enrichedData = { ...data, fatura };
+
   const corsHeaders = await corsHeadersFor(request);
-  return new Response(JSON.stringify({ data }), {
+  return new Response(JSON.stringify({ data: enrichedData }), {
     status: 200,
     headers: {
       ...corsHeaders,

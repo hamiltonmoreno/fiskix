@@ -100,8 +100,8 @@ export function LoginForm() {
           {EDGES.map(([from, to], i) => (
             <line
               key={`base-${i}`}
-              x1={NODES[from].x} y1={NODES[from].y}
-              x2={NODES[to].x}   y2={NODES[to].y}
+              x1={NODES[from!]!.x} y1={NODES[from!]!.y}
+              x2={NODES[to!]!.x}   y2={NODES[to!]!.y}
               stroke="#0058bc"
               strokeWidth="1"
               strokeOpacity="0.22"
@@ -112,8 +112,8 @@ export function LoginForm() {
           {EDGES.map(([from, to], i) => (
             <line
               key={`pulse-${i}`}
-              x1={NODES[from].x} y1={NODES[from].y}
-              x2={NODES[to].x}   y2={NODES[to].y}
+              x1={NODES[from!]!.x} y1={NODES[from!]!.y}
+              x2={NODES[to!]!.x}   y2={NODES[to!]!.y}
               stroke="#60a5fa"
               strokeWidth="1.5"
               strokeLinecap="round"
@@ -179,7 +179,7 @@ export function LoginForm() {
               em Energia
             </h2>
             <p className="text-sm text-slate-400 mt-4 leading-relaxed max-w-[260px]">
-              Motor de scoring com 9 regras. Perdas comerciais detectadas em tempo real.
+              Motor de scoring com 12 regras. Perdas comerciais detectadas em tempo real.
             </p>
           </div>
 

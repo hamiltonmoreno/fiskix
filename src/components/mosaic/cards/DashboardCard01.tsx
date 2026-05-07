@@ -5,7 +5,7 @@ import { Icon } from "@/components/Icon";
 import { MosaicLineChart } from "../charts/MosaicLineChart";
 import { createClient } from "@/lib/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatCVE, cn } from "@/lib/utils";
+import { formatCVE, cn, parseMesAno } from "@/lib/utils";
 
 interface DashboardCard01Props {
   mesAno: string;
@@ -41,7 +41,7 @@ interface ChartTooltipProps {
 }
 
 function getLast12Months(mesAno: string): string[] {
-  const [y, m] = mesAno.split("-").map(Number);
+  const [y, m] = parseMesAno(mesAno);
   return Array.from({ length: 12 }, (_, i) => {
     const d = new Date(y, m - 1 - (11 - i), 1);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -94,14 +94,14 @@ export function DashboardCard01({ mesAno, zona }: DashboardCard01Props) {
         }
 
         const chartData = meses.map((m) => {
-          const [, month] = m.split("-").map(Number);
+          const [, month] = parseMesAno(m);
           const kwh_injetado = injetadoPorMes[m] || 0;
           const { kwh: kwh_faturado, cve: cve_faturado } = faturadoPorMes[m] || { kwh: 0, cve: 0 };
           const perda_kwh = Math.max(0, kwh_injetado - kwh_faturado);
           const perda_pct = kwh_injetado > 0 ? (perda_kwh / kwh_injetado) * 100 : 0;
 
           return {
-            mes: MESES_PT[month - 1],
+            mes: MESES_PT[month - 1]!,
             mes_ano: m,
             perda_pct: parseFloat(perda_pct.toFixed(1)),
             kwh_injetado,
@@ -135,7 +135,7 @@ export function DashboardCard01({ mesAno, zona }: DashboardCard01Props) {
 
   const CustomTooltip = ({ active, payload, label }: ChartTooltipProps) => {
     if (!active || !payload?.length) return null;
-    const d = payload[0].payload;
+    const d = payload[0]!.payload;
     const perdaCVE = d.perda_kwh * d.tarifa_media;
 
     return (

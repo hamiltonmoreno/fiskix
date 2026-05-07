@@ -26,7 +26,7 @@ describe("logger", () => {
     log.info("evento.teste", { id: 1 });
 
     expect(console.info).toHaveBeenCalledOnce();
-    const linha = JSON.parse((console.info as ReturnType<typeof vi.fn>).mock.calls[0][0] as string);
+    const linha = JSON.parse((console.info as ReturnType<typeof vi.fn>).mock.calls[0]![0] as string);
     expect(linha.level).toBe("info");
     expect(linha.event).toBe("evento.teste");
     expect(linha.service).toBe("test");
@@ -40,7 +40,7 @@ describe("logger", () => {
 
     expect(console.warn).toHaveBeenCalledOnce();
     expect(console.info).not.toHaveBeenCalled();
-    const linha = JSON.parse((console.warn as ReturnType<typeof vi.fn>).mock.calls[0][0] as string);
+    const linha = JSON.parse((console.warn as ReturnType<typeof vi.fn>).mock.calls[0]![0] as string);
     expect(linha.level).toBe("warn");
     expect(linha.event).toBe("aviso.sistema");
     expect(linha.detalhe).toBe("x");
@@ -52,7 +52,7 @@ describe("logger", () => {
 
     expect(console.error).toHaveBeenCalledOnce();
     expect(console.info).not.toHaveBeenCalled();
-    const linha = JSON.parse((console.error as ReturnType<typeof vi.fn>).mock.calls[0][0] as string);
+    const linha = JSON.parse((console.error as ReturnType<typeof vi.fn>).mock.calls[0]![0] as string);
     expect(linha.level).toBe("error");
     expect(linha.event).toBe("erro.critico");
     expect(linha.req_id).toBe("abc");
@@ -63,7 +63,7 @@ describe("logger", () => {
     const log = logger({ service: "cron", version: "v1" });
     log.info("start", { mes_ano: "2026-03" });
 
-    const linha = JSON.parse((console.info as ReturnType<typeof vi.fn>).mock.calls[0][0] as string);
+    const linha = JSON.parse((console.info as ReturnType<typeof vi.fn>).mock.calls[0]![0] as string);
     expect(linha.service).toBe("cron");
     expect(linha.version).toBe("v1");
     expect(linha.mes_ano).toBe("2026-03");
@@ -73,7 +73,7 @@ describe("logger", () => {
     const log = logger({ version: "v1" });
     log.info("override", { version: "v2" });
 
-    const linha = JSON.parse((console.info as ReturnType<typeof vi.fn>).mock.calls[0][0] as string);
+    const linha = JSON.parse((console.info as ReturnType<typeof vi.fn>).mock.calls[0]![0] as string);
     expect(linha.version).toBe("v2");
   });
 
@@ -82,7 +82,7 @@ describe("logger", () => {
     log.info("evento.simples");
 
     expect(console.info).toHaveBeenCalledOnce();
-    const linha = JSON.parse((console.info as ReturnType<typeof vi.fn>).mock.calls[0][0] as string);
+    const linha = JSON.parse((console.info as ReturnType<typeof vi.fn>).mock.calls[0]![0] as string);
     expect(linha.level).toBe("info");
     expect(linha.event).toBe("evento.simples");
   });
@@ -91,7 +91,7 @@ describe("logger", () => {
     const log = logger();
     log.info("check.ts");
 
-    const linha = JSON.parse((console.info as ReturnType<typeof vi.fn>).mock.calls[0][0] as string);
+    const linha = JSON.parse((console.info as ReturnType<typeof vi.fn>).mock.calls[0]![0] as string);
     expect(() => new Date(linha.ts).toISOString()).not.toThrow();
     expect(new Date(linha.ts).getFullYear()).toBeGreaterThanOrEqual(2026);
   });
@@ -106,8 +106,8 @@ describe("logger", () => {
 
     expect(records.map((r) => r.event)).toEqual(["a", "b", "c"]);
     expect(records.map((r) => r.level)).toEqual(["info", "warn", "error"]);
-    expect(records[0].payload.ctx).toBe(1);
-    expect(records[1].payload.x).toBe(true);
+    expect(records[0]!.payload.ctx).toBe(1);
+    expect(records[1]!.payload.x).toBe(true);
   });
 
   it("transport que falha não interrompe outros transports", () => {
@@ -120,7 +120,7 @@ describe("logger", () => {
     logger().info("evt");
 
     expect(bom).toHaveLength(1);
-    expect(bom[0].event).toBe("evt");
+    expect(bom[0]!.event).toBe("evt");
     // erro do transport reportado via console.error directo (não loop)
     expect(console.error).toHaveBeenCalled();
   });

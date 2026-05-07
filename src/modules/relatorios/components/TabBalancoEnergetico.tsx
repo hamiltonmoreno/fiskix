@@ -116,7 +116,8 @@ export function TabBalancoEnergetico({ filtros, active, onExportReady }: Props) 
               Sem dados para o período selecionado
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height={260}>
+            <div className="h-44 sm:h-64">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data?.porSubestacao} margin={{ top: 5, right: 10, left: -10, bottom: 30 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis
@@ -135,6 +136,7 @@ export function TabBalancoEnergetico({ filtros, active, onExportReady }: Props) 
                 <Bar dataKey="kwh_faturado" name="Faturado" fill="#22C55E" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            </div>
           )}
         </div>
 
@@ -144,7 +146,8 @@ export function TabBalancoEnergetico({ filtros, active, onExportReady }: Props) 
           {loading ? (
             <Skeleton className="h-64 rounded-lg" />
           ) : (
-            <ResponsiveContainer width="100%" height={260}>
+            <div className="h-44 sm:h-64">
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data?.evolucaoPerda} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} tickLine={false} />
@@ -167,6 +170,7 @@ export function TabBalancoEnergetico({ filtros, active, onExportReady }: Props) 
                 />
               </LineChart>
             </ResponsiveContainer>
+            </div>
           )}
         </div>
       </div>

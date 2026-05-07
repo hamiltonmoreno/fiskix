@@ -118,8 +118,8 @@ export default function ScoringPage() {
           <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
             Motor de Scoring
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            9 regras graduais · execução manual ou cron automático no dia 1 de cada mês
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-wider font-semibold">
+            12 Regras Graduais v3 · Execução manual ou cron automático
           </p>
         </div>
         <div className="flex items-center gap-2">

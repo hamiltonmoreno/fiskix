@@ -5,3 +5,4 @@ export { usePerdasZonaData } from "./usePerdasZonaData";
 export { useRecidivismoData } from "./useRecidivismoData";
 export { useAnaliseAvancadaData } from "./useAnaliseAvancadaData";
 export { useBalancoEnergeticoData } from "./useBalancoEnergeticoData";
+export { useInteligenciaFinanceiraData } from "./useInteligenciaFinanceiraData";

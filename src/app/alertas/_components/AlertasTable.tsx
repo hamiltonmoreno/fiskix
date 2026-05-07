@@ -93,8 +93,10 @@ export function AlertasTable({
 }: AlertasTableProps) {
   const totalPages = Math.ceil(total / pageSize);
   const allPageIds = alertas.map((a) => a.id);
-  const allSelected = allPageIds.length > 0 && allPageIds.every((id) => selectedIds.has(id));
-  const someSelected = !allSelected && allPageIds.some((id) => selectedIds.has(id));
+  const allSelected =
+    allPageIds.length > 0 && allPageIds.every((id) => selectedIds.has(id));
+  const someSelected =
+    !allSelected && allPageIds.some((id) => selectedIds.has(id));
 
   return (
     <div className="overflow-hidden">
@@ -102,13 +104,13 @@ export function AlertasTable({
         <table className="w-full text-sm text-left whitespace-nowrap">
           <thead className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/50 uppercase border-b border-gray-200 dark:border-gray-700/60">
             <tr>
-              <th className="px-4 py-4">
+              <th className="px-4 py-4 w-10">
                 <input
                   type="checkbox"
+                  aria-label="Selecionar todos"
                   checked={allSelected}
                   ref={(el) => { if (el) el.indeterminate = someSelected; }}
                   onChange={() => onToggleAll(allPageIds)}
-                  aria-label="Selecionar todos"
                   className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 cursor-pointer"
                 />
               </th>
@@ -157,7 +159,6 @@ export function AlertasTable({
                 const isLoading = actionLoading === alerta.id;
                 const isFinal = ESTADOS_FINAIS.includes(alerta.resultado ?? "");
                 const isSelected = selectedIds.has(alerta.id);
-
                 return (
                   <tr
                     key={alerta.id}

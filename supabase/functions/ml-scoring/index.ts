@@ -12,6 +12,7 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsHeadersFor, corsPreflight } from "../_shared/cors.ts";
 
 /** Constant-time string compare — Deno-compatible inline. */
 function constantTimeEqual(a: string, b: string): boolean {
@@ -23,17 +24,8 @@ function constantTimeEqual(a: string, b: string): boolean {
   return result === 0;
 }
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-function jsonResponse(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
+// CORS resolvido por request via corsHeadersFor() dentro do handler.
+// jsonResponse continua a aceitar headers como argumento (ver Deno.serve).
 
 interface PesosML {
   queda_pct: number;
@@ -47,8 +39,15 @@ interface PesosML {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return await corsPreflight(req);
   }
+
+  const corsHeaders = await corsHeadersFor(req);
+  const jsonResponse = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
 
   const start = Date.now();
 

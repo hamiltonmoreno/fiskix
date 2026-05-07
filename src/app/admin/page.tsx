@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { Users, Upload, Settings, BarChart3, Key } from "lucide-react";
+import { Users, Upload, Settings, BarChart3, Key, ScanText } from "lucide-react";
 // Link is used for admin cards below
 
 export default async function AdminPage() {
@@ -51,6 +51,21 @@ export default async function AdminPage() {
               <div>
                 <p className="font-bold text-gray-900 dark:text-gray-100">Importar Dados</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">CSV e Excel de faturação e injeção</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/parse-fatura"
+            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700/60 p-6 mosaic-card-hover group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-purple-50 dark:bg-purple-500/10 rounded-xl group-hover:bg-purple-100 dark:group-hover:bg-purple-500/20 transition-colors">
+                <ScanText className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <p className="font-bold text-gray-900 dark:text-gray-100">Parser de Faturas EDEC</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Extrai dados de fatura única (texto ou imagem)</p>
               </div>
             </div>
           </Link>

@@ -25,9 +25,30 @@ export function formatKWh(value: number): string {
 
 /** Formata mes_ano de 'YYYY-MM' para 'Mês Ano' */
 export function formatMesAno(mesAno: string): string {
-  const [year, month] = mesAno.split("-");
-  const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+  const [y, m] = parseMesAno(mesAno);
+  const date = new Date(y, m - 1, 1);
   return date.toLocaleDateString("pt-CV", { month: "long", year: "numeric" });
+}
+
+/** Formata timestamp ISO para "DD MMM YYYY · HH:MM" em pt-CV */
+export function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
+  const date = d.toLocaleDateString("pt-CV", { day: "2-digit", month: "short", year: "numeric" });
+  const time = d.toLocaleTimeString("pt-CV", { hour: "2-digit", minute: "2-digit" });
+  return `${date} · ${time}`;
+}
+
+/**
+ * Parse 'YYYY-MM' para tuple `[year, month]`. Caller é responsável por
+ * passar formato válido — devolve `[NaN, NaN]` em formato malformado.
+ * Substituiu o `split("-").map(Number)` literal espalhado pelo código,
+ * que produzia `(number | undefined)[]` sob noUncheckedIndexedAccess.
+ */
+export function parseMesAno(mesAno: string): [number, number] {
+  const parts = mesAno.split("-");
+  return [Number(parts[0] ?? NaN), Number(parts[1] ?? NaN)];
 }
 
 /** Retorna cor do badge baseado no score */

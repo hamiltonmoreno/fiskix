@@ -1,9 +1,10 @@
 /**
- * Motor de Scoring v2 — 9 Regras Graduais
+ * Motor de Scoring v3 — 12 Regras Graduais
  * Fiskix PoC — Electra Cabo Verde
  *
- * Etapa A: Balanço Energético (Filtro Macro)
- * Etapa B: 9 Regras Graduais por cliente (Filtro Micro)
+ * Etapa A: Balanço Energético (Filtro Macro) — R9 multiplicador zona vermelha
+ * Etapa B: 11 Regras Graduais por cliente (Filtro Micro)
+ *   R1-R8 originais + R10 (dívida) + R11 (leitura estimada) + R12 (potência)
  *
  * Constantes vêm de `src/modules/scoring/constants.ts` (fonte única partilhada
  * com a edge function via mirror em `supabase/functions/_shared/`).
@@ -43,6 +44,13 @@ import {
   R9_MULT_BASE,
   R9_MULT_MAX_DELTA,
   R9_MULT_FACTOR,
+  LIMIAR_DIVIDA_CVE,
+  R10_PONTOS_MAX,
+  R10_FACTOR,
+  R11_MESES_MIN_ESTIMADA,
+  R11_PONTOS,
+  R12_THRESHOLD_PCT,
+  R12_PONTOS_MAX,
   SCORE_MAX,
 } from "../constants";
 
@@ -60,6 +68,16 @@ export interface ClienteData {
   id_subestacao: string;
   faturacao: FaturacaoMensal[];
   alertas_anteriores: number; // count de alertas != Falso_Positivo nos últimos 12 meses
+  /** Potência contratada em watts (R12). Opcional — quando undefined, R12 retorna 0. */
+  potencia_contratada_w?: number | null;
+}
+
+/** Meta-fatura usada por R10 + R11 (campos da fatura EDEC enriquecida). */
+export interface MetaFatura {
+  /** Saldo acumulado em CVE no fim do mês actual. R10 dispara em saldos altos. */
+  saldo_atual_cve?: number | null;
+  /** Tipo de leitura mês a mês — R11 dispara com 3+ meses consecutivos 'estimada'. */
+  tipos_leitura_recentes?: Array<"real" | "estimada" | "empresa" | "cliente" | null>;
 }
 
 export interface RegraResultado {
@@ -152,7 +170,7 @@ function r1QuedaSubitaGraduada(
   const windowSize = Math.min(idx, R1_WINDOW_MAX);
   const historico = sorted.slice(idx - windowSize, idx);
   const media = historico.reduce((s, f) => s + f.kwh_faturado, 0) / historico.length;
-  const atual = sorted[idx].kwh_faturado;
+  const atual = sorted[idx]!.kwh_faturado;
 
   if (media === 0) {
     return { regra: "R1", pontos: 0, descricao: "Média histórica zero" };
@@ -293,8 +311,8 @@ function r4DivergenciaSazonal(
     return { regra: "R4", pontos: 0, descricao: "Dados insuficientes" };
   }
 
-  const atual = sorted[idx].kwh_faturado;
-  const anterior = sorted[idx - 1].kwh_faturado;
+  const atual = sorted[idx]!.kwh_faturado;
+  const anterior = sorted[idx - 1]!.kwh_faturado;
 
   if (anterior === 0) {
     return { regra: "R4", pontos: 0, descricao: "Consumo anterior zero" };
@@ -350,7 +368,7 @@ function r5TendenciaDescendente(
   // Regressão linear simples
   const sumX = xs.reduce((s, x) => s + x, 0);
   const sumY = ys.reduce((s, y) => s + y, 0);
-  const sumXY = xs.reduce((s, x, i) => s + x * ys[i], 0);
+  const sumXY = xs.reduce((s, x, i) => s + x * ys[i]!, 0);
   const sumX2 = xs.reduce((s, x) => s + x * x, 0);
 
   const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
@@ -358,7 +376,7 @@ function r5TendenciaDescendente(
   // Verificar se há 3+ meses consecutivos com queda
   let mesesConsecutivos = 0;
   for (let i = janela.length - 1; i > 0; i--) {
-    if (janela[i].kwh_faturado < janela[i - 1].kwh_faturado) {
+    if (janela[i]!.kwh_faturado < janela[i - 1]!.kwh_faturado) {
       mesesConsecutivos++;
     } else {
       break;
@@ -466,7 +484,7 @@ function r8PicoHistoricoVsAtual(
   // legitimately downsized years ago (e.g. industrial site → residential).
   const historico = sorted.slice(Math.max(0, idx - R8_LOOKBACK_MAX), idx);
   const picoHistorico = Math.max(...historico.map((f) => f.kwh_faturado));
-  const atual = sorted[idx].kwh_faturado;
+  const atual = sorted[idx]!.kwh_faturado;
 
   if (picoHistorico === 0) {
     return { regra: "R8", pontos: 0, descricao: "Pico histórico zero" };
@@ -494,6 +512,108 @@ function r8PicoHistoricoVsAtual(
   };
 }
 
+/**
+ * R10: Dívida Acumulada (0–10 pts)
+ *
+ * Cliente com saldo em dívida elevado tem incentivo financeiro directo para
+ * fraudar o contador (atraso prolongado de pagamento). Sinal extraído da
+ * fatura EDEC: `saldo_atual_cve` da última faturação.
+ *
+ * Pontuação linear acima do limiar configurável (default 3000 CVE), capped
+ * em R10_PONTOS_MAX. Sem dado → 0 pontos (compat retroativa).
+ */
+function r10DividaAcumulada(saldoAtualCve: number | null | undefined, limiar = LIMIAR_DIVIDA_CVE): RegraResultado {
+  if (saldoAtualCve == null || saldoAtualCve < limiar) {
+    return {
+      regra: "R10",
+      pontos: 0,
+      descricao: saldoAtualCve == null
+        ? "Sem dados de dívida"
+        : `Dívida ${saldoAtualCve.toFixed(0)} CVE — abaixo do limiar (${limiar})`,
+      valor: saldoAtualCve ?? undefined,
+      threshold: limiar,
+    };
+  }
+  const pontos = Math.min(R10_PONTOS_MAX, Math.round((saldoAtualCve - limiar) * R10_FACTOR));
+  return {
+    regra: "R10",
+    pontos,
+    descricao: `Dívida acumulada ${saldoAtualCve.toFixed(0)} CVE — incentivo financeiro elevado (+${pontos} pts)`,
+    valor: saldoAtualCve,
+    threshold: limiar,
+  };
+}
+
+/**
+ * R11: Leitura Estimada Recorrente (0 ou 5 pts)
+ *
+ * `tipos_leitura_recentes` é uma lista cronológica (mais recente primeiro)
+ * dos tipos de leitura dos últimos meses. 3+ meses consecutivos a partir do
+ * mais recente com tipo='estimada' indica recusa de acesso ao contador —
+ * pattern clássico de fraude (cliente bloqueia inspecção).
+ */
+function r11LeituraEstimadaRecorrente(tipos: Array<"real" | "estimada" | "empresa" | "cliente" | null> | undefined): RegraResultado {
+  if (!tipos || tipos.length < R11_MESES_MIN_ESTIMADA) {
+    return { regra: "R11", pontos: 0, descricao: "Sem histórico suficiente de tipos de leitura" };
+  }
+  let consecutivos = 0;
+  for (const t of tipos) {
+    if (t === "estimada") consecutivos++;
+    else break;
+  }
+  if (consecutivos >= R11_MESES_MIN_ESTIMADA) {
+    return {
+      regra: "R11",
+      pontos: R11_PONTOS,
+      descricao: `${consecutivos} meses consecutivos com leitura estimada — possível recusa de acesso (+${R11_PONTOS} pts)`,
+      valor: consecutivos,
+      threshold: R11_MESES_MIN_ESTIMADA,
+    };
+  }
+  return { regra: "R11", pontos: 0, descricao: `Apenas ${consecutivos} meses consecutivos estimados — abaixo do limiar` };
+}
+
+/**
+ * R12: Subutilização de Potência Contratada (0–5 pts)
+ *
+ * Cliente com potência contratada significativa (ex: 6.6 kW) mas consumo
+ * muito baixo (< 1% da capacidade teórica do mês) sugere by-pass do
+ * contador para a maior parte do consumo real.
+ *
+ * capacidade_kwh_mes = potencia_kw * 24h * 30d
+ * uso_pct = (kwh_atual / capacidade_kwh_mes) * 100
+ * Se uso_pct < threshold → pontua linearmente até R12_PONTOS_MAX.
+ */
+function r12SubutilizacaoPotencia(
+  kwhAtual: number,
+  potenciaWatts: number | null | undefined,
+  threshold = R12_THRESHOLD_PCT,
+): RegraResultado {
+  if (potenciaWatts == null || potenciaWatts <= 0) {
+    return { regra: "R12", pontos: 0, descricao: "Sem dados de potência contratada" };
+  }
+  const potenciaKw = potenciaWatts / 1000;
+  const capacidadeMensal = potenciaKw * 24 * 30;
+  const usoPct = capacidadeMensal > 0 ? (kwhAtual / capacidadeMensal) * 100 : 0;
+  if (usoPct >= threshold) {
+    return {
+      regra: "R12",
+      pontos: 0,
+      descricao: `Uso ${usoPct.toFixed(2)}% da capacidade contratada — normal`,
+      valor: usoPct,
+      threshold,
+    };
+  }
+  const pontos = Math.min(R12_PONTOS_MAX, Math.round((threshold - usoPct) * 5));
+  return {
+    regra: "R12",
+    pontos,
+    descricao: `Apenas ${usoPct.toFixed(2)}% da capacidade contratada (${potenciaKw.toFixed(1)} kW) — subutilização anormal (+${pontos} pts)`,
+    valor: usoPct,
+    threshold,
+  };
+}
+
 // ============================================================
 // MOTOR PRINCIPAL
 // ============================================================
@@ -507,6 +627,8 @@ export interface Limiares {
   limiar_slope_tendencia?: number;
   limiar_ratio_racio?: number;
   limiar_pico_ratio?: number;
+  limiar_divida_cve?: number;
+  r12_threshold_pct?: number;
 }
 
 export interface ClusterInfo {
@@ -522,7 +644,8 @@ export function calcularScore(
   mesAtual: string,
   multiplicadorZona: number,
   clusterInfo: ClusterInfo,
-  limiares: Limiares = {}
+  limiares: Limiares = {},
+  metaFatura: MetaFatura = {},
 ): ScoreResult {
   const {
     limiar_queda_pct = LIMIAR_QUEDA_PCT,
@@ -533,6 +656,8 @@ export function calcularScore(
     limiar_slope_tendencia = LIMIAR_SLOPE_TENDENCIA,
     limiar_ratio_racio = LIMIAR_RATIO_RACIO,
     limiar_pico_ratio = LIMIAR_PICO_RATIO,
+    limiar_divida_cve = LIMIAR_DIVIDA_CVE,
+    r12_threshold_pct = R12_THRESHOLD_PCT,
   } = limiares;
 
   const faturacaoAtual = cliente.faturacao.find((f) => f.mes_ano === mesAtual);
@@ -577,6 +702,9 @@ export function calcularScore(
     ),
     r7Reincidencia(cliente.alertas_anteriores),
     r8PicoHistoricoVsAtual(cliente.faturacao, mesAtual, limiar_pico_ratio),
+    r10DividaAcumulada(metaFatura.saldo_atual_cve, limiar_divida_cve),
+    r11LeituraEstimadaRecorrente(metaFatura.tipos_leitura_recentes),
+    r12SubutilizacaoPotencia(faturacaoAtual.kwh_faturado, cliente.potencia_contratada_w, r12_threshold_pct),
   ];
 
   const score_base = regras.reduce((sum, r) => sum + r.pontos, 0);
@@ -600,8 +728,8 @@ export function mediana(valores: number[]): number {
   const sorted = [...valores].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 !== 0
-    ? sorted[mid]
-    : (sorted[mid - 1] + sorted[mid]) / 2;
+    ? sorted[mid]!
+    : (sorted[mid - 1]! + sorted[mid]!) / 2;
 }
 
 /** Calcula MAD (Median Absolute Deviation) */

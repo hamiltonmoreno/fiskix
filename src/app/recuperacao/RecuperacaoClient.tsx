@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { TrendingUp, AlertCircle, MessageSquare, ClipboardCheck, ShieldCheck, DollarSign } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { formatCVE, formatMesAno, getCurrentMesAno } from "@/lib/utils";
+import { formatCVE, formatMesAno, getCurrentMesAno, parseMesAno } from "@/lib/utils";
 
 interface Profile {
   role: string;
@@ -37,7 +37,7 @@ export function RecuperacaoClient({ profile }: { profile: Profile }) {
       setLoading(true);
       try {
         const mesAtual = getCurrentMesAno();
-        const [year, month] = mesAtual.split("-").map(Number);
+        const [year, month] = parseMesAno(mesAtual);
         const meses: string[] = [];
         for (let i = 11; i >= 0; i--) {
           const d = new Date(year, month - 1 - i, 1);
@@ -66,8 +66,7 @@ export function RecuperacaoClient({ profile }: { profile: Profile }) {
 
           const consumoMedio: Record<string, number> = {};
           for (const f of faturacao ?? []) {
-            if (!consumoMedio[f.id_cliente]) consumoMedio[f.id_cliente] = 0;
-            consumoMedio[f.id_cliente] += f.kwh_faturado;
+            consumoMedio[f.id_cliente] = (consumoMedio[f.id_cliente] ?? 0) + f.kwh_faturado;
           }
           for (const id of idsClientes) {
             const total = consumoMedio[id] ?? 0;
@@ -81,19 +80,20 @@ export function RecuperacaoClient({ profile }: { profile: Profile }) {
         const porMes: Record<string, { detectado: number; confirmado: number; recuperado: number }> = {};
         for (const m of meses) porMes[m] = { detectado: 0, confirmado: 0, recuperado: 0 };
         for (const a of rows) {
-          if (!porMes[a.mes_ano]) continue;
-          porMes[a.mes_ano].detectado++;
+          const slot = porMes[a.mes_ano];
+          if (!slot) continue;
+          slot.detectado++;
           if (a.resultado === "Fraude_Confirmada") {
-            porMes[a.mes_ano].confirmado++;
+            slot.confirmado++;
             // Aproximação: dividir o valor total proporcionalmente ao número de fraudes confirmadas
           }
         }
         const totalConfirmadas = confirmadas.length || 1;
         const valorMedioConfirmada = valorTotal / totalConfirmadas;
         for (const m of meses) {
-          porMes[m].recuperado = porMes[m].confirmado * valorMedioConfirmada;
+          porMes[m]!.recuperado = porMes[m]!.confirmado * valorMedioConfirmada;
         }
-        setEvolucao(meses.map((m) => ({ mes: m, ...porMes[m] })));
+        setEvolucao(meses.map((m) => ({ mes: m, ...porMes[m]! })));
       } finally {
         setLoading(false);
       }

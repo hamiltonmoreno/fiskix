@@ -68,16 +68,16 @@ describe("calcularBalancoPorSubestacao", () => {
 
     const rows = calcularBalancoPorSubestacao(injecoes, faturacoes);
     const byId = Object.fromEntries(rows.map((r) => [r.id, r]));
-    expect(byId.OK.classificacao).toBe("ok");
-    expect(byId.ATEN.classificacao).toBe("atencao");
-    expect(byId.CRIT.classificacao).toBe("critico");
+    expect(byId.OK!.classificacao).toBe("ok");
+    expect(byId.ATEN!.classificacao).toBe("atencao");
+    expect(byId.CRIT!.classificacao).toBe("critico");
   });
 
   it("splits losses into technical (≤8% of injected) and commercial (excess)", () => {
     const injecoes = [inj("A", "2026-01", 1000)];
     const faturacoes = [fat("A", "2026-01", 700)]; // 300 kWh loss = 30%
     const rows = calcularBalancoPorSubestacao(injecoes, faturacoes);
-    const a = rows[0];
+    const a = rows[0]!;
     expect(a.perda_tecnica_kwh).toBe(80); // 8% cap
     expect(a.perda_comercial_kwh).toBe(220); // remainder
   });
@@ -86,16 +86,16 @@ describe("calcularBalancoPorSubestacao", () => {
     const injecoes = [inj("A", "2026-01", 1000)];
     const faturacoes = [fat("A", "2026-01", 970)]; // 3% loss
     const rows = calcularBalancoPorSubestacao(injecoes, faturacoes);
-    expect(rows[0].perda_tecnica_kwh).toBe(30);
-    expect(rows[0].perda_comercial_kwh).toBe(0);
+    expect(rows[0]!.perda_tecnica_kwh).toBe(30);
+    expect(rows[0]!.perda_comercial_kwh).toBe(0);
   });
 
   it("never produces negative loss when faturado > injetado", () => {
     const injecoes = [inj("A", "2026-01", 100)];
     const faturacoes = [fat("A", "2026-01", 150)];
     const rows = calcularBalancoPorSubestacao(injecoes, faturacoes);
-    expect(rows[0].perda_kwh).toBe(0);
-    expect(rows[0].perda_pct).toBe(0);
+    expect(rows[0]!.perda_kwh).toBe(0);
+    expect(rows[0]!.perda_pct).toBe(0);
   });
 
   it("filters by zona", () => {
@@ -103,7 +103,7 @@ describe("calcularBalancoPorSubestacao", () => {
     const faturacoes = [fat("A", "2026-01", 80), fat("B", "2026-01", 150)];
     const rows = calcularBalancoPorSubestacao(injecoes, faturacoes, { zona: "Plateau" });
     expect(rows).toHaveLength(1);
-    expect(rows[0].id).toBe("A");
+    expect(rows[0]!.id).toBe("A");
   });
 
   it("filters faturacao by tipoTarifa", () => {
@@ -113,8 +113,8 @@ describe("calcularBalancoPorSubestacao", () => {
       fat("A", "2026-01", 200, { tipo_tarifa: "Comercial" }),
     ];
     const rows = calcularBalancoPorSubestacao(injecoes, faturacoes, { tipoTarifa: "Residencial" });
-    expect(rows[0].kwh_faturado).toBe(600);
-    expect(rows[0].perda_kwh).toBe(400);
+    expect(rows[0]!.kwh_faturado).toBe(600);
+    expect(rows[0]!.perda_kwh).toBe(400);
   });
 
   it("sorts results by perda_kwh descending", () => {
@@ -128,15 +128,15 @@ describe("calcularBalancoPorSubestacao", () => {
     const injecoes = [inj("A", "2026-01", 1000)];
     const faturacoes = [fat("A", "2026-01", 800)];
     const rows = calcularBalancoPorSubestacao(injecoes, faturacoes, { tecnicoMaxPct: 5 });
-    expect(rows[0].perda_tecnica_kwh).toBe(50);
-    expect(rows[0].perda_comercial_kwh).toBe(150);
+    expect(rows[0]!.perda_tecnica_kwh).toBe(50);
+    expect(rows[0]!.perda_comercial_kwh).toBe(150);
   });
 
   it("uses custom precoCvePorKwh", () => {
     const injecoes = [inj("A", "2026-01", 1000)];
     const faturacoes = [fat("A", "2026-01", 800)];
     const rows = calcularBalancoPorSubestacao(injecoes, faturacoes, { precoCvePorKwh: 25 });
-    expect(rows[0].cve_estimado).toBe(5000);
+    expect(rows[0]!.cve_estimado).toBe(5000);
   });
 
   it("respects custom atencaoPct/criticoPct thresholds", () => {
@@ -151,9 +151,9 @@ describe("calcularBalancoPorSubestacao", () => {
       criticoPct: 18,
     });
     const byId = Object.fromEntries(rows.map((r) => [r.id, r]));
-    expect(byId.LOW.classificacao).toBe("ok");
-    expect(byId.MID.classificacao).toBe("atencao"); // 12% > 10
-    expect(byId.HIGH.classificacao).toBe("critico"); // 20% > 18
+    expect(byId.LOW!.classificacao).toBe("ok");
+    expect(byId.MID!.classificacao).toBe("atencao"); // 12% > 10
+    expect(byId.HIGH!.classificacao).toBe("critico"); // 20% > 18
   });
 
   it("returns empty array when no injecoes", () => {
@@ -191,15 +191,15 @@ describe("calcularEvolucaoMensal", () => {
     const injecoes = [inj("A", "2026-01", 500), inj("B", "2026-01", 500)];
     const faturacoes = [fat("A", "2026-01", 400), fat("B", "2026-01", 400)];
     const evol = calcularEvolucaoMensal(injecoes, faturacoes, ["2026-01"]);
-    expect(evol[0].kwh_injetado).toBe(1000);
-    expect(evol[0].perda_kwh).toBe(200);
+    expect(evol[0]!.kwh_injetado).toBe(1000);
+    expect(evol[0]!.perda_kwh).toBe(200);
   });
 
   it("filters by zona at injection level", () => {
     const injecoes = [inj("A", "2026-01", 1000, SUB_A), inj("C", "2026-01", 800, SUB_C)];
     const faturacoes = [fat("A", "2026-01", 800), fat("C", "2026-01", 700)];
     const evol = calcularEvolucaoMensal(injecoes, faturacoes, ["2026-01"], { zona: "Plateau" });
-    expect(evol[0].kwh_injetado).toBe(1000);
+    expect(evol[0]!.kwh_injetado).toBe(1000);
   });
 
   it("scopes faturação to the same zone as injection (regression: Codex P1)", () => {
@@ -215,10 +215,10 @@ describe("calcularEvolucaoMensal", () => {
       zona: "Plateau",
     });
 
-    expect(evol[0].kwh_injetado).toBe(1000);
-    expect(evol[0].kwh_faturado).toBe(800); // only SUB_A's billing
-    expect(evol[0].perda_kwh).toBe(200);
-    expect(evol[0].perda_pct).toBe(20);
+    expect(evol[0]!.kwh_injetado).toBe(1000);
+    expect(evol[0]!.kwh_faturado).toBe(800); // only SUB_A's billing
+    expect(evol[0]!.perda_kwh).toBe(200);
+    expect(evol[0]!.perda_pct).toBe(20);
   });
 
   it("zone-scopes faturação from substations injecting in any month of the window", () => {
@@ -326,8 +326,8 @@ describe("topContribuidores", () => {
     const top = topContribuidores(faturacoes, "A", 1000, 3);
     expect(top).toHaveLength(3);
     expect(top[0]).toMatchObject({ id_cliente: "c1", kwh_faturado: 500, share_pct: 50 });
-    expect(top[1].id_cliente).toBe("c2");
-    expect(top[2].id_cliente).toBe("c3");
+    expect(top[1]!.id_cliente).toBe("c2");
+    expect(top[2]!.id_cliente).toBe("c3");
   });
 
   it("aggregates multiple invoices per same customer", () => {
@@ -347,12 +347,12 @@ describe("topContribuidores", () => {
     ];
     const top = topContribuidores(faturacoes, "A", 1000);
     expect(top).toHaveLength(1);
-    expect(top[0].id_cliente).toBe("c1");
+    expect(top[0]!.id_cliente).toBe("c1");
   });
 
   it("returns share_pct = 0 when injetado is 0", () => {
     const faturacoes = [fat("A", "2026-01", 100, { cliId: "c1" })];
     const top = topContribuidores(faturacoes, "A", 0);
-    expect(top[0].share_pct).toBe(0);
+    expect(top[0]!.share_pct).toBe(0);
   });
 });

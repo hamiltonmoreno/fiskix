@@ -15,6 +15,8 @@
     "supabase/functions/ml-scoring",
     "supabase/functions/send-sms",
     "supabase/functions/send-email",
-    "supabase/functions/scoring-engine/index.ts"
+    "supabase/functions/parse-fatura-edec",
+    "supabase/functions/scoring-engine/index.ts",
+    "supabase/functions/_shared/cors.ts"
   ]
 }

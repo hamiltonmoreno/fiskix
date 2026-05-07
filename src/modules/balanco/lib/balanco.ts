@@ -93,7 +93,9 @@ export interface BalancoOptions {
  * go back in time, positive forward. Handles year boundaries.
  */
 export function shiftMesAno(mesAno: string, deltaMeses: number): string {
-  const [y, m] = mesAno.split("-").map(Number);
+  const parts = mesAno.split("-");
+  const y = Number(parts[0] ?? NaN);
+  const m = Number(parts[1] ?? NaN);
   const d = new Date(y, m - 1 + deltaMeses, 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
@@ -146,7 +148,7 @@ export function calcularBalancoPorSubestacao(
         zona: r.subestacao?.zona_bairro ?? "—",
       };
     }
-    inj[r.id_subestacao].kwh += r.total_kwh_injetado;
+    inj[r.id_subestacao]!.kwh += r.total_kwh_injetado;
   }
 
   const fat: Record<string, number> = {};

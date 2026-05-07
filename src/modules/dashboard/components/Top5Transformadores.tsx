@@ -148,7 +148,8 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
           Sem dados de injeção para {mesAno}
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={260}>
+        <div className="h-44 sm:h-64">
+          <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis
@@ -169,7 +170,8 @@ export function Top5Transformadores({ mesAno }: Top5Props) {
             <Bar dataKey="injetado" name="Injetado" fill="#3B82F6" radius={[4, 4, 0, 0]} />
             <Bar dataKey="faturado" name="Faturado" fill="#22C55E" radius={[4, 4, 0, 0]} />
           </BarChart>
-        </ResponsiveContainer>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   );

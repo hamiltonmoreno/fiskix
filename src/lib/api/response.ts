@@ -32,9 +32,22 @@ export async function apiSuccess<T>(
   return NextResponse.json({ data, ...(meta ? { meta } : {}) }, { status, headers });
 }
 
-export async function apiError(message: string, status = 400, request?: Request) {
+export interface ApiErrorDetail {
+  path: string;
+  message: string;
+}
+
+export async function apiError(
+  message: string,
+  status = 400,
+  request?: Request,
+  details?: ApiErrorDetail[],
+) {
   const headers = await resolveHeaders(request);
-  return NextResponse.json({ error: message }, { status, headers });
+  return NextResponse.json(
+    { error: message, ...(details && details.length ? { details } : {}) },
+    { status, headers },
+  );
 }
 
 export async function apiCors(request?: Request) {

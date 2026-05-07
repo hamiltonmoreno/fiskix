@@ -36,7 +36,7 @@ export function usePerdasZonaData(filtros: RelatoriosFiltros, active: boolean) {
         if (!injMap[r.id_subestacao]) {
           injMap[r.id_subestacao] = { kwh: 0, nome: r.subestacoes?.nome ?? "Desconhecida", ilha: r.subestacoes?.ilha ?? "Desconhecida" };
         }
-        injMap[r.id_subestacao].kwh += r.total_kwh_injetado;
+        injMap[r.id_subestacao]!.kwh += r.total_kwh_injetado;
       }
 
       const fatMap: Record<string, number> = {};
