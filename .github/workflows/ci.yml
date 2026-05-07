@@ -18,8 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      NEXT_PUBLIC_SUPABASE_URL: https://rqplobwsdbceuqhjywgt.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxcGxvYndzZGJjZXVxaGp5d2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNjgzMDUsImV4cCI6MjA5MDc0NDMwNX0.4Fz7ojss2SiNAITi-CwpxZxM41RX9JQRRjo-NsSSGlg
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
