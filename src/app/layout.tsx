@@ -55,6 +55,13 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
           rel="stylesheet"
         />
+        {/* Marca o estado da sidebar e fontes ANTES da hidratação para
+            evitar layout shift visível ao refrescar a página. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('sidebar-collapsed');if(s==='true')document.documentElement.classList.add('sidebar-collapsed-init');}catch(e){}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){document.documentElement.classList.add('fonts-loaded');});}else{document.documentElement.classList.add('fonts-loaded');}})();`,
+          }}
+        />
       </head>
       <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>

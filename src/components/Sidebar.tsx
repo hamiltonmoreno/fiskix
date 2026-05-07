@@ -25,15 +25,22 @@ export function Sidebar({ profile }: SidebarProps) {
   const router   = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
-  const [collapsed,      setCollapsed]      = useState(false);
+  // Estado inicial sincronizado com o script inline no layout.
+  // Isto evita o flicker entre w-64 (default) e w-16 (collapsed) após hidratação.
+  // Estado inicial sincronizado com o script inline no layout.
+  // Isto evita o flicker entre w-64 (default) e w-16 (collapsed) após hidratação.
+  const [collapsed,      setCollapsed]      = useState(() => {
+    if (typeof document === "undefined") return false;
+    return document.documentElement.classList.contains("sidebar-collapsed-init");
+  });
+  // Não animar a transição na primeira render — só após hidratação. Caso
+  // contrário a sidebar "anima" de w-64 → w-16 visualmente em cada refresh.
+  const [hydrated,       setHydrated]       = useState(false);
   const [mobileOpen,     setMobileOpen]     = useState(false);
   const [searchOpen,     setSearchOpen]     = useState(false);
   const [criticalCount,  setCriticalCount]  = useState(0);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("sidebar-collapsed");
-    if (saved !== null) setCollapsed(saved === "true");
-  }, []);
+  useEffect(() => { setHydrated(true); }, []);
 
   useEffect(() => {
     if (mobileOpen) setMobileOpen(false);
@@ -72,6 +79,9 @@ export function Sidebar({ profile }: SidebarProps) {
     const next = !collapsed;
     setCollapsed(next);
     localStorage.setItem("sidebar-collapsed", String(next));
+    // Mantém a classe em sincronia para que o próximo refresh leia o
+    // estado correcto antes da hidratação (evita salto visual).
+    document.documentElement.classList.toggle("sidebar-collapsed-init", next);
   }, [collapsed]);
 
   const handleSignOut = useCallback(async () => {
@@ -183,21 +193,28 @@ export function Sidebar({ profile }: SidebarProps) {
       </div>
 
       {/* ── Desktop sidebar ── */}
-      <aside className={cn(
-        "hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 no-print",
-        "bg-white dark:bg-gray-800",
-        "border-r border-gray-200 dark:border-gray-700/60",
-        "transition-[width] duration-300 ease-in-out",
-        collapsed ? "w-16" : "w-64"
-      )}>
+      <aside
+        suppressHydrationWarning
+        className={cn(
+          "hidden lg:flex flex-col fixed top-0 left-0 bottom-0 z-40 no-print",
+          "bg-white dark:bg-gray-800",
+          "border-r border-gray-200 dark:border-gray-700/60",
+          hydrated && "transition-[width] duration-300 ease-in-out",
+          collapsed ? "w-16" : "w-64"
+        )}
+      >
         <SidebarNav {...navProps} />
       </aside>
 
       {/* ── Spacer (prevents content from going under fixed sidebar) ── */}
-      <div className={cn(
-        "hidden lg:block flex-shrink-0 transition-[width] duration-300 ease-in-out no-print",
-        collapsed ? "w-16" : "w-64"
-      )} />
+      <div
+        suppressHydrationWarning
+        className={cn(
+          "hidden lg:block flex-shrink-0 no-print",
+          hydrated && "transition-[width] duration-300 ease-in-out",
+          collapsed ? "w-16" : "w-64"
+        )}
+      />
     </>
   );
 }
