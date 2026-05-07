@@ -84,7 +84,7 @@ export function MLDashboardClient() {
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
       <div className="sm:flex sm:justify-between sm:items-center mb-8">
-        <div className="mb-4 sm:mb-0">
+        <div className="mb-4 sm:mb-0 lg:hidden">
           <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Dashboard do Modelo ML</h1>
           <p className="text-sm text-slate-500 dark:text-gray-400 mt-1">Qualidade, evolução e explainability do scoring ML</p>
         </div>

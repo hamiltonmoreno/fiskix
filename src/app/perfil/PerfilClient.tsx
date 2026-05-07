@@ -381,7 +381,7 @@ export function PerfilClient({ profile: profileInicial, email }: Props) {
 
           <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700/60">
             <div className="flex items-center gap-2 mb-4">
-              <Icon name="info" size="xs" className="text-gray-400" />
+              <Icon name="manage_accounts" size="xs" className="text-gray-400" />
               <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">Detalhes da conta</h3>
             </div>
             <div className="space-y-0">

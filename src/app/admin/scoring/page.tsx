@@ -111,54 +111,33 @@ export default function ScoringPage() {
   ];
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
-      {/* ── Header ── */}
-      <div className="sm:flex sm:justify-between sm:items-center mb-8">
-        <div className="mb-4 sm:mb-0">
-          <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
-            Motor de Scoring
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 uppercase tracking-wider font-semibold">
-            12 Regras Graduais v3 · Execução manual ou cron automático
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Cron ativo — dia 1 às 02:00 UTC
-          </span>
-        </div>
-      </div>
+    <div className="px-4 sm:px-6 lg:px-8 py-6 w-full max-w-9xl mx-auto space-y-6">
 
-      {/* ── Rules overview ── */}
-      <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2 mb-8">
-        {RULES.map((r) => (
-          <div key={r.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700/60 p-3 text-center">
-            <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-md mb-1.5 ${r.color}`}>
+      {/* ── Barra de estado: regras + limiares + cron ── */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700/60 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-1.5">
+          {RULES.map((r) => (
+            <span
+              key={r.id}
+              title={`${r.label} — ${r.desc} · ${r.pts} pts`}
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold cursor-default ${r.color}`}
+            >
               {r.id}
+              <span className="font-normal opacity-60 text-[10px]">{r.pts}</span>
             </span>
-            <p className="text-[10px] font-semibold text-gray-700 dark:text-gray-300 leading-tight mb-0.5">{r.label}</p>
-            <p className="text-[9px] text-gray-400 dark:text-gray-500 leading-tight mb-1.5">{r.desc}</p>
-            <span className="text-[10px] font-mono font-bold text-gray-500 dark:text-gray-400">{r.pts} pts</span>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Score thresholds ── */}
-      <div className="flex items-center gap-4 mb-8 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700/60">
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-          <span className="text-sm text-gray-600 dark:text-gray-300">Score <strong>≥ 50</strong> → Médio</span>
+          ))}
         </div>
-        <div className="w-px h-4 bg-gray-200 dark:bg-gray-700" />
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-          <span className="text-sm text-gray-600 dark:text-gray-300">Score <strong>≥ 75</strong> → Crítico (SMS automático)</span>
-        </div>
-        <div className="w-px h-4 bg-gray-200 dark:bg-gray-700" />
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-gray-600" />
-          <span className="text-sm text-gray-600 dark:text-gray-300">Apenas <strong>zonas com perda &gt; 15%</strong> são pontuadas</span>
+        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 shrink-0">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />≥ 50 Médio
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />≥ 75 Crítico
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            Cron ativo · dia 1 às 02:00 UTC
+          </span>
         </div>
       </div>
 
