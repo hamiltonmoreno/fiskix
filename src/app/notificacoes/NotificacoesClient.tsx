@@ -18,7 +18,7 @@ interface NotificacaoRow {
   resultado: string | null;
   score_risco: number;
   mes_ano: string;
-  updated_at: string;
+  atualizado_em: string;
   clientes: {
     nome_titular: string;
     numero_contador: string;
@@ -46,11 +46,11 @@ export function NotificacoesClient({ profile }: { profile: Profile }) {
         const { data, count } = await supabase
           .from("alertas_fraude")
           .select(
-            "id, status, resultado, score_risco, mes_ano, updated_at, clientes!inner(nome_titular, numero_contador, telemovel, subestacoes!inner(zona_bairro))",
+            "id, status, resultado, score_risco, mes_ano, atualizado_em, clientes!inner(nome_titular, numero_contador, telemovel, subestacoes!inner(zona_bairro))",
             { count: "exact" }
           )
           .in("status", ["Notificado_SMS", "Pendente_Inspecao", "Inspecionado"])
-          .order("updated_at", { ascending: false })
+          .order("atualizado_em", { ascending: false })
           .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
         setRows((data ?? []) as unknown as NotificacaoRow[]);
@@ -68,7 +68,7 @@ export function NotificacoesClient({ profile }: { profile: Profile }) {
   function handleExport() {
     const headers = ["Data", "Cliente", "Contador", "Telemóvel", "Zona", "Tipo SMS", "Score", "Mês", "Estado atual"];
     const data = rows.map((r) => ({
-      "Data": new Date(r.updated_at).toLocaleString("pt-CV"),
+      "Data": new Date(r.atualizado_em).toLocaleString("pt-CV"),
       "Cliente": r.clientes.nome_titular,
       "Contador": r.clientes.numero_contador,
       "Telemóvel": r.clientes.telemovel ?? "—",
@@ -140,8 +140,8 @@ export function NotificacoesClient({ profile }: { profile: Profile }) {
                   return (
                     <tr key={r.id} className="hover:bg-blue-50/40 dark:hover:bg-gray-700/40 transition-colors">
                       <td className="px-4 py-3 text-slate-600 dark:text-gray-300 whitespace-nowrap text-xs">
-                        {new Date(r.updated_at).toLocaleDateString("pt-CV", { dateStyle: "short" })}
-                        <span className="text-slate-400 ml-2">{new Date(r.updated_at).toLocaleTimeString("pt-CV", { timeStyle: "short" })}</span>
+                        {new Date(r.atualizado_em).toLocaleDateString("pt-CV", { dateStyle: "short" })}
+                        <span className="text-slate-400 ml-2">{new Date(r.atualizado_em).toLocaleTimeString("pt-CV", { timeStyle: "short" })}</span>
                       </td>
                       <td className="px-4 py-3">
                         <p className="font-semibold text-slate-900 dark:text-gray-100">{r.clientes.nome_titular}</p>

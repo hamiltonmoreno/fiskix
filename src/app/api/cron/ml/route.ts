@@ -5,11 +5,7 @@ import { runPool } from "@/lib/concurrency";
 import { calcularRMSE, type ParRMSE, type ResultadoRMSE } from "@/lib/ml/rmse";
 import { attemptAutoPromote, type AutoPromoteOutcome } from "@/lib/ml/auto-promote";
 import { verifyCronAuth } from "@/lib/security/cron-auth";
-
-// Resultados que contam como inspeção confirmada para auto-promote (R7).
-// Nota: vai ser substituído por RESULTADOS_REINCIDENCIA do constants partilhado
-// após o merge de PR #18 (não fica DRY entretanto, mas evita merge conflicts).
-const RESULTADOS_CONFIRMADOS = ["Fraude_Confirmada", "Anomalia_Tecnica"] as const;
+import { RESULTADOS_REINCIDENCIA } from "@/modules/scoring/constants";
 
 /**
  * Cron route: executa o motor ML para todas as subestações ativas.
@@ -281,7 +277,7 @@ function buildAutoPromoteDeps(supabase: SupabaseClient) {
       const { count } = await supabase
         .from("alertas_fraude")
         .select("id", { count: "exact", head: true })
-        .in("resultado", RESULTADOS_CONFIRMADOS);
+        .in("resultado", RESULTADOS_REINCIDENCIA);
       return count ?? 0;
     },
     async writeModeloAtivo(valor: "heuristic_v1" | "logistic_v1") {

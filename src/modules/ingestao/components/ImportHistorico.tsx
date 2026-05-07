@@ -1,4 +1,5 @@
-import { FileText } from "lucide-react";
+import Link from "next/link";
+import { FileText, ExternalLink } from "lucide-react";
 import type { HistoricoItem } from "./types";
 
 interface ImportHistoricoProps {
@@ -25,7 +26,12 @@ export function ImportHistorico({ historico }: ImportHistoricoProps) {
           {historico.map((h) => (
             <div key={h.id} className="px-6 py-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate flex-1">{h.nome_ficheiro}</p>
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate flex-1">{h.nome_ficheiro}</p>
+                  <Link href={`/admin/importar/${h.id}`} className="flex-shrink-0 p-1 rounded text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title="Ver detalhe">
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
                 <span className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase flex-shrink-0 ${
                   h.tipo === "faturacao"
                     ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20"

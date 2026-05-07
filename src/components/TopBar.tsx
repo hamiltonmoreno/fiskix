@@ -6,9 +6,9 @@ import { createClient } from "@/lib/supabase/client";
 import { Icon } from "@/components/Icon";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { DropdownNotifications } from "@/components/mosaic/DropdownNotifications";
-import { DropdownHelp } from "@/components/mosaic/DropdownHelp";
 import { DropdownProfile } from "@/components/mosaic/DropdownProfile";
 import { ModalSearch } from "@/components/mosaic/ModalSearch";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { cn } from "@/lib/utils";
 import { haptics } from "@/lib/haptics";
 
@@ -46,9 +46,10 @@ export function TopBar({ profile }: TopBarProps) {
 
   return (
     <>
+      {/* Hidden on mobile — those icons live in the Sidebar mobile top bar */}
       <header
         className={cn(
-          "sticky top-0 z-30 no-print",
+          "hidden lg:block sticky top-0 z-30 no-print",
           "before:absolute before:inset-0 before:backdrop-blur-md",
           "before:bg-white/90 dark:before:bg-gray-800/90",
           "before:-z-10",
@@ -56,36 +57,34 @@ export function TopBar({ profile }: TopBarProps) {
         )}
       >
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14">
 
-            {/* ── Left: Search trigger ── */}
-            <div className="flex items-center">
+            {/* ── Left: Breadcrumb ── */}
+            <Breadcrumb />
+
+            {/* ── Right: Actions ── */}
+            <div className="flex items-center gap-2">
               <button
                 className={cn(
                   "w-8 h-8 flex items-center justify-center rounded-full transition-colors cursor-pointer",
                   "hover:bg-gray-100 dark:hover:bg-gray-700/50",
                   searchOpen && "bg-gray-200 dark:bg-gray-700"
                 )}
-                onClick={(e) => { 
-                  e.stopPropagation(); 
+                onClick={(e) => {
+                  e.stopPropagation();
                   haptics.light();
-                  setSearchOpen(true); 
+                  setSearchOpen(true);
                 }}
                 aria-controls="search-modal"
               >
                 <span className="sr-only">Pesquisar</span>
                 <Icon name="search" size="sm" className="text-gray-500/80 dark:text-gray-400/80" />
               </button>
-            </div>
 
-            {/* ── Right: Actions ── */}
-            <div className="flex items-center gap-3">
               <DropdownNotifications />
-              <DropdownHelp />
               <ThemeToggle variant="header" />
 
-              {/* Divider */}
-              <hr className="w-px h-6 bg-gray-200 dark:bg-gray-700/60 border-none" />
+              <hr className="w-px h-6 bg-gray-200 dark:bg-gray-700/60 border-none mx-1" />
 
               <DropdownProfile profile={profile} onSignOut={handleSignOut} />
             </div>
@@ -94,7 +93,6 @@ export function TopBar({ profile }: TopBarProps) {
         </div>
       </header>
 
-      {/* Search modal */}
       <ModalSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );

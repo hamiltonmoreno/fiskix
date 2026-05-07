@@ -27,6 +27,21 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+// Mockar os componentes de acção que o Sidebar agora inclui na barra mobile.
+// O teste foca-se na navegação e collapse — não nesses componentes.
+vi.mock("@/components/mosaic/DropdownNotifications", () => ({
+  DropdownNotifications: () => null,
+}));
+vi.mock("@/components/mosaic/DropdownProfile", () => ({
+  DropdownProfile: () => null,
+}));
+vi.mock("@/components/ThemeToggle", () => ({
+  ThemeToggle: () => null,
+}));
+vi.mock("@/components/mosaic/ModalSearch", () => ({
+  ModalSearch: () => null,
+}));
+
 // ── Mock Supabase client ───────────────────────────────────────────────────────
 // O Sidebar subscreve a um canal de realtime para o badge `criticalCount`,
 // pelo que o mock precisa expor `.channel()` com a chain on().subscribe()

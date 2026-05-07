@@ -24,13 +24,13 @@ export function ScoringConfigCard({
 }: ScoringConfigCardProps) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700/60 transition-all duration-300">
-      <h2 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-6">
-        Configuração da Execução
+      <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-6">
+        Configuração da execução
       </h2>
 
       <div className="space-y-5 mb-8">
         <div className="space-y-2">
-          <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+          <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Período de Referência
           </label>
           <input
@@ -42,7 +42,7 @@ export function ScoringConfigCard({
           />
         </div>
         <div className="space-y-2">
-          <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+          <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
             Subestação / Filtro
           </label>
           <select

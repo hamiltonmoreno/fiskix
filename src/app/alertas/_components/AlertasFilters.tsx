@@ -11,11 +11,13 @@ interface AlertasFiltersProps {
   statusFilter: string;
   zona: string;
   zonas: string[];
+  search: string;
   hasAlertas: boolean;
   defaultMesAno: string;
   onMesAnoChange: (value: string) => void;
   onStatusChange: (value: string) => void;
   onZonaChange: (value: string) => void;
+  onSearchChange: (value: string) => void;
   onClear: () => void;
   onExport: () => void;
   onRefresh: () => void;
@@ -26,31 +28,34 @@ export function AlertasFilters({
   statusFilter,
   zona,
   zonas,
+  search,
   hasAlertas,
   defaultMesAno,
   onMesAnoChange,
   onStatusChange,
   onZonaChange,
+  onSearchChange,
   onClear,
   onExport,
   onRefresh,
 }: AlertasFiltersProps) {
-  const isFiltered = mesAno !== defaultMesAno || statusFilter !== "todos" || zona !== "todas";
+  const isFiltered = mesAno !== defaultMesAno || statusFilter !== "todos" || zona !== "todas" || search !== "";
 
   return (
-    <div className="sm:flex sm:justify-between sm:items-center mb-8">
-      {/* Left: Title */}
-      <div className="mb-4 sm:mb-0">
-        <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
-          Alertas de Fraude
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Gestão · {formatMesAno(mesAno)}
-        </p>
-      </div>
+    <div className="mb-8">
+      <div className="sm:flex sm:justify-between sm:items-start mb-4">
+        {/* Left: Title */}
+        <div className="mb-4 sm:mb-0">
+          <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
+            Alertas de Fraude
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Gestão · {formatMesAno(mesAno)}
+          </p>
+        </div>
 
-      {/* Right: Actions */}
-      <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2">
+        {/* Right: Actions */}
+        <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2">
         <div className="relative">
           <input
             type="month"
@@ -118,6 +123,28 @@ export function AlertasFilters({
         >
           <Icon name="refresh" size="xs" />
         </button>
+      </div>
+    </div>
+
+      {/* Search bar */}
+      <div className="relative">
+        <Icon name="search" size="xs" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Pesquisar por nome do titular ou número de contador…"
+          className="w-full pl-9 pr-9 py-2.5 border border-gray-200 dark:border-gray-700/60 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-colors"
+        />
+        {search && (
+          <button
+            onClick={() => onSearchChange("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            aria-label="Limpar pesquisa"
+          >
+            <Icon name="close" size="xs" />
+          </button>
+        )}
       </div>
     </div>
   );

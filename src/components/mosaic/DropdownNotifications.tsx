@@ -20,7 +20,7 @@ interface AlertaRow {
   id: string;
   score_risco: number;
   status: string;
-  created_at: string;
+  criado_em: string;
   clientes: { nome_titular: string; subestacoes: { zona_bairro: string } };
 }
 
@@ -47,7 +47,7 @@ export function DropdownNotifications() {
       const { data } = await supabase
         .from("alertas_fraude")
         .select(`
-          id, score_risco, status, created_at,
+          id, score_risco, status, criado_em,
           clientes!inner(nome_titular, subestacoes!inner(zona_bairro))
         `)
         .in("status", ["Pendente", "Notificado_SMS"])
@@ -66,7 +66,7 @@ export function DropdownNotifications() {
             icon: isCritical ? "warning" : "trending_up",
             title: isCritical ? "Alerta crítico pendente" : "Alerta de risco médio",
             body: `Score ${row.score_risco} — ${cliente.nome_titular} (${cliente.subestacoes.zona_bairro.replace(/_/g, " ")})`,
-            time: timeAgo(row.created_at),
+            time: timeAgo(row.criado_em),
           };
         })
       );

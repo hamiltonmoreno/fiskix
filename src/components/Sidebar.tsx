@@ -7,6 +7,10 @@ import { cn } from "@/lib/utils";
 import { haptics } from "@/lib/haptics";
 import { Icon } from "@/components/Icon";
 import { SidebarNav } from "@/components/sidebar/SidebarNav";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { DropdownNotifications } from "@/components/mosaic/DropdownNotifications";
+import { DropdownProfile } from "@/components/mosaic/DropdownProfile";
+import { ModalSearch } from "@/components/mosaic/ModalSearch";
 
 interface SidebarProps {
   profile: {
@@ -23,6 +27,7 @@ export function Sidebar({ profile }: SidebarProps) {
 
   const [collapsed,      setCollapsed]      = useState(false);
   const [mobileOpen,     setMobileOpen]     = useState(false);
+  const [searchOpen,     setSearchOpen]     = useState(false);
   const [criticalCount,  setCriticalCount]  = useState(0);
 
   useEffect(() => {
@@ -42,7 +47,7 @@ export function Sidebar({ profile }: SidebarProps) {
         .from("alertas_fraude")
         .select("id", { count: "exact", head: true })
         .eq("status", "Pendente")
-        .gte("score", 75);
+        .gte("score_risco", 75);
       if (!cancelled) setCriticalCount(count ?? 0);
     }
     fetchCount();
@@ -94,7 +99,8 @@ export function Sidebar({ profile }: SidebarProps) {
   return (
     <>
       {/* ── Mobile top bar ── */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-16 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700/60 flex items-center px-4 gap-3 no-print">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700/60 flex items-center px-3 gap-2 no-print">
+        {/* Hamburger */}
         <button
           onClick={() => {
             haptics.drawerOpen();
@@ -103,22 +109,41 @@ export function Sidebar({ profile }: SidebarProps) {
           aria-label="Abrir menu"
           aria-expanded={mobileOpen}
           aria-controls="mobile-sidebar-drawer"
-          className="p-2 rounded-lg text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 touch-manipulation cursor-pointer"
+          className="p-2 rounded-lg text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 touch-manipulation cursor-pointer shrink-0"
         >
-          <Icon name="menu" size="md" />
+          <Icon name="menu" size="sm" />
         </button>
-        <div className="flex items-center gap-2">
+
+        {/* Logo */}
+        <div className="flex items-center gap-1.5 shrink-0">
           <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center shadow-sm">
             <Icon name="bolt" size="xs" filled className="text-white" />
           </div>
-          <span className="font-bold text-gray-800 dark:text-gray-100">Fiskix</span>
+          <span className="font-bold text-gray-800 dark:text-gray-100 text-sm">Fiskix</span>
         </div>
-        {criticalCount > 0 && (
-          <span className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full leading-none font-bold">
-            {criticalCount}
-          </span>
-        )}
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Action icons */}
+        <button
+          onClick={() => { haptics.light(); setSearchOpen(true); }}
+          className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+          aria-label="Pesquisar"
+        >
+          <Icon name="search" size="sm" />
+        </button>
+
+        <DropdownNotifications />
+        <ThemeToggle variant="header" />
+
+        <div className="w-px h-5 bg-gray-200 dark:bg-gray-700/60 shrink-0 mx-0.5" />
+
+        <DropdownProfile profile={profile} onSignOut={handleSignOut} />
       </div>
+
+      {/* Search modal (mobile) */}
+      <ModalSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
 
       {/* ── Mobile overlay ── */}
       {mobileOpen && (
@@ -158,7 +183,7 @@ export function Sidebar({ profile }: SidebarProps) {
           </button>
         </div>
         <div className="h-[calc(100%-4rem)]">
-          <SidebarNav {...navProps} />
+          <SidebarNav {...navProps} hideHeader />
         </div>
       </div>
 

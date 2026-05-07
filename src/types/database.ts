@@ -64,6 +64,7 @@ export type Database = {
           ativo: boolean
           cil: string | null
           criado_em: string
+          email: string | null
           id: string
           id_subestacao: string
           lat: number | null
@@ -82,6 +83,7 @@ export type Database = {
           ativo?: boolean
           cil?: string | null
           criado_em?: string
+          email?: string | null
           id?: string
           id_subestacao: string
           lat?: number | null
@@ -100,6 +102,7 @@ export type Database = {
           ativo?: boolean
           cil?: string | null
           criado_em?: string
+          email?: string | null
           id?: string
           id_subestacao?: string
           lat?: number | null

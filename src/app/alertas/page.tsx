@@ -27,6 +27,7 @@ interface Alerta {
     morada: string;
     tipo_tarifa: string;
     telemovel: string | null;
+    email: string | null;
   };
   subestacao: { nome: string; zona_bairro: string };
 }
@@ -40,6 +41,7 @@ export default function AlertasPage() {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [zona, setZona] = useState("todas");
   const [zonas, setZonas] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -79,13 +81,18 @@ export default function AlertasPage() {
         .from("alertas_fraude")
         .select(
           `id, score_risco, status, mes_ano, resultado, motivo, criado_em,
-           clientes!inner(numero_contador, nome_titular, morada, tipo_tarifa, telemovel,
+           clientes!inner(numero_contador, nome_titular, morada, tipo_tarifa, telemovel, email,
              subestacoes!inner(nome, zona_bairro))`,
           { count: "exact" }
         )
         .eq("mes_ano", mesAno)
         .order("score_risco", { ascending: sortDir === "asc" })
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+      if (search.trim()) {
+        const term = `%${search.trim()}%`;
+        query = query.or(`clientes.nome_titular.ilike.${term},clientes.numero_contador.ilike.${term}`);
+      }
 
       if (statusFilter !== "todos") {
         const ESTADOS_FINAIS: InspecaoResultado[] = ["Fraude_Confirmada", "Anomalia_Tecnica", "Falso_Positivo"];
@@ -109,6 +116,7 @@ export default function AlertasPage() {
           morada: string;
           tipo_tarifa: string;
           telemovel: string | null;
+          email: string | null;
           subestacoes: { nome: string; zona_bairro: string };
         };
         return {
@@ -125,6 +133,7 @@ export default function AlertasPage() {
             morada: c.morada,
             tipo_tarifa: c.tipo_tarifa,
             telemovel: c.telemovel,
+            email: c.email,
           },
           subestacao: { nome: c.subestacoes.nome, zona_bairro: c.subestacoes.zona_bairro },
         };
@@ -135,12 +144,12 @@ export default function AlertasPage() {
     } finally {
       setLoading(false);
     }
-  }, [mesAno, statusFilter, zona, page, sortDir, supabase]);
+  }, [mesAno, statusFilter, zona, search, page, sortDir, supabase]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { setPage(0); }, [mesAno, statusFilter, zona]);
+  useEffect(() => { setPage(0); }, [mesAno, statusFilter, zona, search]);
   // Limpar selecção quando filtros mudam (alertas em vista mudaram)
-  useEffect(() => { setSelectedIds(new Set()); }, [mesAno, statusFilter, zona, page]);
+  useEffect(() => { setSelectedIds(new Set()); }, [mesAno, statusFilter, zona, search, page]);
 
   function toggleSelect(alertaId: string) {
     setSelectedIds((prev) => {
@@ -171,6 +180,10 @@ export default function AlertasPage() {
   // Para SMS: precisam de telemovel + status === "Pendente"
   const smsEligibleSelected = alertas.filter(
     (a) => selectedIds.has(a.id) && a.cliente.telemovel && a.status === "Pendente",
+  );
+  // Para Email: precisam de email + status === "Pendente"
+  const emailEligibleSelected = alertas.filter(
+    (a) => selectedIds.has(a.id) && a.cliente.email && a.status === "Pendente",
   );
   // Para Ordem: status pode ser Pendente ou Notificado_SMS
   const ordemEligibleSelected = alertas.filter(
@@ -209,6 +222,37 @@ export default function AlertasPage() {
       if (fail > 0) toast.error(`${fail} SMS falhou${fail === 1 ? "" : "ram"}.`);
       clearSelection();
       await load();
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  async function handleBulkEmail() {
+    if (emailEligibleSelected.length === 0) {
+      toast.error("Nenhum alerta selecionado elegível para email (requer estado Pendente e email registado).");
+      return;
+    }
+    setBulkBusy(true);
+    let ok = 0, fail = 0;
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      for (const a of emailEligibleSelected) {
+        const tipo = a.score_risco >= 75 ? "vermelho" : "amarelo";
+        try {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-email`,
+            { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ alerta_id: a.id, tipo }) }
+          );
+          const json = await res.json();
+          if (json.mensagem_enviada) ok++; else fail++;
+        } catch {
+          fail++;
+        }
+      }
+      if (ok > 0) toast.success(`${ok} email${ok === 1 ? "" : "s"} enviado${ok === 1 ? "" : "s"}.`);
+      if (fail > 0) toast.error(`${fail} email${fail === 1 ? "" : "s"} falhou${fail === 1 ? "" : "ram"}.`);
+      clearSelection();
     } finally {
       setBulkBusy(false);
     }
@@ -284,6 +328,34 @@ export default function AlertasPage() {
     }
   }
 
+  async function handleEnviarEmail(alertaId: string) {
+    const alerta = alertas.find((a) => a.id === alertaId);
+    if (!alerta) return;
+    setActionLoading(alertaId);
+    try {
+      const tipo = alerta.score_risco >= 75 ? "vermelho" : "amarelo";
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-email`,
+        { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ alerta_id: alertaId, tipo }) }
+      );
+      const json = await res.json();
+      if (!json.mensagem_enviada) {
+        toast.error(`Erro ao enviar email: ${json.erro ?? "Desconhecido"}`);
+      } else {
+        toast.success("Email enviado com sucesso.");
+      }
+    } catch (err) {
+      logger({ page: "alertas" }).error("email_send_failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      toast.error("Falha ao enviar email. Tente novamente.");
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   async function handleGerarOrdem(alertaId: string) {
     setActionLoading(alertaId);
     try {
@@ -333,12 +405,14 @@ export default function AlertasPage() {
         statusFilter={statusFilter}
         zona={zona}
         zonas={zonas}
+        search={search}
         hasAlertas={alertas.length > 0}
         defaultMesAno={getCurrentMesAno()}
         onMesAnoChange={setMesAno}
         onStatusChange={(v) => { setStatusFilter(v); setPage(0); }}
         onZonaChange={(v) => { setZona(v); setPage(0); }}
-        onClear={() => { setMesAno(getCurrentMesAno()); setStatusFilter("todos"); setZona("todas"); setPage(0); }}
+        onSearchChange={(v) => { setSearch(v); setPage(0); }}
+        onClear={() => { setMesAno(getCurrentMesAno()); setStatusFilter("todos"); setZona("todas"); setSearch(""); setPage(0); }}
         onExport={handleExportExcel}
         onRefresh={load}
       />
@@ -361,23 +435,32 @@ export default function AlertasPage() {
 
       <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 mosaic-card-hover">
         <AlertasTable
-        alertas={alertas}
-        loading={loading}
-        total={total}
-        page={page}
-        pageSize={PAGE_SIZE}
-        actionLoading={actionLoading}
-        selectedIds={selectedIds}
-        onRowClick={(a) => { setAlertaSheet(a); setSheetOpen(true); }}
-        onEnviarSMS={handleEnviarSMS}
-        onGerarOrdem={handleGerarOrdem}
-        onSetPendingStatus={setPendingStatusUpdate}
-        onPageChange={setPage}
-        sortDir={sortDir}
-        onSortChange={(dir) => { setSortDir(dir); setPage(0); }}
-        onToggleSelect={toggleSelect}
-        onToggleSelectAll={toggleSelectAll}
-      />
+          alertas={alertas}
+          loading={loading}
+          total={total}
+          page={page}
+          pageSize={PAGE_SIZE}
+          actionLoading={actionLoading}
+          selectedIds={selectedIds}
+          onToggleSelect={toggleSelect}
+          onToggleAll={(allIds) => {
+            const allSelected = allIds.every((id) => selectedIds.has(id));
+            setSelectedIds((prev) => {
+              const next = new Set(prev);
+              if (allSelected) { allIds.forEach((id) => next.delete(id)); }
+              else { allIds.forEach((id) => next.add(id)); }
+              return next;
+            });
+          }}
+          onRowClick={(a) => { setAlertaSheet(a); setSheetOpen(true); }}
+          onEnviarSMS={handleEnviarSMS}
+          onEnviarEmail={handleEnviarEmail}
+          onGerarOrdem={handleGerarOrdem}
+          onSetPendingStatus={setPendingStatusUpdate}
+          onPageChange={setPage}
+          sortDir={sortDir}
+          onSortChange={(dir) => { setSortDir(dir); setPage(0); }}
+        />
       </div>
 
       <AlertaSheet
@@ -385,6 +468,7 @@ export default function AlertasPage() {
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         onEnviarSMS={handleEnviarSMS}
+        onEnviarEmail={handleEnviarEmail}
         onGerarOrdem={handleGerarOrdem}
         actionLoading={actionLoading}
       />

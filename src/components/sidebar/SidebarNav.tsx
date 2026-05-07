@@ -6,25 +6,36 @@ import { haptics } from "@/lib/haptics";
 import type { NavItem } from "./types";
 
 const MONITORAMENTO: NavItem[] = [
-  { label: "Dashboard",  href: "/dashboard",  icon: "dashboard" },
-  { label: "Alertas",    href: "/alertas",    icon: "notifications_active" },
-  { label: "Clientes",   href: "/clientes",   icon: "groups" },
-  { label: "Balanço",    href: "/balanco",    icon: "query_stats" },
-  { label: "Relatórios", href: "/relatorios", icon: "insert_chart" },
+  { label: "Dashboard",    href: "/dashboard",                  icon: "dashboard" },
+  { label: "Alertas",      href: "/alertas",                    icon: "notifications_active" },
+  { label: "Clientes",     href: "/clientes",                   icon: "groups" },
+  { label: "Balanço",      href: "/balanco",                    icon: "query_stats" },
+  { label: "Relatórios",   href: "/relatorios",                 icon: "insert_chart" },
+  { label: "Fiscais",      href: "/relatorios/fiscais",         icon: "badge" },
+  { label: "Reincidência", href: "/relatorios/reincidencia",    icon: "repeat" },
+  { label: "Fraudes",      href: "/relatorios/fraudes",         icon: "shield" },
+  { label: "Modelo ML",    href: "/relatorios/ml",              icon: "psychology" },
+  { label: "Previsão",     href: "/relatorios/previsao",        icon: "query_stats" },
+  { label: "Observações",  href: "/relatorios/observacoes",     icon: "comment" },
 ];
 
 const OPERACOES: NavItem[] = [
-  { label: "Inspeções",        href: "/inspecoes",    icon: "fact_check" },
-  { label: "Notificações SMS", href: "/notificacoes", icon: "sms" },
-  { label: "Recuperação",      href: "/recuperacao",  icon: "savings" },
-  { label: "Motor de Scoring", href: "/admin/scoring", icon: "analytics" },
+  { label: "Inspeções",        href: "/inspecoes",                  icon: "fact_check" },
+  { label: "Calendário",       href: "/inspecoes/calendario",       icon: "calendar_month" },
+  { label: "Mapa de Inspeções",href: "/inspecoes/mapa",             icon: "map" },
+  { label: "Notificações SMS", href: "/notificacoes",               icon: "sms" },
+  { label: "Recuperação",      href: "/recuperacao",                icon: "savings" },
+  { label: "Motor de Scoring", href: "/admin/scoring",              icon: "analytics" },
+  { label: "Distribuição",     href: "/admin/scoring/distribuicao", icon: "bar_chart" },
 ];
 
 const CONFIGURACOES: NavItem[] = [
-  { label: "Importar Dados", href: "/admin/importar",     icon: "upload_file" },
-  { label: "Utilizadores",   href: "/admin/utilizadores", icon: "group",    superAdminOnly: true },
-  { label: "Configuração",   href: "/admin/configuracao", icon: "settings", superAdminOnly: true },
-  { label: "API Keys",       href: "/admin/api-keys",     icon: "key",      superAdminOnly: true },
+  { label: "Subestações",      href: "/admin/subestacoes",  icon: "bolt" },
+  { label: "Importar Dados",   href: "/admin/importar",     icon: "upload_file" },
+  { label: "Utilizadores",     href: "/admin/utilizadores", icon: "group",    superAdminOnly: true },
+  { label: "Configuração",     href: "/admin/configuracao", icon: "settings", superAdminOnly: true },
+  { label: "Auditoria",        href: "/admin/auditoria",    icon: "history",  superAdminOnly: true },
+  { label: "API Keys",         href: "/admin/api-keys",     icon: "key",      superAdminOnly: true },
 ];
 
 interface SidebarNavProps {
@@ -34,9 +45,10 @@ interface SidebarNavProps {
   onToggleCollapsed: () => void;
   onSignOut: () => void;
   criticalCount?: number;
+  hideHeader?: boolean;
 }
 
-export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, onSignOut, criticalCount = 0 }: SidebarNavProps) {
+export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, onSignOut, criticalCount = 0, hideHeader = false }: SidebarNavProps) {
   const isAdmin      = ["admin_fiskix", "gestor_perdas"].includes(profile.role);
   const isSuperAdmin = profile.role === "admin_fiskix";
   const isRelatorios = ["admin_fiskix", "diretor", "gestor_perdas"].includes(profile.role);
@@ -45,7 +57,7 @@ export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, on
 
   // Build monitored items with live badge on Alertas
   const monitoramentoItems = MONITORAMENTO.filter((item) => {
-    if (item.href === "/relatorios" || item.href === "/balanco") return isRelatorios;
+    if (["/relatorios", "/balanco", "/relatorios/fiscais", "/relatorios/reincidencia", "/relatorios/fraudes", "/relatorios/ml", "/relatorios/previsao", "/relatorios/observacoes"].includes(item.href)) return isRelatorios;
     if (item.href === "/clientes") return hasOps;
     return true;
   }).map((item) =>
@@ -55,34 +67,37 @@ export function SidebarNav({ profile, collapsed, isActive, onToggleCollapsed, on
   );
 
   const operacoesItems = OPERACOES.filter((item) => {
-    if (item.href === "/admin/scoring") return isAdmin;
-    if (item.href === "/recuperacao")   return hasFinance;
+    if (["/admin/scoring", "/admin/scoring/distribuicao"].includes(item.href)) return isAdmin;
+    if (item.href === "/recuperacao") return hasFinance;
+    if (item.href === "/inspecoes/mapa") return hasOps;
     return hasOps;
   });
 
   return (
     <div className="flex flex-col h-full mosaic-scrollbar">
 
-      {/* ── Logo / Workspace Header ── */}
-      <div className={cn(
-        "flex items-center gap-3 h-16 flex-shrink-0 border-b border-gray-200 dark:border-gray-700/60",
-        collapsed ? "justify-center px-2" : "px-5"
-      )}>
-        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white flex-shrink-0 shadow-sm">
-          <Icon name="bolt" size="sm" filled className="text-white" />
-        </div>
+      {/* ── Logo / Workspace Header (hidden in mobile drawer which has its own header) ── */}
+      {!hideHeader && (
         <div className={cn(
-          "overflow-hidden transition-[width,opacity] duration-300 min-w-0",
-          collapsed ? "w-0 opacity-0" : "w-40 opacity-100"
+          "flex items-center gap-3 h-16 flex-shrink-0 border-b border-gray-200 dark:border-gray-700/60",
+          collapsed ? "justify-center px-2" : "px-5"
         )}>
-          <p className="font-bold text-gray-800 dark:text-gray-100 leading-tight whitespace-nowrap text-sm">
-            Fiskix Energy
-          </p>
-          <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-tight whitespace-nowrap">
-            Cabo Verde
-          </p>
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+            <Icon name="bolt" size="sm" filled className="text-white" />
+          </div>
+          <div className={cn(
+            "overflow-hidden transition-[width,opacity] duration-300 min-w-0",
+            collapsed ? "w-0 opacity-0" : "w-40 opacity-100"
+          )}>
+            <p className="font-bold text-gray-800 dark:text-gray-100 leading-tight whitespace-nowrap text-sm">
+              Fiskix Energy
+            </p>
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-tight whitespace-nowrap">
+              Cabo Verde
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Navigation ── */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 pt-4 pb-4">

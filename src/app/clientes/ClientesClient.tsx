@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search, X, MapPin, Phone, Hash, Tag } from "lucide-react";
+import Link from "next/link";
+import { Search, X, MapPin, Phone, Hash, Tag, ExternalLink } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { ClienteFichaSheet } from "./_components/ClienteFichaSheet";
 
@@ -123,6 +124,14 @@ export function ClientesClient({ profile }: { profile: Profile }) {
                   </div>
                   <p className="text-xs text-slate-400 dark:text-gray-500 mt-0.5 truncate">{c.morada}</p>
                 </div>
+                <Link
+                  href={`/clientes/${c.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
+                  title="Ficha completa"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Link>
               </li>
             ))}
           </ul>

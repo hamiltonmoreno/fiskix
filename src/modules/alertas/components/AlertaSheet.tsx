@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScoreBadge } from "@/components/ui/score-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { MessageSquare, ClipboardList, MapPin } from "lucide-react";
+import { MessageSquare, Mail, ClipboardList, MapPin } from "lucide-react";
 import { AlertaTimeline } from "./AlertaTimeline";
 
 export interface AlertaSheetData {
@@ -26,6 +26,7 @@ export interface AlertaSheetData {
     morada: string;
     tipo_tarifa: string;
     telemovel: string | null;
+    email: string | null;
   };
   subestacao: { nome: string; zona_bairro: string };
 }
@@ -35,6 +36,7 @@ interface AlertaSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEnviarSMS?: (alertaId: string) => Promise<void>;
+  onEnviarEmail?: (alertaId: string) => Promise<void>;
   onGerarOrdem?: (alertaId: string) => Promise<void>;
   actionLoading?: string | null;
 }
@@ -44,6 +46,7 @@ export function AlertaSheet({
   open,
   onOpenChange,
   onEnviarSMS,
+  onEnviarEmail,
   onGerarOrdem,
   actionLoading,
 }: AlertaSheetProps) {
@@ -51,6 +54,7 @@ export function AlertaSheet({
 
   const motivosPontuados = alerta.motivo.filter((m) => m.pontos > 0);
   const podeEnviarSMS = alerta.cliente.telemovel && alerta.status === "Pendente";
+  const podeEnviarEmail = alerta.cliente.email && alerta.status === "Pendente";
   const podeGerarOrdem = !["Inspecionado", "Fraude_Confirmada", "Anomalia_Tecnica", "Falso_Positivo"].includes(alerta.status);
 
   return (
@@ -81,11 +85,6 @@ export function AlertaSheet({
           <p className="text-sm text-muted-foreground">
             Tarifa: {alerta.cliente.tipo_tarifa}
           </p>
-          {alerta.cliente.telemovel && (
-            <p className="text-sm text-muted-foreground">
-              Tel: {alerta.cliente.telemovel}
-            </p>
-          )}
         </div>
 
         {/* Motivos de scoring */}
@@ -120,6 +119,22 @@ export function AlertaSheet({
           </div>
         )}
 
+        {/* Contact info */}
+        {(alerta.cliente.telemovel || alerta.cliente.email) && (
+          <div className="space-y-1 mb-5">
+            {alerta.cliente.telemovel && (
+              <p className="text-sm text-muted-foreground">
+                Tel: {alerta.cliente.telemovel}
+              </p>
+            )}
+            {alerta.cliente.email && (
+              <p className="text-sm text-muted-foreground truncate">
+                Email: {alerta.cliente.email}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Cronologia */}
         <div className="mb-5">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
@@ -134,7 +149,7 @@ export function AlertaSheet({
         </div>
 
         {/* Acções */}
-        {(podeEnviarSMS || podeGerarOrdem) && (
+        {(podeEnviarSMS || podeEnviarEmail || podeGerarOrdem) && (
           <div className="space-y-2 pt-4 border-t border-border">
             {podeGerarOrdem && onGerarOrdem && (
               <Button
@@ -155,6 +170,17 @@ export function AlertaSheet({
               >
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Enviar SMS
+              </Button>
+            )}
+            {podeEnviarEmail && onEnviarEmail && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => onEnviarEmail(alerta.id)}
+                disabled={actionLoading === alerta.id}
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                Enviar Email
               </Button>
             )}
           </div>

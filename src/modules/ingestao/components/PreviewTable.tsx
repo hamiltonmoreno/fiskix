@@ -1,3 +1,5 @@
+"use client";
+
 import type { PreviewResult } from "./types";
 
 interface PreviewTableProps {

@@ -2,6 +2,7 @@
 
 import {
   MessageSquare,
+  Mail,
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
@@ -19,13 +20,24 @@ import type { InspecaoResultado } from "@/types/database";
 import { haptics } from "@/lib/haptics";
 import { Icon } from "@/components/Icon";
 
+function diasPendente(criado_em: string): number {
+  return Math.floor((Date.now() - new Date(criado_em).getTime()) / 86_400_000);
+}
+
+function diasColor(dias: number, status: string): string {
+  if (["Fraude_Confirmada", "Anomalia_Tecnica", "Falso_Positivo"].includes(status)) return "text-gray-400 dark:text-gray-500";
+  if (dias > 30) return "text-red-600 dark:text-red-400 font-semibold";
+  if (dias > 14) return "text-amber-600 dark:text-amber-400 font-semibold";
+  return "text-emerald-600 dark:text-emerald-400";
+}
+
 interface Alerta {
   id: string;
   score_risco: number;
   status: string;
   mes_ano: string;
   resultado: string | null;
-  criado_em?: string;
+  criado_em: string;
   motivo: Array<{ regra: string; pontos: number; descricao: string }>;
   cliente: {
     numero_contador: string;
@@ -33,6 +45,7 @@ interface Alerta {
     morada: string;
     tipo_tarifa: string;
     telemovel: string | null;
+    email: string | null;
   };
   subestacao: { nome: string; zona_bairro: string };
 }
@@ -45,15 +58,16 @@ interface AlertasTableProps {
   pageSize: number;
   actionLoading: string | null;
   sortDir?: "asc" | "desc";
-  selectedIds?: Set<string>;
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
+  onToggleAll: (allIds: string[]) => void;
   onRowClick: (alerta: Alerta) => void;
   onEnviarSMS: (alertaId: string) => void;
+  onEnviarEmail: (alertaId: string) => void;
   onGerarOrdem: (alertaId: string) => void;
   onSetPendingStatus: (update: { alertaId: string; novoStatus: InspecaoResultado; label: string }) => void;
   onPageChange: (page: number) => void;
   onSortChange?: (dir: "asc" | "desc") => void;
-  onToggleSelect?: (alertaId: string) => void;
-  onToggleSelectAll?: () => void;
 }
 
 const ESTADOS_FINAIS = ["Fraude_Confirmada", "Anomalia_Tecnica", "Falso_Positivo"];
@@ -67,21 +81,22 @@ export function AlertasTable({
   actionLoading,
   sortDir,
   selectedIds,
+  onToggleSelect,
+  onToggleAll,
   onRowClick,
   onEnviarSMS,
+  onEnviarEmail,
   onGerarOrdem,
   onSetPendingStatus,
   onPageChange,
   onSortChange,
-  onToggleSelect,
-  onToggleSelectAll,
 }: AlertasTableProps) {
   const totalPages = Math.ceil(total / pageSize);
-  const showCheckbox = !!onToggleSelect;
+  const allPageIds = alertas.map((a) => a.id);
   const allSelected =
-    showCheckbox && alertas.length > 0 && alertas.every((a) => selectedIds?.has(a.id));
+    allPageIds.length > 0 && allPageIds.every((id) => selectedIds.has(id));
   const someSelected =
-    showCheckbox && alertas.some((a) => selectedIds?.has(a.id)) && !allSelected;
+    !allSelected && allPageIds.some((id) => selectedIds.has(id));
 
   return (
     <div className="overflow-hidden">
@@ -89,21 +104,17 @@ export function AlertasTable({
         <table className="w-full text-sm text-left whitespace-nowrap">
           <thead className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/50 uppercase border-b border-gray-200 dark:border-gray-700/60">
             <tr>
-              {showCheckbox && (
-                <th className="pl-6 pr-2 py-4 w-10">
-                  <input
-                    type="checkbox"
-                    aria-label={allSelected ? "Desselecionar tudo" : "Selecionar tudo"}
-                    checked={allSelected}
-                    ref={(el) => {
-                      if (el) el.indeterminate = someSelected;
-                    }}
-                    onChange={() => onToggleSelectAll?.()}
-                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                  />
-                </th>
-              )}
-              <th className="px-8 py-4 font-semibold tracking-wider">
+              <th className="px-4 py-4 w-10">
+                <input
+                  type="checkbox"
+                  aria-label="Selecionar todos"
+                  checked={allSelected}
+                  ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                  onChange={() => onToggleAll(allPageIds)}
+                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 cursor-pointer"
+                />
+              </th>
+              <th className="px-4 py-4 font-semibold tracking-wider">
                 {onSortChange ? (
                   <button
                     onClick={() => onSortChange(sortDir === "asc" ? "desc" : "asc")}
@@ -117,6 +128,7 @@ export function AlertasTable({
               {["Contador", "Titular", "Zona", "Tarifa", "Regras", "Estado"].map((h) => (
                 <th key={h} className="px-6 py-4 font-semibold tracking-wider">{h}</th>
               ))}
+              <th className="px-4 py-4 font-semibold tracking-wider" title="Dias desde a criação do alerta">Dias</th>
               <th className="px-8 py-4 font-semibold tracking-wider text-right">Ações</th>
             </tr>
           </thead>
@@ -124,7 +136,7 @@ export function AlertasTable({
             {loading ? (
               Array.from({ length: 8 }).map((_, i) => (
                 <tr key={i}>
-                  {Array.from({ length: showCheckbox ? 9 : 8 }).map((_, j) => (
+                  {Array.from({ length: 10 }).map((_, j) => (
                     <td key={j} className="px-6 py-5">
                       <Skeleton className="h-4 w-full rounded" />
                     </td>
@@ -133,7 +145,7 @@ export function AlertasTable({
               ))
             ) : alertas.length === 0 ? (
               <tr>
-                <td colSpan={showCheckbox ? 9 : 8}>
+                <td colSpan={10}>
                   <EmptyState
                     icon={ClipboardList}
                     title="Nenhum alerta para os filtros selecionados"
@@ -146,26 +158,23 @@ export function AlertasTable({
                 const regrasPontuadas = alerta.motivo.filter((r) => r.pontos > 0);
                 const isLoading = actionLoading === alerta.id;
                 const isFinal = ESTADOS_FINAIS.includes(alerta.resultado ?? "");
-
-                const isSelected = selectedIds?.has(alerta.id) ?? false;
+                const isSelected = selectedIds.has(alerta.id);
                 return (
                   <tr
                     key={alerta.id}
-                    className={`transition-colors cursor-pointer ${isSelected ? "bg-blue-50/60 dark:bg-blue-950/30 hover:bg-blue-50 dark:hover:bg-blue-950/40" : "hover:bg-gray-50 dark:hover:bg-gray-800/80"}`}
+                    className={`hover:bg-gray-50 dark:hover:bg-gray-800/80 transition-colors cursor-pointer ${isSelected ? "bg-blue-50/50 dark:bg-blue-500/5" : ""}`}
                     onClick={() => onRowClick(alerta)}
                   >
-                    {showCheckbox && (
-                      <td className="pl-6 pr-2 py-5 w-10" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          aria-label={`Selecionar alerta ${alerta.cliente.numero_contador}`}
-                          checked={isSelected}
-                          onChange={() => onToggleSelect?.(alerta.id)}
-                          className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                        />
-                      </td>
-                    )}
-                    <td className="px-8 py-5">
+                    <td className="px-4 py-5" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => onToggleSelect(alerta.id)}
+                        aria-label={`Selecionar ${alerta.cliente.nome_titular}`}
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 cursor-pointer"
+                      />
+                    </td>
+                    <td className="px-4 py-5">
                       <ScoreBadge score={alerta.score_risco} showScore />
                     </td>
                     <td className="px-6 py-5 font-mono text-xs font-semibold text-blue-600 dark:text-blue-400">
@@ -201,18 +210,39 @@ export function AlertasTable({
                     <td className="px-6 py-5">
                       <StatusBadge status={(alerta.status === "Inspecionado" && alerta.resultado) ? alerta.resultado : alerta.status} />
                     </td>
+                    <td className="px-4 py-5">
+                      {(() => {
+                        const dias = diasPendente(alerta.criado_em);
+                        return (
+                          <span className={`text-xs tabular-nums ${diasColor(dias, alerta.resultado ?? alerta.status)}`} title={`Criado em ${new Date(alerta.criado_em).toLocaleDateString("pt-CV")}`}>
+                            {dias}d
+                          </span>
+                        );
+                      })()}
+                    </td>
                     <td className="px-8 py-5">
                       <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                         {!isFinal && alerta.status === "Pendente" && (
-                          <button
-                            onClick={() => { haptics.medium(); onEnviarSMS(alerta.id); }}
-                            disabled={isLoading || !alerta.cliente.telemovel}
-                            title={alerta.cliente.telemovel ? "Enviar SMS" : "Sem telemóvel registado"}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-md text-[11px] font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            SMS
-                          </button>
+                          <>
+                            <button
+                              onClick={() => { haptics.medium(); onEnviarSMS(alerta.id); }}
+                              disabled={isLoading || !alerta.cliente.telemovel}
+                              title={alerta.cliente.telemovel ? "Enviar SMS" : "Sem telemóvel registado"}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-md text-[11px] font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              SMS
+                            </button>
+                            <button
+                              onClick={() => { haptics.medium(); onEnviarEmail(alerta.id); }}
+                              disabled={isLoading || !alerta.cliente.email}
+                              title={alerta.cliente.email ? "Enviar Email" : "Sem email registado"}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-600 text-white rounded-md text-[11px] font-semibold hover:bg-violet-700 disabled:opacity-50 transition-colors shadow-sm"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                              Email
+                            </button>
+                          </>
                         )}
                         {!isFinal && (alerta.status === "Pendente" || alerta.status === "Notificado_SMS") && (
                           <button

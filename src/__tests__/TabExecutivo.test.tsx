@@ -69,12 +69,11 @@ describe("TabExecutivo.tsx", () => {
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
-  it("exibe a tabela de histórico de relatórios", () => {
+  it("não exibe dados de histórico fictícios quando há dados reais", () => {
     render(<TabExecutivo filtros={mockFilters} active={true} onExportReady={mockOnExportReady} />);
 
-    expect(screen.getByText("Histórico de Relatórios Gerados")).toBeInTheDocument();
-    expect(screen.getByText("REL-2026-003")).toBeInTheDocument();
-    expect(screen.getByText("REL-2026-002")).toBeInTheDocument();
+    expect(screen.queryByText("REL-2026-003")).not.toBeInTheDocument();
+    expect(screen.queryByText("REL-2026-002")).not.toBeInTheDocument();
   });
 
   it("não chama o hook quando a tab não está activa", () => {
