@@ -1,3 +1,5 @@
+"use client";
+
 import { haptics } from "@/lib/haptics";
 import { Icon } from "@/components/Icon";
 import { CloudUpload } from "lucide-react";
