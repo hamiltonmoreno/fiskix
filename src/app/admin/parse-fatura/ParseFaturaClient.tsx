@@ -134,7 +134,7 @@ export function ParseFaturaClient({ provider, claudeReady }: Props) {
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
-      <div className="mb-8">
+      <div className="mb-8 lg:hidden">
         <div className="flex items-center gap-2 mb-1">
           <ScanText className="w-6 h-6 text-purple-600" />
           <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Parser de Faturas EDEC</h1>
