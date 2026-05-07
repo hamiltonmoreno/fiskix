@@ -53,15 +53,21 @@ export function UtilizadoresClient({
   async function handleCriar() {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.admin.createUser({
-        email: novoUser.email,
-        password: novoUser.password,
-        email_confirm: true,
-        user_metadata: { nome_completo: novoUser.nome_completo, role: novoUser.role },
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: novoUser.email,
+          password: novoUser.password,
+          nome_completo: novoUser.nome_completo,
+          role: novoUser.role,
+          id_zona: novoUser.id_zona || undefined,
+        }),
       });
+      const json = await res.json() as { error?: string };
 
-      if (error) {
-        toast.error(`Erro ao criar utilizador: ${error.message}`);
+      if (!res.ok) {
+        toast.error(`Erro ao criar utilizador: ${json.error ?? "Erro desconhecido"}`);
       } else {
         setShowModal(false);
         setNovoUser({ email: "", password: "", nome_completo: "", role: "fiscal", id_zona: "" });
@@ -116,9 +122,15 @@ export function UtilizadoresClient({
   async function handleEliminar(id: string) {
     setLoadingDelete(true);
     try {
-      const { error } = await supabase.auth.admin.deleteUser(id);
-      if (error) {
-        toast.error(`Erro ao eliminar utilizador: ${error.message}`);
+      const res = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const json = await res.json() as { error?: string };
+
+      if (!res.ok) {
+        toast.error(`Erro ao eliminar utilizador: ${json.error ?? "Erro desconhecido"}`);
       } else {
         setUtilizadores((prev) => prev.filter((u) => u.id !== id));
         setConfirmDelete(null);
