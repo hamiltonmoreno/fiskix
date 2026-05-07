@@ -2,47 +2,12 @@
 
 Ficheiro automaticamente lido em cada sessão. Apaga itens à medida que ficam concluídos.
 
-## Deploy `parse-fatura-edec` v1 (PR #44 já merged)
+## Activar allowlist CORS em produção
 
-A edge function `parse-fatura-edec` está em `supabase/functions/parse-fatura-edec/`
-mas **ainda não foi deployada** — a tool `deploy_edge_function` do MCP server
-está com glitch (Zod a coerce `files` array como string, devolve sempre
-`ZodError`). Workarounds:
-
-**Opção A (CLI local, mais directo):**
-```bash
-cd /home/user/fiskix
-supabase login                # se necessário
-supabase link --project-ref rqplobwsdbceuqhjywgt
-supabase functions deploy parse-fatura-edec
-```
-
-**Opção B (Supabase Dashboard):**
-1. https://supabase.com/dashboard/project/rqplobwsdbceuqhjywgt/functions
-2. New Function → `parse-fatura-edec`
-3. Upload de `supabase/functions/parse-fatura-edec/index.ts` + `parser.ts` +
-   `_shared/cors.ts`
-4. `verify_jwt = true`
-
-**Opção C (esperar):** retentar o MCP daqui a algumas horas (pode ser
-glitch transitório do server).
-
-Após deploy, validar com curl:
-```bash
-curl -i -X OPTIONS https://rqplobwsdbceuqhjywgt.supabase.co/functions/v1/parse-fatura-edec \
-  -H "Origin: https://example.com"
-# Esperado: HTTP 200, Access-Control-Allow-Origin: *
-```
-
-Sem este deploy, `/admin/parse-fatura` na UI mostrará erro ao tentar
-processar — frontend está pronto, falta só a edge function viva.
-
-## Activar allowlist CORS em produção (PR #39)
-
-As 5 edge functions foram deployadas com suporte a allowlist CSV
-(`balanco-energetico` v3, `send-sms` v9, `ingest-data` v7, `ml-scoring` v2,
-`scoring-engine` v8). **Por defeito devolvem `*`** (compat retroativa) — para
-restringir aos browsers permitidos:
+As 6 edge functions estão deployadas com suporte a allowlist CSV
+(`balanco-energetico`, `send-sms`, `ingest-data`, `ml-scoring`,
+`scoring-engine`, `parse-fatura-edec`). **Por defeito devolvem `*`** (compat
+retroativa) — para restringir aos browsers permitidos:
 
 1. Login como `admin_fiskix`.
 2. Ir a `/admin/configuracao`.
@@ -54,7 +19,7 @@ restringir aos browsers permitidos:
 
 A mesma chave é usada por `/api/v1/` (Next.js) desde PR #18.
 
-## Smoke test CORS pós-deploy
+## Smoke test CORS pós-configuração
 
 Sandbox actual bloqueia egress para `*.supabase.co`. Validar manualmente fora
 do sandbox:
