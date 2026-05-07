@@ -164,13 +164,8 @@ export function Sidebar({ profile }: SidebarProps) {
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between h-16 px-5 border-b border-gray-200 dark:border-gray-700/60">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
-              <Icon name="bolt" size="xs" filled className="text-white" />
-            </div>
-            <span className="font-bold text-gray-800 dark:text-gray-100">Fiskix</span>
-          </div>
+        <div className="flex items-center justify-between h-14 px-4 border-b border-gray-200 dark:border-gray-700/60">
+          <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Navegação</span>
           <button
             onClick={() => {
               haptics.light();
@@ -182,7 +177,7 @@ export function Sidebar({ profile }: SidebarProps) {
             <Icon name="close" size="sm" />
           </button>
         </div>
-        <div className="h-[calc(100%-4rem)]">
+        <div className="h-[calc(100%-3.5rem)]">
           <SidebarNav {...navProps} hideHeader />
         </div>
       </div>
