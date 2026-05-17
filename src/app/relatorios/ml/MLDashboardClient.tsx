@@ -115,7 +115,7 @@ export function MLDashboardClient() {
             <TrendingUp className="w-4 h-4 text-blue-500" />
           </div>
           <p className="text-2xl font-bold text-slate-900 dark:text-gray-100">
-            {rmseHistorico.length ? rmseHistorico[rmseHistorico.length - 1].rmse.toFixed(3) : "—"}
+            {rmseHistorico.length ? rmseHistorico.at(-1)!.rmse.toFixed(3) : "—"}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700/60 p-4">

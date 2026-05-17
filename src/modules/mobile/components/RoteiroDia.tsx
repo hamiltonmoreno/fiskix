@@ -22,6 +22,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScoreBadge } from "@/components/ui/score-badge";
 import { logger } from "@/lib/observability/logger";
 
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
 interface RoteiroDiaProps {
   fiscalId: string;
   zona: string | null;
@@ -134,6 +136,13 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
     async function init() {
       setLoading(true);
       try {
+        // Expirar cache PII ao fim de 24h para não deixar dados sensíveis indefinidamente
+        const ts = localStorage.getItem("fiskix_ordens_ts");
+        if (ts && Date.now() - parseInt(ts) > CACHE_TTL_MS) {
+          localStorage.removeItem("fiskix_ordens");
+          localStorage.removeItem("fiskix_ordens_ts");
+        }
+
         if (isOnline) {
           await carregarOrdens();
         } else {
@@ -172,6 +181,8 @@ export function RoteiroDia({ fiscalId, zona, nomeFiscal }: RoteiroDiaProps) {
   }
 
   async function handleSignOut() {
+    localStorage.removeItem("fiskix_ordens");
+    localStorage.removeItem("fiskix_ordens_ts");
     await supabase.auth.signOut();
     router.push("/login");
   }

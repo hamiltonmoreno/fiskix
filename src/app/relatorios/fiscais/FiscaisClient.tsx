@@ -90,7 +90,7 @@ export function FiscaisClient() {
 
       return {
         id,
-        nome: inspecoes[0].perfis?.nome_completo ?? "Fiscal desconhecido",
+        nome: inspecoes[0]!.perfis?.nome_completo ?? "Fiscal desconhecido",
         total: inspecoes.length,
         confirmadas,
         anomalias,

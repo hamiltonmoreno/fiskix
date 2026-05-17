@@ -209,6 +209,6 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error("Erro ao enviar SMS:", error);
-    return jsonResponse({ error: String(error) }, 500);
+    return jsonResponse({ error: "Erro interno — contacte o suporte" }, 500);
   }
 });

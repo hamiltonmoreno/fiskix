@@ -71,10 +71,15 @@ export default function ConfiguracaoPage() {
   useEffect(() => {
     async function fetchConfigs() {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("configuracoes")
-          .select("chave, valor, descricao");
-        setConfigs(data ?? []);
+          .select("chave, valor, descricao")
+          .in("chave", Object.keys(CONFIG_LABELS));
+        if (error) {
+          setErroGlobal("Erro ao carregar configurações. Recarregue a página.");
+        } else {
+          setConfigs(data ?? []);
+        }
       } finally {
         setLoading(false);
       }

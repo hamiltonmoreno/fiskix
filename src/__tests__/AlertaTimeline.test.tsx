@@ -3,6 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { AlertaTimeline } from "@/modules/alertas/components/AlertaTimeline";
 
 // Mock supabase antes do import do componente
 const mockMaybeSingle = vi.fn();
@@ -31,9 +32,6 @@ describe("AlertaTimeline", () => {
 
   it("mostra evento 'Alerta detectado' com timestamp", async () => {
     mockMaybeSingle.mockResolvedValue({ data: null });
-    const { AlertaTimeline } = await import(
-      "@/modules/alertas/components/AlertaTimeline"
-    );
     render(
       <AlertaTimeline
         alertaId="alerta-1"
@@ -49,9 +47,6 @@ describe("AlertaTimeline", () => {
 
   it("mostra 'SMS enviado' quando status=Notificado_SMS", async () => {
     mockMaybeSingle.mockResolvedValue({ data: null });
-    const { AlertaTimeline } = await import(
-      "@/modules/alertas/components/AlertaTimeline"
-    );
     render(
       <AlertaTimeline
         alertaId="alerta-2"
@@ -67,9 +62,6 @@ describe("AlertaTimeline", () => {
 
   it("mostra 'Ordem de inspeção criada' quando status=Pendente_Inspecao", async () => {
     mockMaybeSingle.mockResolvedValue({ data: null });
-    const { AlertaTimeline } = await import(
-      "@/modules/alertas/components/AlertaTimeline"
-    );
     render(
       <AlertaTimeline
         alertaId="alerta-3"
@@ -92,9 +84,6 @@ describe("AlertaTimeline", () => {
         perfis: { nome: "João Silva" },
       },
     });
-    const { AlertaTimeline } = await import(
-      "@/modules/alertas/components/AlertaTimeline"
-    );
     render(
       <AlertaTimeline
         alertaId="alerta-4"
@@ -120,9 +109,6 @@ describe("AlertaTimeline", () => {
         perfis: null,
       },
     });
-    const { AlertaTimeline } = await import(
-      "@/modules/alertas/components/AlertaTimeline"
-    );
     render(
       <AlertaTimeline
         alertaId="alerta-5"

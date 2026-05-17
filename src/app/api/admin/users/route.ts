@@ -16,6 +16,8 @@ async function requireAdmin() {
   return user;
 }
 
+const ALLOWED_ROLES = ["admin_fiskix", "diretor", "gestor_perdas", "supervisor", "fiscal"] as const;
+
 export async function POST(request: Request) {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
@@ -31,6 +33,10 @@ export async function POST(request: Request) {
 
     if (!email || !password || !nome_completo || !role) {
       return NextResponse.json({ error: "Campos obrigatórios em falta" }, { status: 400 });
+    }
+
+    if (!ALLOWED_ROLES.includes(role as typeof ALLOWED_ROLES[number])) {
+      return NextResponse.json({ error: "Role inválido" }, { status: 400 });
     }
 
     const service = createServiceClient();

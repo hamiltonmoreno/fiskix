@@ -8,14 +8,9 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsHeadersFor, corsPreflight } from "../_shared/cors.ts";
 
 type UserRole = "admin_fiskix" | "diretor" | "gestor_perdas" | "supervisor" | "fiscal";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
 
 const EMAIL_ALLOWED_ROLES: UserRole[] = [
   "admin_fiskix",
@@ -24,7 +19,16 @@ const EMAIL_ALLOWED_ROLES: UserRole[] = [
   "supervisor",
 ];
 
-function jsonResponse(body: unknown, status = 200) {
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function jsonResponse(body: unknown, corsHeaders: Record<string, string>, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -54,9 +58,9 @@ function getEmailTemplate(
         </td></tr>
         <!-- Body -->
         <tr><td style="padding:32px;">
-          <p style="margin:0 0 16px;color:#1e293b;font-size:16px;font-weight:600;">Caro/a ${nomeTitular},</p>
+          <p style="margin:0 0 16px;color:#1e293b;font-size:16px;font-weight:600;">Caro/a ${escapeHtml(nomeTitular)},</p>
           <p style="margin:0 0 16px;color:#475569;font-size:14px;line-height:1.6;">
-            Os nossos sistemas detetaram uma <strong>quebra anormal de consumo</strong> na sua instalação com o contador <strong>${numeroContador}</strong>.
+            Os nossos sistemas detetaram uma <strong>quebra anormal de consumo</strong> na sua instalação com o contador <strong>${escapeHtml(numeroContador)}</strong>.
           </p>
           <p style="margin:0 0 16px;color:#475569;font-size:14px;line-height:1.6;">
             Para garantir que não se trata de uma avaria, o seu local foi marcado para <strong>inspeção técnica de rotina</strong>.
@@ -103,9 +107,9 @@ function getEmailTemplate(
         </td></tr>
         <!-- Body -->
         <tr><td style="padding:32px;">
-          <p style="margin:0 0 16px;color:#1e293b;font-size:16px;font-weight:600;">Caro/a ${nomeTitular},</p>
+          <p style="margin:0 0 16px;color:#1e293b;font-size:16px;font-weight:600;">Caro/a ${escapeHtml(nomeTitular)},</p>
           <p style="margin:0 0 16px;color:#475569;font-size:14px;line-height:1.6;">
-            A anomalia detetada no seu contador <strong>${numeroContador}</strong> persiste após notificação prévia.
+            A anomalia detetada no seu contador <strong>${escapeHtml(numeroContador)}</strong> persiste após notificação prévia.
           </p>
           <div style="background:#fef2f2;border-left:4px solid #dc2626;border-radius:4px;padding:16px;margin:20px 0;">
             <p style="margin:0;color:#991b1b;font-size:14px;font-weight:700;">🚨 Informamos que:</p>
@@ -135,20 +139,22 @@ function getEmailTemplate(
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return await corsPreflight(req);
   }
+
+  const corsHeaders = await corsHeadersFor(req);
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
     if (!supabaseUrl || !serviceRoleKey || !anonKey) {
-      return jsonResponse({ error: "Configuração de ambiente incompleta" }, 500);
+      return jsonResponse({ error: "Configuração de ambiente incompleta" }, corsHeaders, 500);
     }
 
     const authHeader = req.headers.get("Authorization") ?? req.headers.get("authorization");
     if (!authHeader) {
-      return jsonResponse({ error: "Não autenticado" }, 401);
+      return jsonResponse({ error: "Não autenticado" }, corsHeaders, 401);
     }
 
     const authClient = createClient(supabaseUrl, anonKey, {
@@ -159,7 +165,7 @@ Deno.serve(async (req) => {
       error: authError,
     } = await authClient.auth.getUser();
     if (authError || !user) {
-      return jsonResponse({ error: "Token inválido" }, 401);
+      return jsonResponse({ error: "Token inválido" }, corsHeaders, 401);
     }
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
@@ -170,13 +176,13 @@ Deno.serve(async (req) => {
       .eq("id", user.id)
       .single();
     if (!perfil?.role || !EMAIL_ALLOWED_ROLES.includes(perfil.role as UserRole)) {
-      return jsonResponse({ error: "Sem permissão para enviar email" }, 403);
+      return jsonResponse({ error: "Sem permissão para enviar email" }, corsHeaders, 403);
     }
 
     const { alerta_id, tipo } = await req.json();
 
     if (!alerta_id || !tipo || !["amarelo", "vermelho"].includes(tipo)) {
-      return jsonResponse({ error: "alerta_id e tipo (amarelo|vermelho) são obrigatórios" }, 400);
+      return jsonResponse({ error: "alerta_id e tipo (amarelo|vermelho) são obrigatórios" }, corsHeaders, 400);
     }
 
     // Buscar alerta + dados do cliente
@@ -192,7 +198,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (alertaError || !alerta) {
-      return jsonResponse({ error: "Alerta não encontrado" }, 404);
+      return jsonResponse({ error: "Alerta não encontrado" }, corsHeaders, 404);
     }
 
     const cliente = alerta.clientes as {
@@ -202,7 +208,7 @@ Deno.serve(async (req) => {
     } | null;
 
     if (!cliente?.email) {
-      return jsonResponse({ error: "Cliente sem endereço de email", alerta_id }, 422);
+      return jsonResponse({ error: "Cliente sem endereço de email", alerta_id }, corsHeaders, 422);
     }
 
     // Buscar API key do Resend em configuracoes
@@ -210,7 +216,7 @@ Deno.serve(async (req) => {
     const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") ?? "noreply@electra.cv";
 
     if (!resendApiKey) {
-      return jsonResponse({ error: "RESEND_API_KEY não configurada" }, 500);
+      return jsonResponse({ error: "RESEND_API_KEY não configurada" }, corsHeaders, 500);
     }
 
     const { subject, html } = getEmailTemplate(tipo, cliente.nome_titular, cliente.numero_contador);
@@ -238,7 +244,7 @@ Deno.serve(async (req) => {
         email: cliente.email.replace(/(?<=.{2}).(?=.*@)/g, "*"),
         mensagem_enviada: false,
         erro: errBody.message ?? "Erro ao enviar email",
-      }, 502);
+      }, corsHeaders, 502);
     }
 
     const resendData = await resendRes.json();
@@ -249,9 +255,9 @@ Deno.serve(async (req) => {
       email: cliente.email.replace(/(?<=.{2}).(?=.*@)/g, "*"),
       mensagem_enviada: true,
       id: resendData.id,
-    });
+    }, corsHeaders);
   } catch (error) {
     console.error("Erro ao enviar email:", error);
-    return jsonResponse({ error: String(error) }, 500);
+    return jsonResponse({ error: "Erro interno — contacte o suporte" }, corsHeaders, 500);
   }
 });

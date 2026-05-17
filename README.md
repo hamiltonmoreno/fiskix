@@ -12,10 +12,10 @@ Cliente inicial: **Electra (Cabo Verde)** — Fases 1 e 2 completas.
 - [Stack](#stack)
 - [Arquitetura](#arquitetura)
 - [Base de Dados](#base-de-dados)
-- [Motor de Scoring](#motor-de-scoring)
+- [Motor de Scoring](#motor-de-scoring) — [referência técnica completa](docs/scoring-engine.md)
 - [Score ML (Fase 2)](#score-ml-fase-2)
 - [Módulos](#módulos)
-- [API REST Pública](#api-rest-pública)
+- [API REST Pública](#api-rest-pública) — [referência completa com response shapes](docs/api-v1.md)
 - [Setup Local](#setup-local)
 - [Variáveis de Ambiente](#variáveis-de-ambiente)
 - [Deploy](#deploy)
@@ -148,14 +148,15 @@ Pendente → Notificado_SMS → Pendente_Inspecao → Inspecionado
 
 ## Motor de Scoring
 
-O motor aplica 9 regras graduais por cliente, seguindo dois filtros:
+O motor aplica 12 regras graduais por cliente, seguindo dois filtros.  
+Referência técnica completa com fórmulas: [docs/scoring-engine.md](docs/scoring-engine.md)
 
 ### Etapa A — Balanço Energético (Filtro Macro)
 
 Calcula a perda percentual por subestação: `(kWh_injetado - kWh_faturado) / kWh_injetado`.  
 Só avança para o filtro micro se a zona for **vermelha** (perda > 15%).
 
-### Etapa B — 9 Regras Graduais (Filtro Micro)
+### Etapa B — 12 Regras Graduais (Filtro Micro)
 
 | Regra | O que deteta | Pontos máx |
 | ----- | ------------ | ---------- |
@@ -168,6 +169,9 @@ Só avança para o filtro micro se a zona for **vermelha** (perda > 15%).
 | R7 | Reincidência — alertas confirmados nos últimos 12 meses | +5 bónus |
 | R8 | Consumo atual < 20% do pico histórico | 0–5 |
 | R9 | Multiplicador zona vermelha: `1 + min(0.3, (perda−15%) × 2)` | ×1.0–1.3 |
+| R10 | Dívida acumulada — incentivo financeiro para fraude *(Fase 2)* | 0–10 |
+| R11 | Leitura estimada recorrente — recusa de acesso ao contador *(Fase 2)* | +5 |
+| R12 | Subutilização de potência contratada — possível by-pass *(Fase 2)* | 0–5 |
 
 **Classificação final:**
 
@@ -390,11 +394,13 @@ npx supabase functions deploy ml-scoring
 
 | Função | Método | Payload | Descrição | Autorização |
 | ------ | ------ | ------- | --------- | ----------- |
-| `scoring-engine` | POST | `{ subestacao_id, mes_ano }` | Executa as 9 regras para uma subestação | JWT + role ou service role |
+| `scoring-engine` | POST | `{ subestacao_id, mes_ano }` | Executa as 12 regras para uma subestação | JWT + role ou service role |
 | `send-sms` | POST | `{ alerta_id, tipo }` | Envia SMS amarelo/vermelho ao cliente | JWT + role |
-| `ingest-data` | POST | FormData CSV/Excel | Importa faturação ou injeção | JWT válido |
+| `send-email` | POST | `{ alerta_id, tipo }` | Envia email HTML ao cliente (Resend) | JWT + role |
+| `ingest-data` | POST | FormData CSV/Excel | Importa faturação ou injeção | JWT válido, admin/gestor apenas |
 | `balanco-energetico` | GET/POST | `?mes_ano=YYYY-MM[&subestacao_id]` | Calcula perdas por zona | JWT + role ou service role |
 | `ml-scoring` | POST | `{ subestacao_id, mes_ano }` | Regressão logística heurística, grava em `ml_predicoes` | Service role apenas |
+| `parse-fatura-edec` | POST | FormData PDF/imagem | OCR da fatura EDEC (planeado Fase 3) | JWT válido, admin apenas |
 
 ---
 
@@ -435,7 +441,7 @@ O Fiskix utiliza **Vitest** (unit/integration) e **Playwright** (E2E).
 
 Atualmente:
 
-- **300 testes automatizados** em **31 ficheiros** Vitest — 100% de sucesso
+- **604 testes automatizados** em **50 ficheiros** Vitest — 100% de sucesso
 - **~19 cenários E2E** em **5 ficheiros** Playwright (auth, login, rotas protegidas, assets públicos, fluxos autenticados)
 
 ### Comandos de Teste

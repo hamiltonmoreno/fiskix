@@ -63,6 +63,7 @@ function clusterNeutro(
     media_racio_cve_kwh: 25,
     sigma_racio_cve_kwh: 10,
     tendencia_subestacao_pct: tendenciaSubestacao,
+    cluster_size: 10,
   };
 }
 
@@ -677,7 +678,7 @@ describe("calcularScore — casos extremos", () => {
     );
     expect(result.regras).toHaveLength(11);
     const regrasNomes = result.regras.map((r) => r.regra);
-    ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8"].forEach((r) => {
+    ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R10", "R11", "R12"].forEach((r) => {
       expect(regrasNomes).toContain(r);
     });
   });

@@ -27,7 +27,7 @@ export default function MapaDesviosLeaflet({ pontos, limiarMetros }: Props) {
       }
 
       const map = L.map(containerRef.current!).setView(
-        [pontos[0].cliente_lat, pontos[0].cliente_lng],
+        [pontos[0]!.cliente_lat, pontos[0]!.cliente_lng],
         12
       );
       mapRef.current = map;

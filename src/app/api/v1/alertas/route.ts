@@ -39,53 +39,60 @@ export async function GET(request: Request) {
     return apiError("Rate limit excedido. Tente novamente em breve.", 429, request);
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-  const supabase = createClient(supabaseUrl, serviceRoleKey);
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    // service_role intencional: autenticação é por API key (não por sessão Supabase),
+    // logo não há auth.uid() — anon key bloquearia todas as queries via RLS.
+    // Segurança garantida por: verificarApiKey + rate limit + filtros explícitos abaixo.
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-  const { searchParams } = new URL(request.url);
-  const parsed = parseQuery(AlertasQuerySchema, searchParams);
-  if (!parsed.ok) {
-    return apiError("Parâmetros inválidos", 400, request, parsed.errors);
-  }
-  const { mes_ano, status, min_score, subestacao_id, page, limit } = parsed.data;
-  const offset = (page - 1) * limit;
+    const { searchParams } = new URL(request.url);
+    const parsed = parseQuery(AlertasQuerySchema, searchParams);
+    if (!parsed.ok) {
+      return apiError("Parâmetros inválidos", 400, request, parsed.errors);
+    }
+    const { mes_ano, status, min_score, subestacao_id, page, limit } = parsed.data;
+    const offset = (page - 1) * limit;
 
-  let query = supabase
-    .from("alertas_fraude")
-    .select(
-      `id, score_risco, status, resultado, mes_ano, criado_em,
+    let query = supabase
+      .from("alertas_fraude")
+      .select(
+        `id, score_risco, status, resultado, mes_ano, criado_em,
        clientes!inner(id, numero_contador, nome_titular, tipo_tarifa,
          subestacoes!inner(id, nome, zona_bairro))`,
-      { count: "exact" }
-    )
-    .order("score_risco", { ascending: false })
-    .range(offset, offset + limit - 1);
+        { count: "exact" }
+      )
+      .order("score_risco", { ascending: false })
+      .range(offset, offset + limit - 1);
 
-  if (mes_ano) query = query.eq("mes_ano", mes_ano);
-  if (status) query = query.eq("status", status);
-  if (min_score !== undefined) query = query.gte("score_risco", min_score);
-  if (subestacao_id) query = query.eq("clientes.subestacoes.id", subestacao_id);
+    if (mes_ano) query = query.eq("mes_ano", mes_ano);
+    if (status) query = query.eq("status", status);
+    if (min_score !== undefined) query = query.gte("score_risco", min_score);
+    if (subestacao_id) query = query.eq("clientes.id_subestacao", subestacao_id);
 
-  const { data, error, count } = await query;
+    const { data, error, count } = await query;
 
-  if (error) return apiError("Erro ao consultar alertas", 500, request);
+    if (error) return apiError("Erro ao consultar alertas", 500, request);
 
-  const corsHeaders = await corsHeadersFor(request);
-  return new Response(
-    JSON.stringify({
-      data: data ?? [],
-      meta: { total: count ?? 0, page, limit },
-    }),
-    {
-      status: 200,
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "application/json",
-        "Cache-Control": cacheControlForMesAno(mes_ano),
-        "X-RateLimit-Remaining": String(remaining),
-        "X-RateLimit-Reset": String(Math.floor(resetAt / 1000)),
-      },
-    }
-  );
+    const corsHeaders = await corsHeadersFor(request);
+    return new Response(
+      JSON.stringify({
+        data: data ?? [],
+        meta: { total: count ?? 0, page, limit },
+      }),
+      {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+          "Cache-Control": cacheControlForMesAno(mes_ano),
+          "X-RateLimit-Remaining": String(remaining),
+          "X-RateLimit-Reset": String(Math.floor(resetAt / 1000)),
+        },
+      }
+    );
+  } catch {
+    return apiError("Erro interno — contacte o suporte", 500, request);
+  }
 }

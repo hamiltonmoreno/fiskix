@@ -34,47 +34,51 @@ export async function GET(request: Request) {
   const { allowed, remaining } = await checkRateLimit(`key:${cliente}`);
   if (!allowed) return apiError("Rate limit excedido.", 429, request);
 
-  const { searchParams } = new URL(request.url);
-  const parsed = parseQuery(PredicoesQuerySchema, searchParams);
-  if (!parsed.ok) {
-    return apiError("Parâmetros inválidos", 400, request, parsed.errors);
-  }
-  const { mes_ano, min_score_ml, page, limit } = parsed.data;
-  const offset = (page - 1) * limit;
+  try {
+    const { searchParams } = new URL(request.url);
+    const parsed = parseQuery(PredicoesQuerySchema, searchParams);
+    if (!parsed.ok) {
+      return apiError("Parâmetros inválidos", 400, request, parsed.errors);
+    }
+    const { mes_ano, min_score_ml, page, limit } = parsed.data;
+    const offset = (page - 1) * limit;
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-  const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-  let query = supabase
-    .from("ml_predicoes")
-    .select(
-      `id, score_ml, modelo_versao, features_json, mes_ano, criado_em,
+    let query = supabase
+      .from("ml_predicoes")
+      .select(
+        `id, score_ml, modelo_versao, features_json, mes_ano, criado_em,
        clientes!inner(id, numero_contador, nome_titular,
          subestacoes!inner(nome, zona_bairro))`,
-      { count: "exact" }
-    )
-    .order("score_ml", { ascending: false })
-    .range(offset, offset + limit - 1);
+        { count: "exact" }
+      )
+      .order("score_ml", { ascending: false })
+      .range(offset, offset + limit - 1);
 
-  if (mes_ano) query = query.eq("mes_ano", mes_ano);
-  if (min_score_ml > 0) query = query.gte("score_ml", min_score_ml);
+    if (mes_ano) query = query.eq("mes_ano", mes_ano);
+    if (min_score_ml > 0) query = query.gte("score_ml", min_score_ml);
 
-  const { data, error, count } = await query;
+    const { data, error, count } = await query;
 
-  if (error) return apiError("Erro ao consultar predições ML", 500, request);
+    if (error) return apiError("Erro ao consultar predições ML", 500, request);
 
-  const corsHeaders = await corsHeadersFor(request);
-  return new Response(
-    JSON.stringify({ data: data ?? [], meta: { total: count ?? 0, page, limit } }),
-    {
-      status: 200,
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "application/json",
-        "Cache-Control": cacheControlForMesAno(mes_ano),
-        "X-RateLimit-Remaining": String(remaining),
-      },
-    }
-  );
+    const corsHeaders = await corsHeadersFor(request);
+    return new Response(
+      JSON.stringify({ data: data ?? [], meta: { total: count ?? 0, page, limit } }),
+      {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+          "Cache-Control": cacheControlForMesAno(mes_ano),
+          "X-RateLimit-Remaining": String(remaining),
+        },
+      }
+    );
+  } catch {
+    return apiError("Erro interno — contacte o suporte", 500, request);
+  }
 }

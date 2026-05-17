@@ -229,11 +229,11 @@ describe("GET /api/cron/scoring", () => {
 
     expect(body.erros).toBe(1);
     expect(body.total_alertas_gerados).toBe(4); // só sub-1 e sub-3
-    // sub-2 regista o erro no seu resultado
+    // sub-2 regista falha no seu resultado (error string sanitizada para não expor detalhes internos)
     const sub2 = body.resultados.find(
       (r: { subestacao_id: string }) => r.subestacao_id === "sub-2"
     );
-    expect(sub2.error).toMatch(/Falha após/);
+    expect(sub2.failed).toBe(true);
     // fetch chamado 3× por sub-2 (retries) + 1× cada para sub-1 e sub-3
     expect(callCount).toBe(5);
   });

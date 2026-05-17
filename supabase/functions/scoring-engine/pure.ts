@@ -50,6 +50,7 @@ import {
   R11_PONTOS,
   R12_THRESHOLD_PCT,
   R12_PONTOS_MAX,
+  R12_FACTOR,
   SCORE_MAX,
 } from "../_shared/scoring-constants.ts";
 
@@ -203,7 +204,7 @@ export function calcularScoreEdge(
 
   // ---------------- R2: Variância Zero ----------------
   {
-    if (idx >= R2_WINDOW) {
+    if (idx >= R2_WINDOW - 1) {
       const janela = sorted
         .slice(idx - (R2_WINDOW - 1), idx + 1)
         .map((f) => f.kwh_faturado);
@@ -293,7 +294,7 @@ export function calcularScoreEdge(
 
   // ---------------- R5: Tendência Descendente ----------------
   {
-    if (idx >= R5_WINDOW) {
+    if (idx >= R5_WINDOW - 1) {
       const janela = sorted.slice(idx - (R5_WINDOW - 1), idx + 1);
       const n = janela.length;
       const xs = janela.map((_, i) => i);
@@ -302,31 +303,36 @@ export function calcularScoreEdge(
       const sumY = ys.reduce((s, y) => s + y, 0);
       const sumXY = xs.reduce((s, x, i) => s + x * ys[i]!, 0);
       const sumX2 = xs.reduce((s, x) => s + x * x, 0);
-      const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-      let meses = 0;
-      for (let i = janela.length - 1; i > 0; i--) {
-        if (janela[i]!.kwh_faturado < janela[i - 1]!.kwh_faturado) meses++;
-        else break;
-      }
-      if (slope < limiar_slope_tendencia && meses >= R5_MIN_MESES_CONSECUTIVOS) {
-        const pts = Math.min(
-          R5_PONTOS_MAX,
-          Math.round(Math.abs(slope - limiar_slope_tendencia) * R5_FACTOR)
-        );
-        score_base += pts;
-        regras.push({
-          regra: "R5",
-          pontos: pts,
-          descricao: `Slow bleed: ${slope.toFixed(1)} kWh/mês por ${meses} meses`,
-          valor: slope,
-          threshold: limiar_slope_tendencia,
-        });
+      const denom = n * sumX2 - sumX * sumX;
+      if (denom === 0) {
+        regras.push({ regra: "R5", pontos: 0, descricao: "Dados insuficientes para tendência" });
       } else {
-        regras.push({
-          regra: "R5",
-          pontos: 0,
-          descricao: "Sem tendência descendente persistente",
-        });
+        const slope = (n * sumXY - sumX * sumY) / denom;
+        let meses = 0;
+        for (let i = janela.length - 1; i > 0; i--) {
+          if (janela[i]!.kwh_faturado < janela[i - 1]!.kwh_faturado) meses++;
+          else break;
+        }
+        if (slope < limiar_slope_tendencia && meses >= R5_MIN_MESES_CONSECUTIVOS) {
+          const pts = Math.min(
+            R5_PONTOS_MAX,
+            Math.round(Math.abs(slope - limiar_slope_tendencia) * R5_FACTOR)
+          );
+          score_base += pts;
+          regras.push({
+            regra: "R5",
+            pontos: pts,
+            descricao: `Slow bleed: ${slope.toFixed(1)} kWh/mês por ${meses} meses`,
+            valor: slope,
+            threshold: limiar_slope_tendencia,
+          });
+        } else {
+          regras.push({
+            regra: "R5",
+            pontos: 0,
+            descricao: "Sem tendência descendente persistente",
+          });
+        }
       }
     }
   }
@@ -479,7 +485,7 @@ export function calcularScoreEdge(
           threshold: r12_threshold_pct,
         });
       } else {
-        const pts = Math.min(R12_PONTOS_MAX, Math.round((r12_threshold_pct - usoPct) * 5));
+        const pts = Math.min(R12_PONTOS_MAX, Math.round((r12_threshold_pct - usoPct) * R12_FACTOR));
         score_base += pts;
         regras.push({
           regra: "R12",

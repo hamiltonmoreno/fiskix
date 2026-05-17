@@ -34,6 +34,7 @@ import {
   R5_MIN_MESES_CONSECUTIVOS,
   R5_PONTOS_MAX,
   R5_FACTOR,
+  R6_MIN_CLUSTER_SIZE,
   R6_PONTOS_MAX,
   R6_FACTOR,
   R7_BONUS,
@@ -51,6 +52,7 @@ import {
   R11_PONTOS,
   R12_THRESHOLD_PCT,
   R12_PONTOS_MAX,
+  R12_FACTOR,
   SCORE_MAX,
 } from "../constants";
 
@@ -214,7 +216,7 @@ function r2VarianciaZeroContextualizada(
   );
   const idx = sorted.findIndex((f) => f.mes_ano === mesAtual);
 
-  if (idx < R2_WINDOW) {
+  if (idx < R2_WINDOW - 1) {
     return { regra: "R2", pontos: 0, descricao: "Dados insuficientes (< 4 meses)" };
   }
 
@@ -356,7 +358,7 @@ function r5TendenciaDescendente(
   );
   const idx = sorted.findIndex((f) => f.mes_ano === mesAtual);
 
-  if (idx < R5_WINDOW) {
+  if (idx < R5_WINDOW - 1) {
     return { regra: "R5", pontos: 0, descricao: "Dados insuficientes (< 6 meses)" };
   }
 
@@ -371,7 +373,11 @@ function r5TendenciaDescendente(
   const sumXY = xs.reduce((s, x, i) => s + x * ys[i]!, 0);
   const sumX2 = xs.reduce((s, x) => s + x * x, 0);
 
-  const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+  const denom = n * sumX2 - sumX * sumX;
+  if (denom === 0) {
+    return { regra: "R5", pontos: 0, descricao: "Dados insuficientes para tendência" };
+  }
+  const slope = (n * sumXY - sumX * sumY) / denom;
 
   // Verificar se há 3+ meses consecutivos com queda
   let mesesConsecutivos = 0;
@@ -413,11 +419,12 @@ function r6RacioCVEkWh(
   mesAtual: string,
   mediaRacioTarifa: number,
   sigmaRacioTarifa: number,
+  clusterSize: number,
   limiar = LIMIAR_RATIO_RACIO
 ): RegraResultado {
   const f = faturacao.find((f) => f.mes_ano === mesAtual);
 
-  if (!f || f.kwh_faturado === 0 || sigmaRacioTarifa === 0) {
+  if (!f || f.kwh_faturado === 0 || sigmaRacioTarifa === 0 || clusterSize < R6_MIN_CLUSTER_SIZE) {
     return { regra: "R6", pontos: 0, descricao: "Dados insuficientes" };
   }
 
@@ -604,7 +611,7 @@ function r12SubutilizacaoPotencia(
       threshold,
     };
   }
-  const pontos = Math.min(R12_PONTOS_MAX, Math.round((threshold - usoPct) * 5));
+  const pontos = Math.min(R12_PONTOS_MAX, Math.round((threshold - usoPct) * R12_FACTOR));
   return {
     regra: "R12",
     pontos,
@@ -637,6 +644,7 @@ export interface ClusterInfo {
   media_racio_cve_kwh: number;
   sigma_racio_cve_kwh: number;
   tendencia_subestacao_pct: number;
+  cluster_size: number;
 }
 
 export function calcularScore(
@@ -698,6 +706,7 @@ export function calcularScore(
       mesAtual,
       clusterInfo.media_racio_cve_kwh,
       clusterInfo.sigma_racio_cve_kwh,
+      clusterInfo.cluster_size,
       limiar_ratio_racio
     ),
     r7Reincidencia(cliente.alertas_anteriores),

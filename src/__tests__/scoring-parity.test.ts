@@ -31,6 +31,7 @@ import {
   type ClusterInfo,
   type FaturacaoMensal,
   type Limiares,
+  type MetaFatura,
 } from "@/modules/scoring/rules/engine";
 import {
   calcularScoreEdge,
@@ -89,6 +90,7 @@ describe("scoring constants — paridade entre canónico e mirror Deno", () => {
     "R11_PONTOS",
     "R12_THRESHOLD_PCT",
     "R12_PONTOS_MAX",
+    "R12_FACTOR",
     "SCORE_MAX",
     "SCORE_LIMIAR_ALERTA",
     "TARIFA_FALLBACK_CVE_KWH",
@@ -158,13 +160,19 @@ interface ParityFixture {
   nome: string;
   faturacao: FaturacaoMensal[];
   mesAtual: string;
-  cluster: ClusterInfo;
-  /** Tamanho do cluster (para R6_MIN_CLUSTER_SIZE no edge) */
+  cluster: Omit<ClusterInfo, "cluster_size">;
+  /** Tamanho do cluster (para R6_MIN_CLUSTER_SIZE no engine e no edge) */
   clusterSize: number;
   alertasAnteriores: number;
   multiplicadorZona: number;
   /** Limiares parciais para fazer override de defaults */
   limiares?: Limiares;
+  /** R10 — dívida acumulada */
+  saldoAtualCve?: number | null;
+  /** R11 — leituras estimadas recentes */
+  tiposLeituraRecentes?: MetaFatura["tipos_leitura_recentes"];
+  /** R12 — potência contratada */
+  potenciaContratadaWatts?: number | null;
 }
 
 function buildEdgeInput(f: ParityFixture): ScoreInputEdge {
@@ -185,6 +193,9 @@ function buildEdgeInput(f: ParityFixture): ScoreInputEdge {
     tendenciaSubestacao: f.cluster.tendencia_subestacao_pct,
     alertasAnteriores: f.alertasAnteriores,
     multiplicadorZona: f.multiplicadorZona,
+    saldoAtualCve: f.saldoAtualCve ?? null,
+    tiposLeituraRecentes: f.tiposLeituraRecentes,
+    potenciaContratadaWatts: f.potenciaContratadaWatts ?? null,
   };
 }
 
@@ -197,6 +208,14 @@ function buildClienteEngine(f: ParityFixture): ClienteData {
     id_subestacao: "sub-parity",
     faturacao: f.faturacao,
     alertas_anteriores: f.alertasAnteriores,
+    potencia_contratada_w: f.potenciaContratadaWatts ?? undefined,
+  };
+}
+
+function buildMetaFatura(f: ParityFixture): MetaFatura {
+  return {
+    saldo_atual_cve: f.saldoAtualCve ?? null,
+    tipos_leitura_recentes: f.tiposLeituraRecentes ?? undefined,
   };
 }
 
@@ -359,6 +378,18 @@ const FIXTURES: ParityFixture[] = [
     alertasAnteriores: 0,
     multiplicadorZona: 1.1,
   },
+  {
+    nome: "cliente-r10-r11-r12",
+    faturacao: mkFaturacao([200, 210, 195, 205, 200, 208, 202, 199, 201, 198, 203, 50]),
+    mesAtual: "2024-12",
+    cluster: { mediana: 200, mad: 10, media_racio_cve_kwh: 25, sigma_racio_cve_kwh: 5, tendencia_subestacao_pct: 2 },
+    clusterSize: 20,
+    alertasAnteriores: 0,
+    multiplicadorZona: 1.3,
+    saldoAtualCve: 5000,
+    tiposLeituraRecentes: ["estimada", "estimada", "estimada", "estimada", null, null],
+    potenciaContratadaWatts: 6600,
+  },
 ];
 
 describe("scoring logic — paridade engine.ts ↔ pure.ts (edge function)", () => {
@@ -372,8 +403,9 @@ describe("scoring logic — paridade engine.ts ↔ pure.ts (edge function)", () 
         cliente,
         fixture.mesAtual,
         fixture.multiplicadorZona,
-        fixture.cluster,
-        fixture.limiares ?? {}
+        { ...fixture.cluster, cluster_size: fixture.clusterSize },
+        fixture.limiares ?? {},
+        buildMetaFatura(fixture)
       );
 
       const resultEdge = calcularScoreEdge(edgeInput, fixture.limiares ?? {});
@@ -393,8 +425,9 @@ describe("scoring logic — paridade engine.ts ↔ pure.ts (edge function)", () 
         cliente,
         fixture.mesAtual,
         fixture.multiplicadorZona,
-        fixture.cluster,
-        fixture.limiares ?? {}
+        { ...fixture.cluster, cluster_size: fixture.clusterSize },
+        fixture.limiares ?? {},
+        buildMetaFatura(fixture)
       );
       const resultEdge = calcularScoreEdge(edgeInput, fixture.limiares ?? {});
 

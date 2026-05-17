@@ -31,6 +31,14 @@ import {
 import { calcularScoreEdge } from "./pure.ts";
 import { corsHeadersFor, corsPreflight } from "../_shared/cors.ts";
 
+async function timingSafeEqual(a: string, b: string): Promise<boolean> {
+  const enc = new TextEncoder();
+  const ba = enc.encode(a);
+  const bb = enc.encode(b);
+  if (ba.length !== bb.length) return false;
+  return await crypto.subtle.timingSafeEqual(ba, bb);
+}
+
 type UserRole = "admin_fiskix" | "diretor" | "gestor_perdas" | "supervisor" | "fiscal";
 
 const SCORING_ALLOWED_ROLES: UserRole[] = [
@@ -67,7 +75,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Não autenticado" }, 401);
     }
 
-    const isServiceRequest = authHeader === `Bearer ${serviceRoleKey}`;
+    const isServiceRequest = await timingSafeEqual(authHeader ?? "", `Bearer ${serviceRoleKey}`);
 
     const supabase = createClient(
       supabaseUrl,
@@ -96,10 +104,21 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { subestacao_id, mes_ano } = await req.json();
+    let body: { subestacao_id?: unknown; mes_ano?: unknown };
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse({ error: "Body JSON inválido" }, 400);
+    }
 
-    if (!subestacao_id || !mes_ano) {
-      return jsonResponse({ error: "subestacao_id e mes_ano são obrigatórios" }, 400);
+    const { subestacao_id, mes_ano } = body;
+    if (
+      typeof subestacao_id !== "string" ||
+      typeof mes_ano !== "string" ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(subestacao_id) ||
+      !/^\d{4}-\d{2}$/.test(mes_ano)
+    ) {
+      return jsonResponse({ error: "subestacao_id (UUID) e mes_ano (YYYY-MM) são obrigatórios" }, 400);
     }
 
     // 1. Carregar limiares configuráveis
@@ -109,7 +128,8 @@ Deno.serve(async (req) => {
 
     const config: Record<string, number> = {};
     for (const row of (configRows ?? [])) {
-      config[row.chave] = parseFloat(row.valor);
+      const v = parseFloat(row.valor);
+      if (!isNaN(v)) config[row.chave] = v;
     }
 
     const limiares = {
@@ -197,10 +217,9 @@ Deno.serve(async (req) => {
       .order("mes_ano", { ascending: true });
 
     // Alertas anteriores por cliente (não falso-positivos, últimos R7_LOOKBACK_MESES meses)
-    // month é 1-indexed; Date espera 0-indexed; já é considerado pelo offset
-    // R7_LOOKBACK_MESES (definido em scoring/constants.ts).
+    // month é 1-indexed (1–12); Date espera 0-indexed (0–11), por isso subtrai 1 + lookback.
     const [year, month] = mes_ano.split("-").map(Number);
-    const mes12Atras = new Date(year, month - R7_LOOKBACK_MESES, 1);
+    const mes12Atras = new Date(year, month - 1 - R7_LOOKBACK_MESES, 1);
     const mes12AtrasFmt = `${mes12Atras.getFullYear()}-${String(mes12Atras.getMonth() + 1).padStart(2, "0")}`;
 
     const { data: alertasHist } = await supabase
@@ -263,8 +282,34 @@ Deno.serve(async (req) => {
     // 5. Pontuar cada cliente — delega na lógica pura de pure.ts
     const alertasParaInserir = [];
 
+    // Pré-computar mapa de histórico por cliente em ordem descendente (evita O(N×M) filter
+    // e o [...histRows].sort() por cliente — DB devolve ascendente, invertemos uma vez aqui)
+    const faturacaoPorCliente = new Map<string, NonNullable<typeof faturacaoHistorico>>();
+    for (const row of [...(faturacaoHistorico ?? [])].reverse()) {
+      if (!faturacaoPorCliente.has(row.id_cliente)) faturacaoPorCliente.set(row.id_cliente, []);
+      faturacaoPorCliente.get(row.id_cliente)!.push(row);
+    }
+
+    // Pré-computar rácio CVE/kWh por tipo de tarifa (evita O(N²) recálculo no loop)
+    const raciosPorTarifaMap = new Map<string, { mediaRacio: number; sigmaRacio: number; clusterSize: number }>();
+    for (const tarifa of new Set(clientes.map((c) => c.tipo_tarifa))) {
+      const racios = clientes
+        .filter((c) => c.tipo_tarifa === tarifa)
+        .map((c) => {
+          const fm = faturacaoMesMap[c.id];
+          return fm && fm.kwh > 0 ? fm.cve / fm.kwh : null;
+        })
+        .filter((r): r is number => r !== null);
+      const media = racios.length ? racios.reduce((s, r) => s + r, 0) / racios.length : 0;
+      const sigma =
+        racios.length >= R6_MIN_CLUSTER_SIZE
+          ? Math.sqrt(racios.reduce((s, r) => s + Math.pow(r - media, 2), 0) / racios.length)
+          : 0;
+      raciosPorTarifaMap.set(tarifa, { mediaRacio: media, sigmaRacio: sigma, clusterSize: racios.length });
+    }
+
     for (const cliente of clientes) {
-      const histRows = (faturacaoHistorico ?? []).filter((f) => f.id_cliente === cliente.id);
+      const histRows = faturacaoPorCliente.get(cliente.id) ?? [];
       const fHist = histRows.map((f) => ({ mes_ano: f.mes_ano, kwh_faturado: f.kwh_faturado, valor_cve: f.valor_cve }));
 
       const fAtual = faturacaoMesMap[cliente.id];
@@ -272,10 +317,10 @@ Deno.serve(async (req) => {
 
       // Meta-fatura para R10/R11: extrair do mês atual (saldo) + últimos 6 meses (tipos leitura).
       // R12: potência do cliente já vem no select.
-      const histRecente = [...histRows].sort((a, b) => b.mes_ano.localeCompare(a.mes_ano));
-      const fAtualRow = histRecente.find((r) => r.mes_ano === mes_ano);
+      // histRows já está em ordem descendente (mais recente primeiro) — sem sort adicional
+      const fAtualRow = histRows.find((r) => r.mes_ano === mes_ano);
       const saldoAtualCve = fAtualRow?.saldo_atual_cve ?? null;
-      const tiposLeituraRecentes = histRecente
+      const tiposLeituraRecentes = histRows
         .slice(0, 6)
         .map((r) => r.tipo_leitura as "real" | "estimada" | "empresa" | "cliente" | null);
       const potenciaContratadaWatts = (cliente as { potencia_contratada_w?: number | null }).potencia_contratada_w ?? null;
@@ -285,27 +330,8 @@ Deno.serve(async (req) => {
       const med = calcMediana(grupoTarifa);
       const madVal = calcMAD(grupoTarifa, med);
 
-      // Rácio CVE/kWh do cluster
-      const raciosPorTarifa = clientes
-        .filter((c) => c.tipo_tarifa === cliente.tipo_tarifa)
-        .map((c) => {
-          const fm = faturacaoMesMap[c.id];
-          return fm && fm.kwh > 0 ? fm.cve / fm.kwh : null;
-        })
-        .filter((r): r is number => r !== null);
-
-      const mediaRacio = raciosPorTarifa.length
-        ? raciosPorTarifa.reduce((s, r) => s + r, 0) / raciosPorTarifa.length
-        : 0;
-      // R6 needs at least R6_MIN_CLUSTER_SIZE customers in the same tariff
-      // group to compute a meaningful sigma; abaixo disso `sigma=0` faz a regra
-      // ser ignorada (evita fallback `sigma=1` em clusters minúsculos).
-      const sigmaRacio = raciosPorTarifa.length >= R6_MIN_CLUSTER_SIZE
-        ? Math.sqrt(
-          raciosPorTarifa.reduce((s, r) => s + Math.pow(r - mediaRacio, 2), 0) /
-          raciosPorTarifa.length
-        )
-        : 0;
+      const { mediaRacio, sigmaRacio, clusterSize } =
+        raciosPorTarifaMap.get(cliente.tipo_tarifa) ?? { mediaRacio: 0, sigmaRacio: 0, clusterSize: 0 };
 
       const { regras, score_final } = calcularScoreEdge(
         {
@@ -317,7 +343,7 @@ Deno.serve(async (req) => {
           madCluster: madVal,
           mediaRacio,
           sigmaRacio,
-          clusterSize: raciosPorTarifa.length,
+          clusterSize,
           tendenciaSubestacao,
           alertasAnteriores: alertasPorCliente[cliente.id] ?? 0,
           multiplicadorZona: multiplicador_zona,
@@ -367,15 +393,19 @@ Deno.serve(async (req) => {
         else console.error("Erro ao inserir novos alertas:", error);
       }
 
-      // UPDATE score e motivo apenas em alertas ainda Pendente (não actuados)
-      for (const a of actualizaveis) {
-        const { error, count } = await supabase
-          .from("alertas_fraude")
-          .update({ score_risco: a.score_risco, motivo: a.motivo }, { count: "exact" })
-          .eq("id_cliente", a.id_cliente)
-          .eq("mes_ano", mes_ano)
-          .eq("status", "Pendente");
-        if (!error && (count ?? 0) > 0) actualizados++;
+      // UPDATE score e motivo apenas em alertas ainda Pendente (não actuados) — paralelo
+      if (actualizaveis.length > 0) {
+        const updateResults = await Promise.all(
+          actualizaveis.map((a) =>
+            supabase
+              .from("alertas_fraude")
+              .update({ score_risco: a.score_risco, motivo: a.motivo }, { count: "exact" })
+              .eq("id_cliente", a.id_cliente)
+              .eq("mes_ano", mes_ano)
+              .eq("status", "Pendente")
+          )
+        );
+        actualizados = updateResults.filter((r) => !r.error && (r.count ?? 0) > 0).length;
       }
 
     }
@@ -402,7 +432,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error("Erro no scoring engine:", error);
     return new Response(
-      JSON.stringify({ error: String(error) }),
+      JSON.stringify({ error: "Erro interno — contacte o suporte" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

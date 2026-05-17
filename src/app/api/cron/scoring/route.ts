@@ -143,7 +143,7 @@ export async function GET(request: Request) {
   if (subError || !subestacoes) {
     log.error("cron.subestacoes_query_failed", { detail: subError?.message });
     return withRequestId(
-      { error: "Erro ao obter subestações", detail: subError?.message },
+      { error: "Erro ao obter subestações" },
       500,
       requestId
     );
@@ -190,7 +190,13 @@ export async function GET(request: Request) {
       subestacoes_processadas: subestacoes.length,
       total_alertas_gerados: totalAlertas,
       erros: erros.length,
-      resultados,
+      resultados: resultados.map(({ subestacao_id, nome, alertas_gerados, perda_pct, error }) => ({
+        subestacao_id,
+        nome,
+        alertas_gerados,
+        perda_pct,
+        failed: error !== undefined,
+      })),
     },
     200,
     requestId

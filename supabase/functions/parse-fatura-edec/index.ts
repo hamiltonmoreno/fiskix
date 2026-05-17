@@ -106,6 +106,10 @@ Deno.serve(async (req) => {
           error: "Provider claude-vision requer { mode: 'image', image_base64, mime_type }",
         }, 400);
       }
+      const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+      if (!ALLOWED_MIME_TYPES.includes(body.mime_type)) {
+        return json({ error: "mime_type não suportado" }, 400);
+      }
       const parsed = await callClaudeVision(
         body.image_base64,
         body.mime_type,
@@ -115,10 +119,11 @@ Deno.serve(async (req) => {
       return json({ parsed, provider_used: "claude-vision", warnings: parsed.warnings });
     }
 
-    return json({ error: `Provider desconhecido: ${provider}` }, 500);
+    console.error("parse-fatura-edec: provider inválido na configuração:", provider);
+    return json({ error: "Configuração de provider inválida" }, 500);
   } catch (error) {
     console.error("parse-fatura-edec erro:", error);
-    return json({ error: String(error) }, 500);
+    return json({ error: "Erro interno — contacte o suporte" }, 500);
   }
 });
 

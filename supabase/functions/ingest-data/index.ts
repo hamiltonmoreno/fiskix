@@ -321,6 +321,25 @@ Deno.serve(async (req) => {
       );
     }
 
+    const MAX_FILE_BYTES = 4 * 1024 * 1024; // 4 MB
+    if (file.size > MAX_FILE_BYTES) {
+      return new Response(
+        JSON.stringify({ error: "Ficheiro demasiado grande (máx 4 MB)" }),
+        { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const ALLOWED_TYPES = [
+      "text/csv", "text/plain", "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ];
+    if (!file.type || !ALLOWED_TYPES.includes(file.type)) {
+      return new Response(
+        JSON.stringify({ error: "Tipo de ficheiro não suportado" }),
+        { status: 415, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const texto = await file.text();
     const rows = parseCsv(texto);
 
@@ -478,7 +497,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error("Erro na ingestão:", error);
     return new Response(
-      JSON.stringify({ error: String(error) }),
+      JSON.stringify({ error: "Erro interno — contacte o suporte" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

@@ -94,6 +94,7 @@ export const R11_PONTOS = 5;                   // bónus fixo
 // R12 — Subutilização de Potência Contratada (cliente "fantasma")
 export const R12_THRESHOLD_PCT = 1;            // (kWh / capacidade) × 100 < 1% → pontua
 export const R12_PONTOS_MAX = 5;
+export const R12_FACTOR = 5;                   // pontos = round((threshold - uso_pct) * factor)
 
 // Score final
 export const SCORE_MAX = 100;

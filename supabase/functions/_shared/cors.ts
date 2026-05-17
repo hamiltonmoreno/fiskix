@@ -70,8 +70,10 @@ export async function corsHeadersFor(req: Request): Promise<Record<string, strin
       allowOrigin = allowlist.includes(origin) ? origin : "null";
     }
   } catch {
-    // Falha a ler configuracoes (DB down, permissões) → fail-open com "*".
-    // Edge runtime tem isolamento — preferível responder do que crashar.
+    // DB inacessível — usar cache anterior se existir; senão fail-closed com "null"
+    allowOrigin = cachedAllowlist !== null
+      ? (cachedAllowlist.length === 0 ? "*" : (cachedAllowlist.includes(origin) ? origin : "null"))
+      : "null";
   }
 
   return {

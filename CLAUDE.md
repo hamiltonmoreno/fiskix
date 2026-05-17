@@ -54,7 +54,7 @@
 - **Sem preguiça** — encontrar causas raiz. Sem fixes temporários. Standards de senior engineer.
 - **Impacto mínimo** — só tocar o necessário. Sem side effects com novos bugs.
 - **Segurança** — nunca expor `.env.local` ou secrets. Validar input nas fronteiras do sistema.
-- **Testes** — 300 testes devem passar antes de qualquer commit em `main`. Scoring engine é crítico: validar sempre com testes existentes antes de alterar `engine.ts`.
+- **Testes** — 604 testes devem passar antes de qualquer commit em `main`. Scoring engine é crítico: validar sempre com testes existentes antes de alterar `engine.ts`.
 
 ---
 
@@ -69,7 +69,7 @@ Plataforma SaaS de deteção de fraudes e perdas comerciais de energia elétrica
 - **Deploy**: Vercel (frontend) + Supabase Edge Functions
 - **SMS**: Twilio (alphanumeric sender "Electra" + fallback numérico)
 - **Mobile**: PWA (Android Chrome) — rotas `/mobile`
-- **Testes**: Vitest (300 testes automatizados em 31 ficheiros, 100% de sucesso)
+- **Testes**: Vitest (604 testes automatizados em 50 ficheiros, 100% de sucesso)
 
 ## Supabase
 
@@ -84,7 +84,7 @@ src/modules/
   auth/          — login, sessão, perfil
   dashboard/     — Control Room (KPIs, mapa, alertas, TendenciaPerdas)
   mobile/        — PWA para fiscais (roteiro, inspeção, câmara GPS)
-  scoring/       — Motor de 9 regras (engine.ts — lógica local)
+  scoring/       — Motor de 12 regras (engine.ts — lógica local)
   ingestao/      — Import CSV/Excel de faturação e injeção
   alertas/       — CRUD alertas_fraude (em /alertas, não em modules/)
   admin/         — utilizadores, configuração, importar
@@ -112,7 +112,9 @@ supabase/functions/
 - `configuracoes` — limiares configuráveis do motor
 - `ml_predicoes` — predições ML por cliente/mês (heuristic_v1, Fase 2)
 
-## Motor de Scoring (9 Regras)
+## Motor de Scoring (12 Regras)
+
+Referência técnica completa com fórmulas: [docs/scoring-engine.md](docs/scoring-engine.md)
 
 | Regra | O que deteta | Pontos |
 | ----- | ------------ | ------ |
@@ -125,6 +127,9 @@ supabase/functions/
 | R7 | Reincidência (alertas confirmados 12 meses) | +5 bónus |
 | R8 | Consumo atual < 20% do pico histórico | 0–5 |
 | R9 | Multiplicador zona vermelha (perda > 15%) | ×1.0–1.3 |
+| R10 | Dívida acumulada — incentivo financeiro (Fase 2) | 0–10 |
+| R11 | Leitura estimada recorrente — recusa de acesso (Fase 2) | +5 |
+| R12 | Subutilização de potência contratada (Fase 2) | 0–5 |
 
 Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha (perda > 15%).
 
@@ -170,7 +175,7 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 - ✅ Dashboard: KPIs, mapa React Leaflet, tabela alertas, gráficos Recharts, TendenciaPerdas 12 meses
 - ✅ Módulo `/alertas` independente: CRUD completo, filtros, paginação, SMS, ordens
 - ✅ Sidebar responsiva retrátil (desktop + mobile drawer) + Breadcrumb
-- ✅ Motor scoring 9 regras (edge function + engine.ts local)
+- ✅ Motor scoring 12 regras (edge function + engine.ts local; R10/R11/R12 adicionados na Fase 2)
 - ✅ Import CSV/Excel (ingest-data edge function)
 - ✅ SMS Twilio com fallback
 - ✅ App mobile PWA (roteiro, ficha inteligência, relatório inspeção com câmara GPS)
@@ -182,7 +187,7 @@ Score ≥ 75 → CRÍTICO; 50–74 → MÉDIO. Só pontuação em Zona Vermelha 
 - ✅ Branch protection automática com check obrigatório `Quality Gate` em PR para `main`
 - ✅ Service Worker PWA corrigido (não cacheia POST/mutations)
 - ✅ Roteiro mobile inicializa estado online pelo `navigator.onLine` para preservar fallback offline
-- ✅ Testes: 300 testes integrados em 31 ficheiros (Vitest) + ~11 cenários E2E em 5 ficheiros (Playwright)
+- ✅ Testes: 604 testes em 50 ficheiros (Vitest) + ~19 cenários E2E em 5 ficheiros (Playwright)
 - ✅ Score ML heurístico (`ml_predicoes`) + cron dia 2 às 03:00 UTC (`/api/cron/ml`)
 - ✅ Balanço Energético Avançado: split técnico/comercial + Índice de Recuperabilidade (`/relatorios` tab "Análise Avançada")
 - ✅ API REST pública (`/api/v1/`) com auth por API key, rate limit 60 req/min, 4 endpoints

@@ -59,13 +59,13 @@ export function ReincidenciaClient() {
         const confirmados = list.filter((a) => a.resultado === "Fraude_Confirmada").length;
         return {
           id,
-          nome: list[0].clientes.nome_titular,
-          contador: list[0].clientes.numero_contador,
-          zona: list[0].clientes.subestacoes.zona_bairro,
+          nome: list[0]!.clientes.nome_titular,
+          contador: list[0]!.clientes.numero_contador,
+          zona: list[0]!.clientes.subestacoes.zona_bairro,
           totalAlertas: list.length,
           confirmados,
           scoreMax: Math.max(...list.map((a) => a.score_risco)),
-          ultimoMes: list[0].mes_ano,
+          ultimoMes: list[0]!.mes_ano,
         };
       })
       .filter((c) => c.confirmados >= minConfirmados)
