@@ -3,20 +3,11 @@
   "include": [
     "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx",
-    "supabase/functions/_shared/**/*.ts",
-    "supabase/functions/scoring-engine/pure.ts"
+    "**/*.tsx"
   ],
   "exclude": [
     ".next",
     "node_modules",
-    "supabase/functions/balanco-energetico",
-    "supabase/functions/ingest-data",
-    "supabase/functions/ml-scoring",
-    "supabase/functions/send-sms",
-    "supabase/functions/send-email",
-    "supabase/functions/parse-fatura-edec",
-    "supabase/functions/scoring-engine/index.ts",
-    "supabase/functions/_shared/cors.ts"
+    "supabase/functions"
   ]
 }
