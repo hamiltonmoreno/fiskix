@@ -5,6 +5,7 @@ import "./globals.css";
 import "./mosaic-utilities.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -68,6 +69,7 @@ export default function RootLayout({
           {children}
           <Toaster richColors position="top-right" />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
