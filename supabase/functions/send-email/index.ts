@@ -179,9 +179,15 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Sem permissão para enviar email" }, corsHeaders, 403);
     }
 
-    const { alerta_id, tipo } = await req.json();
+    let reqBody: { alerta_id?: unknown; tipo?: unknown };
+    try {
+      reqBody = await req.json();
+    } catch {
+      return jsonResponse({ error: "Body JSON inválido" }, corsHeaders, 400);
+    }
+    const { alerta_id, tipo } = reqBody;
 
-    if (!alerta_id || !tipo || !["amarelo", "vermelho"].includes(tipo)) {
+    if (!alerta_id || !tipo || !["amarelo", "vermelho"].includes(tipo as string)) {
       return jsonResponse({ error: "alerta_id e tipo (amarelo|vermelho) são obrigatórios" }, corsHeaders, 400);
     }
 

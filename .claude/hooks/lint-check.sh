@@ -17,7 +17,7 @@ if ! echo "$COMMAND" | grep -q "git commit"; then
 fi
 
 echo "Pre-commit: running lint + typecheck..."
-cd "c:/Users/User/OneDrive/Documentos/fiskix" || exit 1
+cd "$(git rev-parse --show-toplevel)" || exit 1
 
 npm run lint --silent 2>&1
 if [ $? -ne 0 ]; then

@@ -31,6 +31,7 @@ export function FiscaisClient() {
   const supabase = useMemo(() => createClient(), []);
   const [rows, setRows] = useState<InspecaoRaw[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [mesFiltro, setMesFiltro] = useState("");
 
   useEffect(() => {
@@ -48,8 +49,13 @@ export function FiscaisClient() {
           q = q.eq("alertas_fraude.mes_ano", mesFiltro);
         }
 
-        const { data } = await q;
-        setRows((data ?? []) as unknown as InspecaoRaw[]);
+        const { data, error: queryError } = await q;
+        if (queryError) {
+          setFetchError("Erro ao carregar inspeções. Tente novamente.");
+        } else {
+          setFetchError(null);
+          setRows((data ?? []) as unknown as InspecaoRaw[]);
+        }
       } finally {
         setLoading(false);
       }
@@ -132,6 +138,10 @@ export function FiscaisClient() {
           {mesesDisponiveis.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
       </div>
+
+      {fetchError && (
+        <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm">{fetchError}</div>
+      )}
 
       {/* KPIs globais */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

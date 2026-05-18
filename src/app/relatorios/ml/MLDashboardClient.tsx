@@ -31,7 +31,9 @@ export function MLDashboardClient() {
   useEffect(() => {
     Promise.all([
       supabase.from("configuracoes").select("chave, valor").in("chave", ["ml_modelo_ativo", "ml_pesos_v1", "ml_rmse_historico", "ml_inspecoes_promote_threshold"]),
-    ]).then(([{ data }]) => setConfigs(data ?? []));
+    ])
+      .then(([{ data }]) => setConfigs(data ?? []))
+      .catch(() => { /* configs are display-only; silent failure leaves "—" placeholders */ });
   }, [supabase]);
 
   useEffect(() => {

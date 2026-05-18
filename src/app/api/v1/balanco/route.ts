@@ -7,6 +7,12 @@ import { getClientIp } from "@/lib/api/client-ip";
 import { BalancoQuerySchema, parseQuery } from "@/lib/api/schemas";
 import { cacheControlForMesAno } from "@/lib/api/cache";
 
+// service_role intentional: auth is by API key, not by Supabase session.
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 /**
  * GET /api/v1/balanco
  *
@@ -40,9 +46,7 @@ export async function GET(request: Request) {
     }
     const { mes_ano, subestacao_id } = parsed.data;
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = supabaseAdmin;
 
     // Configurações
     const { data: config } = await supabase
@@ -66,7 +70,7 @@ export async function GET(request: Request) {
     // Injeção e faturação em paralelo
     const [injecaoRes, faturacaoRes] = await Promise.all([
       supabase.from("injecao_energia").select("id_subestacao, total_kwh_injetado").eq("mes_ano", mes_ano).in("id_subestacao", subIds),
-      supabase.from("faturacao_clientes").select("kwh_faturado, valor_cve, clientes!inner(id_subestacao)").eq("mes_ano", mes_ano),
+      supabase.from("faturacao_clientes").select("kwh_faturado, valor_cve, clientes!inner(id_subestacao)").eq("mes_ano", mes_ano).in("clientes.id_subestacao", subIds),
     ]);
 
     const injMap: Record<string, number> = {};

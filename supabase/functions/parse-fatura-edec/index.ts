@@ -82,7 +82,12 @@ Deno.serve(async (req) => {
     for (const r of configRows ?? []) cfg[r.chave] = r.valor ?? "";
     const provider = (cfg.ocr_provider || "text-paste") as Provider;
 
-    const body = (await req.json()) as RequestBody;
+    let body: RequestBody;
+    try {
+      body = (await req.json()) as RequestBody;
+    } catch {
+      return json({ error: "Body JSON inválido" }, 400);
+    }
 
     if (provider === "text-paste") {
       if (body.mode !== "text" || !body.text?.trim()) {
@@ -110,11 +115,17 @@ Deno.serve(async (req) => {
       if (!ALLOWED_MIME_TYPES.includes(body.mime_type)) {
         return json({ error: "mime_type não suportado" }, 400);
       }
+      // ~750 KB decoded — prevent timeout/cost overruns from oversized uploads
+      if (body.image_base64.length > 1_000_000) {
+        return json({ error: "Imagem demasiado grande (máx ~750 KB)" }, 400);
+      }
+      const ALLOWED_MODELS = ["claude-haiku-4-5", "claude-haiku-4-5-20251001", "claude-sonnet-4-5", "claude-sonnet-4-6"];
+      const modeloEscolhido = ALLOWED_MODELS.includes(cfg.ocr_claude_model) ? cfg.ocr_claude_model : "claude-haiku-4-5";
       const parsed = await callClaudeVision(
         body.image_base64,
         body.mime_type,
         apiKey,
-        cfg.ocr_claude_model || "claude-haiku-4-5",
+        modeloEscolhido,
       );
       return json({ parsed, provider_used: "claude-vision", warnings: parsed.warnings });
     }

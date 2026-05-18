@@ -6,6 +6,12 @@ import { corsHeadersFor } from "@/lib/api/cors";
 import { getClientIp } from "@/lib/api/client-ip";
 import { AlertaIdParamSchema, parseParams } from "@/lib/api/schemas";
 
+// service_role intentional: auth is by API key, not by Supabase session.
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 /**
  * GET /api/v1/alertas/:id
  *
@@ -39,9 +45,7 @@ export async function GET(
     }
     const { id } = parsed.data;
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = supabaseAdmin;
 
     const { data, error } = await supabase
       .from("alertas_fraude")
@@ -56,25 +60,23 @@ export async function GET(
       .eq("id", id)
       .single();
 
+    if (error || !data) return apiError("Alerta não encontrado", 404, request);
+
     // Enriquecimento: buscar a fatura do mes_ano do alerta para expor saldo/tipo_leitura.
     // Falha silenciosa quando ausentes (deployments pré-021).
     let fatura = null;
-    if (data) {
-      const cliente = Array.isArray(data.clientes) ? data.clientes[0] : data.clientes;
-      if (cliente?.id) {
-        const { data: f } = await supabase
-          .from("faturacao_clientes")
-          .select("kwh_faturado, valor_cve, saldo_atual_cve, tipo_leitura, leitura_inicial, leitura_final, periodo_inicio, periodo_fim")
-          .eq("id_cliente", cliente.id)
-          .eq("mes_ano", data.mes_ano)
-          .maybeSingle();
-        fatura = f;
-      }
+    const clienteData = Array.isArray(data.clientes) ? data.clientes[0] : data.clientes;
+    if (clienteData?.id) {
+      const { data: f } = await supabase
+        .from("faturacao_clientes")
+        .select("kwh_faturado, valor_cve, saldo_atual_cve, tipo_leitura, leitura_inicial, leitura_final, periodo_inicio, periodo_fim")
+        .eq("id_cliente", clienteData.id)
+        .eq("mes_ano", data.mes_ano)
+        .maybeSingle();
+      fatura = f;
     }
 
-    if (error || !data) return apiError("Alerta não encontrado", 404, request);
-
-    const enrichedData = { ...data, fatura };
+    const enrichedData = { ...data, clientes: clienteData, fatura };
 
     const corsHeaders = await corsHeadersFor(request);
     return new Response(JSON.stringify({ data: enrichedData }), {

@@ -7,6 +7,12 @@ import { getClientIp } from "@/lib/api/client-ip";
 import { PredicoesQuerySchema, parseQuery } from "@/lib/api/schemas";
 import { cacheControlForMesAno } from "@/lib/api/cache";
 
+// service_role intentional: auth is by API key, not by Supabase session.
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 /**
  * GET /api/v1/predicoes
  *
@@ -43,14 +49,12 @@ export async function GET(request: Request) {
     const { mes_ano, min_score_ml, page, limit } = parsed.data;
     const offset = (page - 1) * limit;
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = supabaseAdmin;
 
     let query = supabase
       .from("ml_predicoes")
       .select(
-        `id, score_ml, modelo_versao, features_json, mes_ano, criado_em,
+        `id, score_ml, modelo_versao, mes_ano, criado_em,
        clientes!inner(id, numero_contador, nome_titular,
          subestacoes!inner(nome, zona_bairro))`,
         { count: "exact" }

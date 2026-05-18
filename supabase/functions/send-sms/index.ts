@@ -108,7 +108,13 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Sem permissão para enviar SMS" }, 403);
     }
 
-    const { alerta_id, tipo } = await req.json();
+    let reqBody: { alerta_id?: unknown; tipo?: unknown };
+    try {
+      reqBody = await req.json();
+    } catch {
+      return jsonResponse({ error: "Body JSON inválido" }, 400);
+    }
+    const { alerta_id, tipo } = reqBody;
 
     if (!alerta_id || !tipo || !["amarelo", "vermelho"].includes(tipo)) {
       return jsonResponse({ error: "alerta_id e tipo (amarelo|vermelho) são obrigatórios" }, 400);
@@ -172,7 +178,7 @@ Deno.serve(async (req) => {
 
       // 2ª tentativa: fallback para número EUA se alpha falhou
       if (!resultado.ok && twilioPhone) {
-        console.log(`Alpha sender falhou (${resultado.error}), a tentar número ${twilioPhone}`);
+        console.log(`Alpha sender falhou (${resultado.error}), a tentar fallback numérico`);
         resultado = await enviarTwilio(
           telemovelNormalizado,
           mensagem,

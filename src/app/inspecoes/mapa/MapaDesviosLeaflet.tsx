@@ -3,6 +3,15 @@
 import { useEffect, useRef } from "react";
 import type { InspecaoPonto } from "./MapaInspecoesClient";
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 interface Props {
   pontos: InspecaoPonto[];
   limiarMetros: number;
@@ -43,7 +52,7 @@ export default function MapaDesviosLeaflet({ pontos, limiarMetros }: Props) {
 
       for (const p of pontos) {
         const isSuspeito = p.distancia_m > limiarMetros;
-        const popupContent = `<div style="font-size:12px;min-width:160px"><b>${p.nome_titular}</b><br/><code style="font-size:10px">${p.numero_contador}</code><br/>Fiscal: ${p.nome_fiscal}<br/>Resultado: ${p.resultado.replace(/_/g, " ")}<br/>Desvio: <b style="color:${isSuspeito ? "#ef4444" : "#10b981"}">${p.distancia_m}m</b></div>`;
+        const popupContent = `<div style="font-size:12px;min-width:160px"><b>${escapeHtml(p.nome_titular)}</b><br/><code style="font-size:10px">${escapeHtml(p.numero_contador)}</code><br/>Fiscal: ${escapeHtml(p.nome_fiscal)}<br/>Resultado: ${escapeHtml(p.resultado.replace(/_/g, " "))}<br/>Desvio: <b style="color:${isSuspeito ? "#ef4444" : "#10b981"}">${Number(p.distancia_m)}m</b></div>`;
 
         L.marker([p.cliente_lat, p.cliente_lng], { icon: clienteIcon })
           .addTo(map)

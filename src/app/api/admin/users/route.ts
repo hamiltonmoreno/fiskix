@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 async function requireAdmin() {
@@ -18,26 +19,30 @@ async function requireAdmin() {
 
 const ALLOWED_ROLES = ["admin_fiskix", "diretor", "gestor_perdas", "supervisor", "fiscal"] as const;
 
+const CreateUserSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(8, "Password deve ter pelo menos 8 caracteres"),
+  nome_completo: z.string().min(1, "Nome obrigatório"),
+  role: z.enum(ALLOWED_ROLES, { message: "Role inválido" }),
+  id_zona: z.string().uuid("id_zona deve ser um UUID válido").optional().nullable(),
+});
+
 export async function POST(request: Request) {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   try {
-    const { email, password, nome_completo, role, id_zona } = await request.json() as {
-      email: string;
-      password: string;
-      nome_completo: string;
-      role: string;
-      id_zona?: string;
-    };
+    const body = await request.json().catch(() => null);
+    if (!body) return NextResponse.json({ error: "Body JSON inválido" }, { status: 400 });
 
-    if (!email || !password || !nome_completo || !role) {
-      return NextResponse.json({ error: "Campos obrigatórios em falta" }, { status: 400 });
+    const parsed = CreateUserSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors[0]?.message ?? "Dados inválidos" },
+        { status: 400 }
+      );
     }
-
-    if (!ALLOWED_ROLES.includes(role as typeof ALLOWED_ROLES[number])) {
-      return NextResponse.json({ error: "Role inválido" }, { status: 400 });
-    }
+    const { email, password, nome_completo, role, id_zona } = parsed.data;
 
     const service = createServiceClient();
     const { error } = await service.auth.admin.createUser({
@@ -59,8 +64,12 @@ export async function DELETE(request: Request) {
   if (!admin) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   try {
-    const { id } = await request.json() as { id: string };
-    if (!id) return NextResponse.json({ error: "ID do utilizador em falta" }, { status: 400 });
+    const body = await request.json().catch(() => null);
+    const idParsed = z.object({ id: z.string().uuid("ID deve ser um UUID válido") }).safeParse(body);
+    if (!idParsed.success) {
+      return NextResponse.json({ error: idParsed.error.errors[0]?.message ?? "ID inválido" }, { status: 400 });
+    }
+    const { id } = idParsed.data;
 
     const service = createServiceClient();
     const { error } = await service.auth.admin.deleteUser(id);

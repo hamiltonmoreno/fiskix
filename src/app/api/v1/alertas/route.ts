@@ -7,6 +7,12 @@ import { getClientIp } from "@/lib/api/client-ip";
 import { AlertasQuerySchema, parseQuery } from "@/lib/api/schemas";
 import { cacheControlForMesAno } from "@/lib/api/cache";
 
+// service_role intentional: auth is by API key, not by Supabase session.
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 /**
  * GET /api/v1/alertas
  *
@@ -40,12 +46,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    // service_role intencional: autenticação é por API key (não por sessão Supabase),
-    // logo não há auth.uid() — anon key bloquearia todas as queries via RLS.
-    // Segurança garantida por: verificarApiKey + rate limit + filtros explícitos abaixo.
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = supabaseAdmin;
 
     const { searchParams } = new URL(request.url);
     const parsed = parseQuery(AlertasQuerySchema, searchParams);

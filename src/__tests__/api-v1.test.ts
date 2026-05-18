@@ -283,11 +283,12 @@ describe("GET /api/v1/balanco", () => {
       error: null,
     });
     const mockEqInj = vi.fn(() => ({ in: mockInInj }));
-    // Mock para faturacao_clientes — cadeia: .eq()
-    const mockEqFat = vi.fn().mockResolvedValue({
+    // Mock para faturacao_clientes — cadeia: .eq().in()
+    const mockInFat = vi.fn().mockResolvedValue({
       data: [{ kwh_faturado: 8000, valor_cve: 120000, clientes: { id_subestacao: "s1" } }],
       error: null,
     });
+    const mockEqFat = vi.fn(() => ({ in: mockInFat }));
 
     // @ts-expect-error -- mockFrom originally takes 0 args; implementation routes by table name
     mockFrom.mockImplementation((table: string) => {

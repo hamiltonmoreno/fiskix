@@ -121,10 +121,16 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "subestacao_id (UUID) e mes_ano (YYYY-MM) são obrigatórios" }, 400);
     }
 
-    // 1. Carregar limiares configuráveis
+    // 1. Carregar limiares configuráveis (only scoring keys — avoid loading secrets into memory)
+    const SCORING_CONFIG_KEYS = [
+      "limiar_queda_pct", "limiar_cv_maximo", "limiar_mu_minimo", "limiar_zscore_cluster",
+      "limiar_div_sazonal", "limiar_slope_tendencia", "limiar_ratio_racio", "limiar_pico_ratio",
+      "limiar_perda_zona_pct",
+    ];
     const { data: configRows } = await supabase
       .from("configuracoes")
-      .select("chave, valor");
+      .select("chave, valor")
+      .in("chave", SCORING_CONFIG_KEYS);
 
     const config: Record<string, number> = {};
     for (const row of (configRows ?? [])) {
